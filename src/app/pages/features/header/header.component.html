@@ -1,0 +1,38 @@
+<div class="header">
+  <div class="header__main">
+    <h2 class="logo">Quick<span>Chat</span></h2>
+  </div>
+
+  <div class="header__actions">
+    <!-- <div class="header__notification">
+      <i class="pi pi-bell"></i>
+      <span class="header__badge">3</span>
+    </div> -->
+
+    <div
+      class="header__profile"
+      (click)="toggleUserMenu()"
+      style="cursor: pointer"
+    >
+      <img [src]="currentUser()?.photoUrl || userImage" alt="Profile" />
+      <div class="header__user-info">
+        <span class="header__name">{{
+          currentUser()?.firstName + " " + currentUser()?.lastName
+        }}</span>
+        <span class="header__role">
+          Account<i class="pi pi-chevron-down"></i>
+        </span>
+      </div>
+    </div>
+
+    @if (showUserMenu) {
+    <div class="user-menu">
+      <ul>
+        <li (click)="navTo('/profile')"><i class="pi pi-user"></i> Profile</li>
+        <li (click)="navTo('/chat')"><i class="pi pi-comment"></i> Chat</li>
+        <li (click)="logout()"><i class="pi pi-sign-out"></i> Logout</li>
+      </ul>
+    </div>
+    }
+  </div>
+</div>

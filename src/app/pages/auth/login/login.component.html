@@ -1,0 +1,67 @@
+<div class="login">
+  <header class="login__header">
+    <h1 class="login__title">Quick Chat</h1>
+  </header>
+
+  <section class="login__box">
+    <h2 class="login__heading">Welcome Back</h2>
+    <p class="login__subtext">Log in to resume your conversations.</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login__form">
+      <div class="login__form-group">
+        <label for="email" class="login__label">
+          Email <span class="text-danger">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          class="login__input"
+          formControlName="email"
+          [ngClass]="{ 'ng-invalid ng-touched': isInvalid('email') }"
+        />
+        <div class="login__error" *ngIf="email.touched && email.invalid">
+          <small class="text-danger" *ngIf="email.errors?.['required']"
+            >Email is required</small
+          >
+          <small class="text-danger" *ngIf="email.errors?.['email']"
+            >Invalid email address</small
+          >
+        </div>
+      </div>
+
+      <div class="login__form-group">
+        <label for="password" class="login__label">
+          Password <span class="text-danger">*</span>
+        </label>
+        <div class="login__password-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            class="login__input"
+            formControlName="password"
+            [ngClass]="{ 'ng-invalid ng-touched': isInvalid('password') }"
+          />
+          <i
+            class="pi password-toggle"
+            [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"
+            (click)="showPassword = !showPassword"
+          ></i>
+        </div>
+        <div class="login__error" *ngIf="password.touched && password.invalid">
+          <small class="text-danger" *ngIf="password.errors?.['required']"
+            >Password is required</small
+          >
+        </div>
+      </div>
+
+      <div class="login__actions">
+        <button type="submit" class="login__button btn" pButton>Sign In</button>
+      </div>
+
+      <div class="login__signup">
+        Don't have an account?
+        <a [routerLink]="['/signup']" class="login__link">Sign Up</a>
+      </div>
+    </form>
+  </section>
+</div>

@@ -1,0 +1,93 @@
+<div class="chat-container">
+  <div class="chat-users">
+    <h3>Chats</h3>
+    <input
+      type="search"
+      [(ngModel)]="searchText"
+      placeholder="Search or start new chat"
+    />
+    <div
+      class="user"
+      *ngFor="let user of users | filter : searchText"
+      (click)="selectUser(user)"
+      [class.active]="selectedUser?._id === user._id"
+    >
+      <span>{{ user.firstName }} {{ user.lastName }}</span>
+    </div>
+  </div>
+
+  <div class="chat-main">
+    <div *ngIf="!selectedUser" class="no-user">
+      <p>Please select a user to chat</p>
+    </div>
+
+    <div *ngIf="selectedUser" class="chat-section">
+      <div class="chat-header">
+        <img
+          class="avatar"
+          [src]="selectedUser.photoUrl || defaultAvatar"
+          alt="avatar"
+        />
+        <h4>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h4>
+      </div>
+
+      <div class="chat-messages">
+        <ng-container *ngFor="let group of groupedMessages">
+          <div class="chat-date">{{ group.date }}</div>
+          <ng-container *ngFor="let msg of group.messages">
+            <div
+              class="chat-message"
+              [class.self]="msg.sender === currentUser()._id"
+            >
+              <img
+                class="avatar"
+                [src]="msg.avatarUrl || defaultAvatar"
+                alt="avatar"
+              />
+              <div class="bubble">
+                <div class="message-content">{{ msg.content }}</div>
+                <div class="message-meta">
+                  <small>
+                    {{
+                      msg.sender === currentUser()._id
+                        ? "You"
+                        : selectedUser.firstName
+                    }}
+                  </small>
+                  <small>{{ msg.timestamp | date : "shortTime" }}</small>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" *ngIf="isTyping">
+          <img
+            [src]="selectedUser?.photoUrl || defaultAvatar"
+            class="avatar"
+            alt="typing"
+          />
+          <div class="bubble typing">
+            <span></span><span></span><span></span>
+            <small>{{ selectedUser?.firstName }} is typing...</small>
+          </div>
+        </div>
+      </div>
+
+      <form class="chat-input" (ngSubmit)="sendMessage()">
+        <input
+          [(ngModel)]="messageText"
+          name="message"
+          required
+          placeholder="Message..."
+          (input)="handleTyping()"
+          autocomplete="off"
+        />
+        <button type="submit" class="btn" [disabled]="!messageText.trim()">
+          Send
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

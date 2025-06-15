@@ -1,0 +1,158 @@
+.login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+
+  &__header {
+    width: 100%;
+    background-color: var(--primary);
+    padding: 3rem 1rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__title {
+    color: #fff;
+    font-size: 2.5rem;
+    font-weight: bold;
+  }
+
+  &__box {
+    background-color: #fff;
+    margin-top: -2rem;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 35rem;
+  }
+
+  &__heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  &__subtext {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  &__form {
+    width: 100%;
+  }
+
+  &__form-group {
+    margin-bottom: 1.5rem;
+    width: 100%;
+
+    .login__label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .login__input,
+    .p-inputtext {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 0.4rem;
+      background-color: #f5f5f5;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      &.ng-invalid.ng-dirty,
+      &.ng-invalid.ng-touched {
+        border-color: red;
+        background-color: #fff0f0;
+      }
+    }
+  }
+
+  &__password-wrapper {
+    position: relative;
+
+    .login__input {
+      padding-right: 2.5rem;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+  }
+
+  &__error {
+    color: red;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+
+    .login__button {
+      width: 100%;
+      max-width: 200px;
+    }
+  }
+
+  &__signup {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #555;
+
+    .login__link {
+      font-weight: bold;
+      margin-left: 0.25rem;
+    }
+  }
+
+  &__link {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__title {
+      font-size: 2rem;
+    }
+
+    &__box {
+      padding: 1.5rem;
+      margin-top: -1rem;
+    }
+
+    &__heading {
+      font-size: 1.3rem;
+    }
+
+    &__subtext {
+      font-size: 0.9rem;
+    }
+  }
+}

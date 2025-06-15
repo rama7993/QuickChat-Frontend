@@ -1,0 +1,117 @@
+@import "primeicons/primeicons.css";
+
+:root {
+  --primary: #2c0b3f;
+  --secondary: #2a092a;
+  --accent: #a44dca;
+  --hover: #350c35;
+  --focus: #8e44ad;
+
+  --warning: #f1c40f;
+  --dark: #2c0b3f;
+  --light: #f8f9fa;
+
+  --primary-dark: #250825;
+  --primary-light: #3d78ba;
+  --background: #2a2874;
+
+  --text-light: #ffffff;
+  --text-dark: #1a1a1a;
+}
+
+* {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  outline: none;
+  border: none;
+  text-decoration: none;
+  // text-transform: capitalize;
+  transition: all 0.2s linear;
+}
+
+*::selection {
+  background: var(--secondary);
+  color: #fff;
+}
+
+html {
+  // font-size: 62.5%; // 1rem = 10px
+  overflow-x: hidden;
+  scroll-padding-top: 6.5rem;
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+ul,
+ol,
+li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+p {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+.btn {
+  background-color: var(--primary);
+  color: #fff;
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 2rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #18152b;
+  }
+
+  &:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+
+  span {
+    color: red;
+    margin-left: 0.25rem;
+  }
+}
