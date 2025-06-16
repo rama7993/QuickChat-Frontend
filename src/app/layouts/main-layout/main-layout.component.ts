@@ -13,7 +13,7 @@ export class MainLayoutComponent {
   authService = inject(AuthService);
 
   ngOnInit() {
-    this.getCurrentUser();
+    //this.getCurrentUser();
   }
 
   getCurrentUser() {

@@ -9,7 +9,6 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { AlertService } from '../../../core/services/alerts/alert.service';
-import { SafeStorageService } from '../../../core/services/storage/safe-storage.service';
 
 @Component({
   selector: 'app-login',
@@ -25,8 +24,7 @@ export class LoginComponent {
     private router: Router,
     private fb: FormBuilder,
     private authService: AuthService,
-    private alertService: AlertService,
-    private storage: SafeStorageService
+    private alertService: AlertService
   ) {}
 
   ngOnInit() {
@@ -49,8 +47,7 @@ export class LoginComponent {
       const { email, password } = this.loginForm.value;
 
       this.authService.login(email, password).subscribe({
-        next: (res) => {
-          this.storage.set('token', res.token);
+        next: () => {
           this.router.navigate(['/chat']);
         },
         error: (err) => {

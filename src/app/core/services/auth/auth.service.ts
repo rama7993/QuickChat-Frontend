@@ -13,11 +13,15 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(email: string, password: string): Observable<any> {
-    return this.http.post(
-      `${this.API_URL}/auth/login`,
-      { email, password },
-      { withCredentials: true }
-    );
+    return this.http
+      .post<{ user: any }>(
+        `${this.API_URL}/auth/login`,
+        { email, password },
+        {
+          withCredentials: true,
+        }
+      )
+      .pipe(tap((res) => this.updateUser(res.user)));
   }
 
   register(data: {
