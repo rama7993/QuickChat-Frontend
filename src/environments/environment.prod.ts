@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   apiUrl:
-    'https://quick-chat-be.vercel.app/api',
+    'https://quickchat-backend-tc99.onrender.com/api',
   socketUrl:
-    'https://quick-chat-be.vercel.app',
+    'https://quickchat-backend-tc99.onrender.com',
 };
