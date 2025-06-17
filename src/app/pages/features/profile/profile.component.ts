@@ -7,6 +7,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { AlertService } from '../../../core/services/alerts/alert.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -17,6 +19,9 @@ import { AuthService } from '../../../core/services/auth/auth.service';
 export class ProfileComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private alertService = inject(AlertService);
+  private router = inject(Router);
+
   profileForm!: FormGroup;
   previewUrl: string | ArrayBuffer | null = null;
   currentUser = this.authService.currentUser;
@@ -34,12 +39,14 @@ export class ProfileComponent {
       email: ['', [Validators.required, Validators.email]],
       gender: [''],
       bio: [''],
-      age: [null, [Validators.min(18)]],
-      street: [''],
-      city: [''],
-      state: [''],
-      zip: [''],
       photoUrl: [''],
+      age: [null, [Validators.min(18)]],
+      address: this.fb.group({
+        street: [''],
+        city: [''],
+        state: [''],
+        zip: [''],
+      }),
     });
   }
 
@@ -56,21 +63,21 @@ export class ProfileComponent {
   }
 
   onSubmit() {
-    if (this.profileForm.valid) {
-      const formData = this.profileForm.value;
-      const userId = this.currentUser()?._id;
+    if (this.profileForm.invalid) return;
 
-      if (!userId) return;
+    const userId = this.currentUser()?._id;
+    if (!userId) return;
 
-      this.authService.updateUserById(userId, formData).subscribe({
-        next: (updatedUser) => {
-          this.authService.updateUser(updatedUser);
-          console.log('User updated:', updatedUser);
-        },
-        error: (err) => {
-          console.error('Update failed', err);
-        },
-      });
-    }
+    const formValue = this.profileForm.value;
+    this.authService.updateUserById(userId, formValue).subscribe({
+      next: (resp: any) => {
+        this.authService.updateUser(resp.user);
+        this.alertService.successToaster('User updated!');
+        this.router.navigate(['/chat']);
+      },
+      error: (err) => {
+        console.error('Update failed', err);
+      },
+    });
   }
 }

@@ -3,21 +3,25 @@
   (ngSubmit)="onSubmit()"
   enctype="multipart/form-data"
 >
+  <!-- First Name -->
   <div>
-    <label>First Name</label>
+    <label>First Name <span class="required">*</span></label>
     <input type="text" formControlName="firstName" />
   </div>
 
+  <!-- Last Name -->
   <div>
-    <label>Last Name</label>
+    <label>Last Name <span class="required">*</span></label>
     <input type="text" formControlName="lastName" />
   </div>
 
+  <!-- Email (Read-only) -->
   <div>
-    <label>Email</label>
-    <input type="email" formControlName="email" />
+    <label>Email <span class="required">*</span></label>
+    <input type="email" formControlName="email" readonly />
   </div>
 
+  <!-- Gender -->
   <div>
     <label>Gender</label>
     <select formControlName="gender">
@@ -28,36 +32,39 @@
     </select>
   </div>
 
+  <!-- Bio -->
   <div>
     <label>Bio</label>
     <textarea formControlName="bio" rows="4"></textarea>
   </div>
 
+  <!-- Age -->
   <div>
     <label>Age</label>
     <input type="number" formControlName="age" />
   </div>
 
-  <div>
-    <label>Street</label>
-    <input type="text" formControlName="street" />
+  <!-- Address Group -->
+  <div formGroupName="address">
+    <div>
+      <label>Street</label>
+      <input type="text" formControlName="street" />
+    </div>
+    <div>
+      <label>City</label>
+      <input type="text" formControlName="city" />
+    </div>
+    <div>
+      <label>State</label>
+      <input type="text" formControlName="state" />
+    </div>
+    <div>
+      <label>ZIP</label>
+      <input type="text" formControlName="zip" />
+    </div>
   </div>
 
-  <div>
-    <label>City</label>
-    <input type="text" formControlName="city" />
-  </div>
-
-  <div>
-    <label>State</label>
-    <input type="text" formControlName="state" />
-  </div>
-
-  <div>
-    <label>ZIP</label>
-    <input type="text" formControlName="zip" />
-  </div>
-
+  <!-- Photo URL -->
   <div>
     <label>Photo URL</label>
     <input
@@ -67,14 +74,19 @@
     />
   </div>
 
+  <!-- File Upload -->
   <div>
     <label>Or Upload Photo</label>
     <input type="file" (change)="onFileSelected($event)" />
   </div>
 
+  <!-- Preview -->
   <div *ngIf="previewUrl">
     <img [src]="previewUrl" alt="Preview" width="150" height="150" />
   </div>
 
-  <button type="submit" [disabled]="profileForm.invalid">Update Profile</button>
+  <!-- Submit -->
+  <button type="submit" class="btn" [disabled]="profileForm.invalid">
+    Update Profile
+  </button>
 </form>

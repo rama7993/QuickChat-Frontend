@@ -1,4 +1,6 @@
-<div class="chat-container">
+<div class="chat-container" [ngClass]="{ mobile: isMobile }">
+  <!-- USER LIST -->
+  @if (!isMobile || (isMobile && !selectedUser)) {
   <div class="chat-users">
     <h3>Chats</h3>
     <input
@@ -15,7 +17,10 @@
       <span>{{ user.firstName }} {{ user.lastName }}</span>
     </div>
   </div>
+  }
 
+  <!-- CHAT VIEW -->
+  @if (!isMobile || (isMobile && selectedUser)) {
   <div class="chat-main">
     <div *ngIf="!selectedUser" class="no-user">
       <p>Please select a user to chat</p>
@@ -23,43 +28,48 @@
 
     <div *ngIf="selectedUser" class="chat-section">
       <div class="chat-header">
-        <img
-          class="avatar"
-          [src]="selectedUser.photoUrl || defaultAvatar"
-          alt="avatar"
-        />
-        <h4>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h4>
+        <div class="user-info">
+          <img
+            class="avatar"
+            [src]="selectedUser.photoUrl || defaultAvatar"
+            alt="avatar"
+          />
+          <h4>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h4>
+        </div>
+
+        <span class="close-icon" *ngIf="isMobile" (click)="selectedUser = null">
+          <i class="pi pi-times-circle"></i>
+        </span>
       </div>
 
       <div class="chat-messages">
-        <ng-container *ngFor="let group of groupedMessages">
-          <div class="chat-date">{{ group.date }}</div>
-          <ng-container *ngFor="let msg of group.messages">
-            <div
-              class="chat-message"
-              [class.self]="msg.sender === currentUser()._id"
-            >
-              <img
-                class="avatar"
-                [src]="msg.avatarUrl || defaultAvatar"
-                alt="avatar"
-              />
-              <div class="bubble">
-                <div class="message-content">{{ msg.content }}</div>
-                <div class="message-meta">
-                  <small>
-                    {{
-                      msg.sender === currentUser()._id
-                        ? "You"
-                        : selectedUser.firstName
-                    }}
-                  </small>
-                  <small>{{ msg.timestamp | date : "shortTime" }}</small>
-                </div>
-              </div>
+        @for ( group of groupedMessages; track $index) {
+        <div class="chat-date">{{ group.date }}</div>
+        @for (msg of group.messages; track msg._id) {
+        <div
+          class="chat-message"
+          [class.self]="msg.sender._id === currentUser()._id"
+        >
+          <img
+            class="avatar"
+            [src]="msg.sender.photoUrl || defaultAvatar"
+            alt="avatar"
+          />
+          <div class="bubble">
+            <div class="message-content">{{ msg.content }}</div>
+            <div class="message-meta">
+              <small>
+                {{
+                  msg.sender._id === currentUser()._id
+                    ? "You"
+                    : selectedUser.firstName
+                }}
+              </small>
+              <small>{{ msg.timestamp | date : "shortTime" }}</small>
             </div>
-          </ng-container>
-        </ng-container>
+          </div>
+        </div>
+        } }
 
         <!-- Typing Indicator -->
         <div class="typing-indicator" *ngIf="isTyping">
@@ -90,4 +100,5 @@
       </form>
     </div>
   </div>
+  }
 </div>

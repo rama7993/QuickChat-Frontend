@@ -1,4 +1,10 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { SocketService } from '../../../core/services/socket/socket.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -23,6 +29,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   messages: any[] = [];
   groupedMessages: { date: string; messages: any[] }[] = [];
   selectedUser: any = null;
+  isMobile: boolean = false;
 
   messageText = '';
   searchText = '';
@@ -36,13 +43,17 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadUsers();
+    this.checkScreenSize();
 
     this.socketSubscription = this.socketService
       .onMessage()
       .subscribe((msg) => {
-        // msg has {roomId, message}
-        if (msg.roomId === this.activeRoomId) {
-          this.messages.push(msg.message);
+        const senderId = msg.sender?._id;
+        const receiverId = msg.receiver?._id;
+        const msgRoomId = this.generateRoomId(senderId, receiverId);
+
+        if (this.activeRoomId === msgRoomId) {
+          this.messages.push(msg);
           this.groupMessagesByDate();
         }
       });
@@ -79,7 +90,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.activeRoomId = this.generateRoomId(this.currentUser()._id, user._id);
     this.socketService.joinRoom(this.activeRoomId);
 
-    // Load previous messages from backend
     this.chatService
       .getMessages(this.currentUser()._id, user._id)
       .subscribe((msgs) => {
@@ -95,22 +105,20 @@ export class ChatComponent implements OnInit, OnDestroy {
   sendMessage() {
     if (!this.messageText.trim() || !this.selectedUser) return;
 
-    const message: any = {
+    const newMsg = {
       sender: this.currentUser()._id,
       receiver: this.selectedUser._id,
       content: this.messageText.trim(),
       timestamp: new Date(),
-      avatarUrl: this.currentUser().photoUrl || this.defaultAvatar,
     };
 
-    // Send via socket
-    this.socketService.sendMessage(this.activeRoomId, message);
+    this.socketService.sendMessage(this.activeRoomId, newMsg);
 
-    // Send via REST to store in DB
-    this.chatService.sendMessage(message).subscribe();
-
-    // Optimistically add message locally
-    this.messages.push(message);
+    const localMessage = {
+      ...newMsg,
+      sender: this.currentUser(),
+    };
+    this.messages.push(localMessage);
     this.groupMessagesByDate();
 
     this.messageText = '';
@@ -139,5 +147,17 @@ export class ChatComponent implements OnInit, OnDestroy {
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         ),
       }));
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkScreenSize();
+  }
+
+  checkScreenSize() {
+    this.isMobile = window.innerWidth <= 768;
+    if (!this.isMobile) {
+      this.selectedUser = this.selectedUser || null;
+    }
   }
 }
