@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
+import { Message } from '../../interfaces/message.model';
 
 @Injectable({
   providedIn: 'root',
@@ -15,12 +16,8 @@ export class ChatService {
   }
 
   getMessages(userId1: string, userId2: string) {
-    return this.http.get<any[]>(
+    return this.http.get<Message[]>(
       `${this.apiUrl}/messages/${userId1}/${userId2}`
     );
-  }
-
-  sendMessage(message: any) {
-    return this.http.post(`${this.apiUrl}/messages`, message);
   }
 }

@@ -12,6 +12,8 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { FilterPipe } from '../../../core/pipes/filter/filter.pipe';
 import { ChatService } from '../../../core/services/chat/chat.service';
+import { Message } from '../../../core/interfaces/message.model';
+import { Default_Img_Url } from '../../../../utils/constants.utils';
 
 @Component({
   selector: 'app-chat',
@@ -26,15 +28,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   private chatService = inject(ChatService);
 
   users: any[] = [];
-  messages: any[] = [];
-  groupedMessages: { date: string; messages: any[] }[] = [];
+  messages: Message[] = [];
+  groupedMessages: { date: string; messages: Message[] }[] = [];
   selectedUser: any = null;
   isMobile: boolean = false;
 
   messageText = '';
   searchText = '';
   currentUser = this.authService.currentUser;
-  defaultAvatar = 'https://i.pravatar.cc/150?img=32';
+  defaultAvatar = Default_Img_Url;
   isTyping = false;
 
   private socketSubscription!: Subscription;
@@ -113,14 +115,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     };
 
     this.socketService.sendMessage(this.activeRoomId, newMsg);
-
-    const localMessage = {
-      ...newMsg,
-      sender: this.currentUser(),
-    };
-    this.messages.push(localMessage);
-    this.groupMessagesByDate();
-
     this.messageText = '';
   }
 
