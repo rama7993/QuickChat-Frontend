@@ -9,6 +9,7 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { AlertService } from '../../../core/services/alerts/alert.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -63,5 +64,9 @@ export class LoginComponent {
   isInvalid(controlName: string): boolean {
     const control = this.loginForm.get(controlName);
     return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  loginWith(provider: 'google' | 'linkedin') {
+    window.location.href = `${environment.apiUrl}/auth/${provider}`;
   }
 }

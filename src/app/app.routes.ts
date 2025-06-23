@@ -35,6 +35,13 @@ export const routes: Routes = [
             (m) => m.ChangePasswordComponent
           ),
       },
+      // {
+      //   path: 'login-success',
+      //   loadComponent: () =>
+      //     import('./pages/auth/login-success/login-success.component').then(
+      //       (m) => m.LoginSuccessComponent
+      //     ),
+      // },
     ],
   },
   {
