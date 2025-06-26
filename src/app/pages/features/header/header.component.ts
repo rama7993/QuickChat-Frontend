@@ -24,14 +24,9 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    this.authService.logout().subscribe({
-      next: () => {
-        this.showUserMenu = false;
-        this.router.navigate(['/login']);
-      },
-      error: (err) => {
-        console.error('Logout failed:', err);
-      },
-    });
+    this.authService.logout();
+
+    this.showUserMenu = false;
+    this.router.navigate(['/login']);
   }
 }

@@ -7,12 +7,11 @@ import { map, catchError, of } from 'rxjs';
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   const authService = inject(AuthService);
-  //If user already exists in signal
   const user = authService.currentUser();
 
   if (user) return true;
 
-  // Else: Try to fetch current user from API
+  // ❌ No user in signal: fallback to API call
   return authService.fetchCurrentUser().pipe(
     map((user) => {
       if (user) return true;

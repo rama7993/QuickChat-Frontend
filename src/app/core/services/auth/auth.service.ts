@@ -14,14 +14,16 @@ export class AuthService {
 
   login(email: string, password: string): Observable<any> {
     return this.http
-      .post<{ user: any }>(
-        `${this.API_URL}/auth/login`,
-        { email, password },
-        {
-          withCredentials: true,
-        }
-      )
-      .pipe(tap((res) => this.updateUser(res.user)));
+      .post<{ user: any; token: string }>(`${this.API_URL}/auth/login`, {
+        email,
+        password,
+      })
+      .pipe(
+        tap((res) => {
+          localStorage.setItem('authToken', res.token); // ✅ store token
+          this.updateUser(res.user);
+        })
+      );
   }
 
   register(data: {
@@ -30,25 +32,17 @@ export class AuthService {
     email: string;
     password: string;
   }): Observable<any> {
-    return this.http.post(`${this.API_URL}/auth/register`, data, {
-      withCredentials: true,
-    });
+    return this.http.post(`${this.API_URL}/auth/register`, data);
   }
 
-  logout(): Observable<any> {
-    return this.http.post(
-      `${this.API_URL}/auth/logout`,
-      {},
-      {
-        withCredentials: true,
-        responseType: 'text' as const,
-      }
-    );
+  logout(): void {
+    localStorage.removeItem('authToken'); // ✅ Clear token manually
+    this.userSignal.set(null);
   }
 
   fetchCurrentUser(): Observable<any> {
     return this.http
-      .get(`${this.API_URL}/users/me`, { withCredentials: true })
+      .get(`${this.API_URL}/users/me`)
       .pipe(tap((user) => this.userSignal.set(user)));
   }
 
@@ -61,14 +55,10 @@ export class AuthService {
   }
 
   getUsers(): Observable<any> {
-    return this.http.get(`${this.API_URL}/users`, {
-      withCredentials: true,
-    });
+    return this.http.get(`${this.API_URL}/users`);
   }
 
   updateUserById(id: string, userData: any): Observable<any> {
-    return this.http.put(`${this.API_URL}/users/${id}`, userData, {
-      withCredentials: true,
-    });
+    return this.http.put(`${this.API_URL}/users/${id}`, userData);
   }
 }
