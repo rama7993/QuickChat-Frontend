@@ -67,7 +67,7 @@ export class AuthService {
   }
 
   updateUserById(id: string, userData: any): Observable<any> {
-    return this.http.patch(`${this.API_URL}/users/${id}`, userData, {
+    return this.http.put(`${this.API_URL}/users/${id}`, userData, {
       withCredentials: true,
     });
   }

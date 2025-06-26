@@ -11,7 +11,6 @@ import { AuthService } from '../../../core/services/auth/auth.service';
 export class HeaderComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
-  userImage = 'https://i.pravatar.cc/150?img=32';
   showUserMenu = false;
   currentUser = this.authService.currentUser;
 

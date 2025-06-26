@@ -34,19 +34,19 @@
 
     .user {
       padding: 0.75rem 1rem;
-      border-radius: 10px;
+      border-radius: 12px;
       cursor: pointer;
       font-size: 0.95rem;
-      transition: background 0.2s;
+      transition: background 0.2s, color 0.2s;
 
       &:hover {
-        background: #f0f0f0;
+        background: rgba(255, 255, 255, 0.07);
       }
 
       &.active {
-        background: var(--secondary);
+        background: var(--accent);
         font-weight: 600;
-        color: #ffff;
+        color: #000;
       }
     }
   }

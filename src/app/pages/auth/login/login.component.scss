@@ -2,80 +2,92 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   min-height: 100vh;
-  background-color: #f9f9f9;
+  overflow-y: auto;
+  background: radial-gradient(
+    circle at top,
+    var(--primary),
+    var(--secondary),
+    var(--background)
+  );
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  animation: backgroundShift 10s infinite alternate;
 
   &__header {
-    width: 100%;
-    background-color: var(--primary);
-    padding: 3rem 1rem;
-    display: flex;
-    justify-content: center;
-  }
+    margin-bottom: 2rem;
+    text-align: center;
 
-  &__title {
-    color: #fff;
-    font-size: 2.5rem;
-    font-weight: bold;
+    .login__title {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text-light);
+      text-shadow: 0 0 20px rgba(0, 255, 255, 0.4); // keep glow
+    }
+
+    .login__tagline {
+      color: #ccc;
+      font-size: 1.1rem;
+    }
   }
 
   &__box {
-    background-color: #fff;
-    margin-top: -2rem;
-    padding: 2rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 2.5rem;
     width: 100%;
-    max-width: 35rem;
+    max-width: 400px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
   }
 
   &__heading {
-    font-size: 1.5rem;
+    color: var(--text-light);
+    font-size: 1.75rem;
     font-weight: 600;
-    text-align: center;
     margin-bottom: 0.5rem;
+    text-align: center;
   }
 
   &__subtext {
+    color: #ccc;
     text-align: center;
-    font-size: 0.95rem;
-    color: #666;
     margin-bottom: 2rem;
-  }
-
-  &__form {
-    width: 100%;
   }
 
   &__form-group {
     margin-bottom: 1.5rem;
-    width: 100%;
 
     .login__label {
+      color: #ddd;
+      margin-bottom: 0.4rem;
       display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
     }
 
-    .login__input,
-    .p-inputtext {
+    .login__input {
       width: 100%;
-      padding: 0.6rem 0.75rem;
-      font-size: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 0.4rem;
-      background-color: #f5f5f5;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: var(--text-light);
+      transition: all 0.3s ease;
+
+      &::placeholder {
+        color: #aaa;
+      }
 
       &:focus {
         outline: none;
-        border-color: var(--primary);
+        border-color: var(--focus);
+        box-shadow: 0 0 10px #00ffe7aa;
       }
+    }
 
-      &.ng-invalid.ng-dirty,
-      &.ng-invalid.ng-touched {
-        border-color: red;
-        background-color: #fff0f0;
-      }
+    .ng-invalid.ng-touched {
+      border-color: #ff4d4d;
+      background-color: rgba(255, 77, 77, 0.05);
     }
   }
 
@@ -93,114 +105,102 @@
       transform: translateY(-50%);
       cursor: pointer;
       color: var(--accent);
-      font-size: 1.2rem;
     }
   }
 
   &__error {
-    color: red;
+    color: #ff4d4d;
     font-size: 0.8rem;
     margin-top: 0.25rem;
   }
 
   &__actions {
-    display: flex;
-    justify-content: center;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
 
     .login__button {
       width: 100%;
-      max-width: 200px;
+      padding: 0.75rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 0.5rem;
+      background: linear-gradient(135deg, var(--accent), var(--hover));
+      color: #000;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 0 12px var(--accent);
+      }
     }
   }
 
   &__signup {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     text-align: center;
-    font-size: 0.9rem;
-    color: #555;
+    color: #bbb;
 
     .login__link {
+      color: var(--accent);
+      text-decoration: none;
       font-weight: bold;
-      margin-left: 0.25rem;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 
-  &__link {
-    color: var(--primary);
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  @media (max-width: 480px) {
-    &__title {
-      font-size: 2rem;
-    }
-
-    &__box {
-      padding: 1.5rem;
-      margin-top: -1rem;
-    }
-
-    &__heading {
-      font-size: 1.3rem;
-    }
-
-    &__subtext {
-      font-size: 0.9rem;
-    }
-  }
-}
-
-.login__divider {
-  text-align: center;
-  margin: 1rem 0;
-  span {
-    font-size: 0.9rem;
+  &__divider {
+    text-align: center;
+    margin: 1.5rem 0;
     color: #999;
   }
+
+  &__social {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .login__social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+      background-color: #fff;
+      border-radius: 0.5rem;
+      gap: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &.google {
+        color: #db4437;
+        border: 1px solid #db4437;
+      }
+
+      &.linkedin {
+        color: #0a66c2;
+        border: 1px solid #0a66c2;
+      }
+
+      &:hover {
+        transform: scale(1.03);
+        background-color: #f0f0f0;
+      }
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
 }
 
-.login__social {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
-
-  .login__social-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
-    cursor: pointer;
-    transition: 0.2s;
-
-    &.google {
-      border-color: #db4437;
-      color: #db4437;
-    }
-
-    &.linkedin {
-      border-color: #0a66c2;
-      color: #0a66c2;
-    }
-
-    img {
-      width: 20px;
-      height: 20px;
-    }
-
-    &:hover {
-      background-color: #f7f7f7;
-    }
+@keyframes backgroundShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
   }
 }

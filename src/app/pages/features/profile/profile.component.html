@@ -2,91 +2,92 @@
   [formGroup]="profileForm"
   (ngSubmit)="onSubmit()"
   enctype="multipart/form-data"
+  class="profile-form"
 >
-  <!-- First Name -->
-  <div>
-    <label>First Name <span class="required">*</span></label>
-    <input type="text" formControlName="firstName" />
-  </div>
+  <div class="form-container">
+    <!-- Left: Image section -->
+    <div class="profile-left">
+      <div class="image-preview">
+        <img
+          *ngIf="previewUrl"
+          [src]="previewUrl"
+          alt="Profile"
+          width="150"
+          height="150"
+        />
+        <div *ngIf="!previewUrl" class="placeholder">No Image</div>
+      </div>
 
-  <!-- Last Name -->
-  <div>
-    <label>Last Name <span class="required">*</span></label>
-    <input type="text" formControlName="lastName" />
-  </div>
+      <label>Upload Photo</label>
+      <input type="file" (change)="onFileSelected($event)" />
 
-  <!-- Email (Read-only) -->
-  <div>
-    <label>Email <span class="required">*</span></label>
-    <input type="email" formControlName="email" readonly />
-  </div>
-
-  <!-- Gender -->
-  <div>
-    <label>Gender</label>
-    <select formControlName="gender">
-      <option value="">Select</option>
-      <option value="Male">Male</option>
-      <option value="Female">Female</option>
-      <option value="Others">Others</option>
-    </select>
-  </div>
-
-  <!-- Bio -->
-  <div>
-    <label>Bio</label>
-    <textarea formControlName="bio" rows="4"></textarea>
-  </div>
-
-  <!-- Age -->
-  <div>
-    <label>Age</label>
-    <input type="number" formControlName="age" />
-  </div>
-
-  <!-- Address Group -->
-  <div formGroupName="address">
-    <div>
-      <label>Street</label>
-      <input type="text" formControlName="street" />
+      <label>Or Photo URL</label>
+      <input
+        type="text"
+        formControlName="photoUrl"
+        placeholder="https://example.com/photo.jpg"
+      />
     </div>
-    <div>
-      <label>City</label>
-      <input type="text" formControlName="city" />
-    </div>
-    <div>
-      <label>State</label>
-      <input type="text" formControlName="state" />
-    </div>
-    <div>
-      <label>ZIP</label>
-      <input type="text" formControlName="zip" />
-    </div>
-  </div>
+    <!-- Right: Form fields -->
+    <div class="profile-right">
+      <div class="basic-info">
+        <div>
+          <label>First Name <span class="required">*</span></label>
+          <input type="text" formControlName="firstName" />
+        </div>
+        <div>
+          <label>Last Name <span class="required">*</span></label>
+          <input type="text" formControlName="lastName" />
+        </div>
+        <div>
+          <label>Email <span class="required">*</span></label>
+          <input type="email" formControlName="email" readonly />
+        </div>
+        <div>
+          <label>Gender</label>
+          <select formControlName="gender">
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+        <div>
+          <label>Age</label>
+          <input type="number" formControlName="age" />
+        </div>
+        <div>
+          <label>Bio</label>
+          <textarea formControlName="bio" rows="3"></textarea>
+        </div>
+      </div>
 
-  <!-- Photo URL -->
-  <div>
-    <label>Photo URL</label>
-    <input
-      type="text"
-      formControlName="photoUrl"
-      placeholder="https://example.com/photo.jpg"
-    />
-  </div>
-
-  <!-- File Upload -->
-  <div>
-    <label>Or Upload Photo</label>
-    <input type="file" (change)="onFileSelected($event)" />
-  </div>
-
-  <!-- Preview -->
-  <div *ngIf="previewUrl">
-    <img [src]="previewUrl" alt="Preview" width="150" height="150" />
+      <div class="address-info" formGroupName="address">
+        <h4>Address</h4>
+        <div>
+          <label>Street</label>
+          <input type="text" formControlName="street" />
+        </div>
+        <div>
+          <label>City</label>
+          <input type="text" formControlName="city" />
+        </div>
+        <div>
+          <label>State</label>
+          <input type="text" formControlName="state" />
+        </div>
+        <div>
+          <label>ZIP</label>
+          <input type="text" formControlName="zip" />
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Submit -->
-  <button type="submit" class="btn" [disabled]="profileForm.invalid">
-    Update Profile
-  </button>
+  <div class="submit-section">
+    <button type="submit" class="btn" [disabled]="profileForm.invalid">
+      Update Profile
+    </button>
+  </div>
 </form>

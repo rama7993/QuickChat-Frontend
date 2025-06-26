@@ -1,22 +1,22 @@
 @import "primeicons/primeicons.css";
 
 :root {
-  --primary: #2c0b3f;
-  --secondary: #2a092a;
-  --accent: #a44dca;
-  --hover: #350c35;
-  --focus: #8e44ad;
+  --primary: #0f2027; /* Deep midnight blue (header / primary bg) */
+  --secondary: #203a43; /* Slightly lighter dark blue (containers/cards) */
+  --accent: #00ffe7; /* Neon aqua (focus color, glowing elements) */
+  --hover: #3fefef; /* Softer neon blue for hovers/transitions */
+  --focus: #00ffe7; /* Input focus glow */
 
-  --warning: #f1c40f;
-  --dark: #2c0b3f;
-  --light: #f8f9fa;
+  --warning: #f1c40f; /* Warning yellow (keep as is for alerts) */
+  --dark: #0f2027; /* Reverted to original deep dark blue */
+  --light: #f8f9fa; /* For text on dark backgrounds if needed */
 
-  --primary-dark: #250825;
-  --primary-light: #3d78ba;
-  --background: #2a2874;
+  --primary-dark: #0a0a0a; /* Very dark variant for contrast */
+  --primary-light: #3c9eff; /* Accent highlight (buttons or hovers) */
+  --background: #2c5364; /* Deep background layer for main app */
 
-  --text-light: #ffffff;
-  --text-dark: #1a1a1a;
+  --text-light: #ffffff; /* Light text (on dark UI) */
+  --text-dark: #1a1a1a; /* Dark text (on light containers) */
 }
 
 * {
@@ -83,23 +83,27 @@ select {
 }
 
 .btn {
-  background-color: var(--primary);
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--hover));
+  color: #000;
   padding: 0.6rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   border: none;
-  border-radius: 2rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
 
   &:hover {
-    background-color: #18152b;
+    background: linear-gradient(135deg, var(--hover), var(--accent));
+    box-shadow: 0 0 12px var(--hover), 0 0 24px var(--hover);
+    transform: scale(1.02);
   }
 
   &:disabled {
-    background: #999;
+    background: #666;
+    color: #ccc;
     cursor: not-allowed;
+    box-shadow: none;
   }
 }
 
