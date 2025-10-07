@@ -3,6 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { SafeStorageService } from '../storage/safe-storage.service';
+import { environment } from '../../../../environments/environment';
 
 export interface Message {
   _id: string;
@@ -142,7 +143,7 @@ export class SocketService {
     // console.log('Initializing socket connection...');
 
     // Connect to backend socket server
-    this.socket = io('http://localhost:3000', {
+    this.socket = io(environment.socketUrl, {
       auth: {
         token: token,
       },
