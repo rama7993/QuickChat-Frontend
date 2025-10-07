@@ -13,14 +13,16 @@ export class MainLayoutComponent {
   authService = inject(AuthService);
 
   ngOnInit() {
-    //this.getCurrentUser();
+    this.getCurrentUser();
   }
 
   getCurrentUser() {
     this.authService.fetchCurrentUser().subscribe({
-      next: () => {},
+      next: () => {
+        // User data is automatically handled by the auth service
+      },
       error: (err) => {
-        console.error('Failed to fetch current user:', err);
+        // console.error('Failed to fetch current user:', err); // Commented for production
       },
     });
   }

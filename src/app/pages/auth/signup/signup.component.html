@@ -1,12 +1,19 @@
 <div class="signup">
   <div class="signup__header">
-    <h1 class="signup__title">Quick Chat</h1>
+    <div class="signup__logo">
+      <div class="logo-icon">
+        <i class="pi pi-comments"></i>
+      </div>
+      <h1 class="signup__title">Quick<span>Chat</span></h1>
+    </div>
     <p class="signup__tagline">Fast. Secure. Effortless Conversations.</p>
   </div>
 
   <div class="signup__box">
-    <h2 class="signup__heading">Join Us</h2>
-    <p class="signup__info">Sign up to chat, share, and stay connected.</p>
+    <div class="signup__box-header">
+      <h2 class="signup__heading">Join Us</h2>
+      <p class="signup__info">Sign up to chat, share, and stay connected.</p>
+    </div>
 
     <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup__form">
       <!-- First Name -->
@@ -86,7 +93,10 @@
 
       <!-- Submit -->
       <div class="signup__actions">
-        <button class="btn" type="submit">Sign Up</button>
+        <button class="btn" type="submit">
+          <i class="pi pi-user-plus"></i>
+          Sign Up
+        </button>
       </div>
 
       <!-- Redirect -->

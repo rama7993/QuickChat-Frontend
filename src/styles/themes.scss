@@ -1,0 +1,418 @@
+// Theme Variables and Mixins
+// This file contains all theme-related SCSS variables and mixins
+
+// Base theme variables (will be overridden by CSS custom properties)
+:root {
+  // Colors
+  --color-primary: #0a0f1c;
+  --color-secondary: #12223d;
+  --color-accent: #00d9ff;
+  --color-background: #101b2d;
+  --color-surface: #1a2332;
+  --color-text: #ffffff;
+  --color-textSecondary: #b0b8c8;
+  --color-border: #2a3441;
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-error: #f44336;
+  --color-info: #2196f3;
+
+  // Gradients
+  --gradient-primary: linear-gradient(135deg, #00d9ff, #1fe0ff);
+  --gradient-secondary: linear-gradient(135deg, #12223d, #1a2332);
+  --gradient-background: linear-gradient(135deg, #0a0f1c, #101b2d);
+
+  // Shadows
+  --shadow-small: 0 2px 8px rgba(0, 217, 255, 0.1);
+  --shadow-medium: 0 4px 16px rgba(0, 217, 255, 0.15);
+  --shadow-large: 0 8px 32px rgba(0, 217, 255, 0.2);
+
+  // Border Radius
+  --radius-small: 4px;
+  --radius-medium: 8px;
+  --radius-large: 12px;
+
+  // Spacing
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  // Typography
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  // Transitions
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+
+  // Z-index
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+// Mixins for common patterns
+@mixin theme-colors {
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+
+@mixin theme-surface {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+}
+
+@mixin theme-card {
+  @include theme-surface;
+  box-shadow: var(--shadow-small);
+  transition: all var(--transition-normal);
+
+  &:hover {
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-2px);
+  }
+}
+
+@mixin theme-button($variant: "primary") {
+  border: none;
+  border-radius: var(--radius-medium);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+
+  @if $variant == "primary" {
+    background: var(--gradient-primary);
+    color: var(--color-primary);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  @if $variant == "secondary" {
+    background: var(--color-secondary);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+
+    &:hover {
+      background: var(--color-accent);
+      color: var(--color-primary);
+    }
+  }
+
+  @if $variant == "ghost" {
+    background: transparent;
+    color: var(--color-text);
+
+    &:hover {
+      background: var(--color-surface);
+    }
+  }
+
+  @if $variant == "danger" {
+    background: var(--color-error);
+    color: white;
+
+    &:hover {
+      background: #d32f2f;
+    }
+  }
+}
+
+@mixin theme-input {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--color-textSecondary);
+  }
+}
+
+@mixin theme-avatar($size: "medium") {
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-secondary);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+
+  @if $size == "small" {
+    width: 2rem;
+    height: 2rem;
+    font-size: var(--font-size-sm);
+  }
+
+  @if $size == "medium" {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: var(--font-size-base);
+  }
+
+  @if $size == "large" {
+    width: 3rem;
+    height: 3rem;
+    font-size: var(--font-size-lg);
+  }
+
+  @if $size == "xl" {
+    width: 4rem;
+    height: 4rem;
+    font-size: var(--font-size-xl);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+@mixin theme-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--color-surface);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+
+    &:hover {
+      background: var(--color-accent);
+    }
+  }
+}
+
+@mixin theme-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@mixin theme-animation($name, $duration: var(--transition-normal)) {
+  animation: $name $duration ease-in-out;
+}
+
+// Keyframes for animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+// Utility classes
+.theme-transition {
+  transition: all var(--transition-normal);
+}
+
+.theme-glass {
+  @include theme-glass;
+}
+
+.theme-card {
+  @include theme-card;
+}
+
+.theme-button {
+  @include theme-button;
+}
+
+.theme-button-secondary {
+  @include theme-button("secondary");
+}
+
+.theme-button-ghost {
+  @include theme-button("ghost");
+}
+
+.theme-button-danger {
+  @include theme-button("danger");
+}
+
+.theme-input {
+  @include theme-input;
+}
+
+.theme-avatar {
+  @include theme-avatar;
+}
+
+.theme-avatar-small {
+  @include theme-avatar("small");
+}
+
+.theme-avatar-large {
+  @include theme-avatar("large");
+}
+
+.theme-avatar-xl {
+  @include theme-avatar("xl");
+}
+
+.theme-scrollbar {
+  @include theme-scrollbar;
+}
+
+// Animation utility classes
+.animate-fade-in {
+  @include theme-animation(fadeIn);
+}
+
+.animate-slide-in-up {
+  @include theme-animation(slideInUp);
+}
+
+.animate-slide-in-down {
+  @include theme-animation(slideInDown);
+}
+
+.animate-slide-in-left {
+  @include theme-animation(slideInLeft);
+}
+
+.animate-slide-in-right {
+  @include theme-animation(slideInRight);
+}
+
+.animate-pulse {
+  @include theme-animation(pulse, 2s);
+  animation-iteration-count: infinite;
+}
+
+.animate-bounce {
+  @include theme-animation(bounce, 1s);
+  animation-iteration-count: infinite;
+}

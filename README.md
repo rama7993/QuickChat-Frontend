@@ -1,59 +1,258 @@
-# Client
+# QuickChat Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.3.
+A modern real-time chat application frontend built with Angular 19, featuring a clean and responsive UI with real-time messaging capabilities.
 
-## Development server
+## Features
 
-To start a local development server, run:
+- **Real-time messaging** via Socket.IO
+- **User authentication** with JWT tokens
+- **Private and group chats**
+- **Typing indicators**
+- **Online/offline status**
+- **File uploads** (images, videos, audio, documents)
+- **Voice message recording**
+- **Message reactions, editing, and deletion**
+- **Message search**
+- **Responsive design** for mobile and desktop
+- **Dark/Light theme support**
+- **Emoji picker**
+- **Video call integration**
 
+## Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- Angular CLI (v19 or higher)
+
+## Installation
+
+1. Clone the repository and navigate to the frontend directory:
 ```bash
-ng serve
+cd "QuickChat frontend/client"
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+2. Install dependencies:
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+3. Install Angular CLI globally (if not already installed):
 ```bash
-ng generate --help
+npm install -g @angular/cli
 ```
 
-## Building
+## Running the Application
 
-To build the project run:
-
+### Development Mode
 ```bash
-ng build
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The application will start on `http://localhost:4200` and automatically open in your browser.
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
+### Build for Production
 ```bash
-ng test
+npm run build
 ```
 
-## Running end-to-end tests
+The build artifacts will be stored in the `dist/client/browser/` directory.
 
-For end-to-end (e2e) testing, run:
-
+### Watch Mode
 ```bash
-ng e2e
+npm run watch
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+This will build the application and watch for changes.
 
-## Additional Resources
+## Project Structure
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```
+src/
+├── app/
+│   ├── core/                    # Core functionality
+│   │   ├── guards/             # Route guards
+│   │   ├── interceptors/       # HTTP interceptors
+│   │   ├── interfaces/         # TypeScript interfaces
+│   │   ├── pipes/             # Custom pipes
+│   │   └── services/          # Core services
+│   ├── layouts/               # Layout components
+│   │   ├── auth-layout/       # Authentication layout
+│   │   └── main-layout/       # Main application layout
+│   ├── pages/                 # Page components
+│   │   ├── auth/              # Authentication pages
+│   │   └── features/          # Feature pages
+│   │       ├── chat/          # Chat functionality
+│   │       ├── groups/        # Group management
+│   │       ├── header/        # Header component
+│   │       ├── profile/       # User profile
+│   │       └── settings/      # Settings page
+│   └── shared/                # Shared components
+│       ├── components/        # Reusable components
+│       └── directives/        # Custom directives
+├── environments/              # Environment configurations
+├── styles/                    # Global styles
+└── utils/                     # Utility functions
+```
+
+## Key Components
+
+### Chat Components
+- **ChatComponent** - Main chat container
+- **ChatWindowComponent** - Chat window with message display
+- **ChatSidebarComponent** - Sidebar with user/group lists
+
+### Services
+- **SocketService** - Handles real-time communication
+- **ChatService** - Manages chat functionality
+- **AuthService** - Handles authentication
+- **GroupService** - Manages group operations
+
+### Shared Components
+- **FileUploadComponent** - File upload functionality
+- **VoiceRecorderComponent** - Voice message recording
+- **VideoCallComponent** - Video call integration
+- **ThemeSelectorComponent** - Theme switching
+
+## Environment Configuration
+
+The application uses environment files for configuration:
+
+### Development (`src/environments/environment.ts`)
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:3000/api',
+  socketUrl: 'http://localhost:3000'
+};
+```
+
+### Production (`src/environments/environment.prod.ts`)
+```typescript
+export const environment = {
+  production: true,
+  apiUrl: 'https://your-api-domain.com/api',
+  socketUrl: 'https://your-api-domain.com'
+};
+```
+
+## Socket.IO Integration
+
+The application uses Socket.IO for real-time communication:
+
+### Connection Setup
+```typescript
+// Socket service automatically connects on initialization
+this.socket = io('http://localhost:3000', {
+  auth: { token: authToken },
+  transports: ['websocket', 'polling']
+});
+```
+
+### Event Handling
+- **Message Events**: `message_received`, `message_updated`, `message_deleted`
+- **Typing Events**: `user_typing`, `user_stopped_typing`
+- **Status Events**: `user_online`, `user_offline`, `online_users`
+- **Room Events**: `join_room`, `leave_room`
+
+## State Management
+
+The application uses Angular signals for reactive state management:
+
+```typescript
+// Example: Message state
+public messages = signal<Message[]>([]);
+public typingUsers = signal<any[]>([]);
+public isTyping = signal(false);
+```
+
+## Styling
+
+The application uses:
+- **SCSS** for styling
+- **PrimeNG** components for UI elements
+- **Responsive design** with CSS Grid and Flexbox
+- **Theme support** with CSS custom properties
+
+## File Upload
+
+Supports multiple file types:
+- **Images**: jpg, png, gif, webp
+- **Videos**: mp4, webm, avi
+- **Audio**: mp3, wav, webm
+- **Documents**: pdf, doc, txt, zip
+
+Files are converted to base64 and sent via Socket.IO.
+
+## Voice Recording
+
+Voice messages are recorded using the Web Audio API:
+- Real-time recording with visual feedback
+- Automatic upload after recording
+- Support for multiple audio formats
+
+## Testing
+
+Run unit tests:
+```bash
+npm test
+```
+
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
+
+## Linting
+
+The project uses ESLint for code quality:
+```bash
+npm run lint
+```
+
+## Building and Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Deploy to Vercel
+The project includes `vercel.json` for easy deployment to Vercel:
+```bash
+vercel --prod
+```
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Performance Optimizations
+
+- **OnPush change detection** for better performance
+- **Lazy loading** for routes
+- **Tree shaking** for smaller bundle sizes
+- **Image optimization** for faster loading
+- **Message virtualization** for large chat histories
+
+## Security Features
+
+- **JWT token authentication**
+- **HTTP interceptors** for automatic token handling
+- **Route guards** for protected routes
+- **XSS protection** with Angular's built-in sanitization
+- **CSRF protection** via HTTP-only cookies
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+MIT License

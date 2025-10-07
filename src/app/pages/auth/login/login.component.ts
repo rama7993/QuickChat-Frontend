@@ -48,12 +48,18 @@ export class LoginComponent {
       const { email, password } = this.loginForm.value;
 
       this.authService.login(email, password).subscribe({
-        next: () => {
-          this.router.navigate(['/chat']);
+        next: (response) => {
+          // console.log('Login successful:', response); // Commented for production
+          // Small delay to ensure user is set in signal
+          setTimeout(() => {
+            this.router.navigate(['/chat']);
+          }, 100);
         },
         error: (err) => {
           console.error('Login error:', err.error);
-          this.alertService.errorToaster(err.error);
+          // Handle the new JSON error structure
+          const errorMessage = err.error?.message || err.error?.error || 'Login failed';
+          this.alertService.errorToaster(errorMessage);
         },
       });
     } else {

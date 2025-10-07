@@ -7,11 +7,18 @@ import { map, catchError, of } from 'rxjs';
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   const authService = inject(AuthService);
-  const user = authService.currentUser();
+  
+  // Check if token exists in localStorage
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    router.navigate(['/login']);
+    return false;
+  }
 
+  const user = authService.currentUser();
   if (user) return true;
 
-  // ❌ No user in signal: fallback to API call
+  // No user in signal: fetch from API
   return authService.fetchCurrentUser().pipe(
     map((user) => {
       if (user) return true;
@@ -19,6 +26,7 @@ export const authGuard: CanActivateFn = () => {
       return false;
     }),
     catchError(() => {
+      localStorage.removeItem('authToken');
       router.navigate(['/login']);
       return of(false);
     })

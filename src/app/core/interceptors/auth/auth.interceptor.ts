@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AlertService } from '../../services/alerts/alert.service';
+import { AuthService } from '../../services/auth/auth.service';
 import { SafeStorageService } from '../../services/storage/safe-storage.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -18,8 +19,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         const router = inject(Router);
         const alertService = inject(AlertService);
+        const authService = inject(AuthService);
+        
+        // Show error message
         alertService.errorToaster('Unauthorized: You have been logged out.');
-        safeStorage.remove('authToken'); // 🔑 Clear token
+        
+        // Clear token from storage
+        safeStorage.remove('authToken');
+        
+        // Call auth service logout for complete cleanup
+        authService.logout();
+        
+        // Navigate to login
         router.navigate(['/login']);
       }
 

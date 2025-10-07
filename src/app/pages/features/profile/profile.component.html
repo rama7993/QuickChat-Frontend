@@ -1,93 +1,203 @@
-<form
-  [formGroup]="profileForm"
-  (ngSubmit)="onSubmit()"
-  enctype="multipart/form-data"
-  class="profile-form"
->
-  <div class="form-container">
-    <!-- Left: Image section -->
-    <div class="profile-left">
-      <div class="image-preview">
-        <img
-          *ngIf="previewUrl"
-          [src]="previewUrl"
-          alt="Profile"
-          width="150"
-          height="150"
-        />
-        <div *ngIf="!previewUrl" class="placeholder">No Image</div>
-      </div>
-
-      <label>Upload Photo</label>
-      <input type="file" (change)="onFileSelected($event)" />
-
-      <label>Or Photo URL</label>
-      <input
-        type="text"
-        formControlName="photoUrl"
-        placeholder="https://example.com/photo.jpg"
-      />
-    </div>
-    <!-- Right: Form fields -->
-    <div class="profile-right">
-      <div class="basic-info">
-        <div>
-          <label>First Name <span class="required">*</span></label>
-          <input type="text" formControlName="firstName" />
-        </div>
-        <div>
-          <label>Last Name <span class="required">*</span></label>
-          <input type="text" formControlName="lastName" />
-        </div>
-        <div>
-          <label>Email <span class="required">*</span></label>
-          <input type="email" formControlName="email" readonly />
-        </div>
-        <div>
-          <label>Gender</label>
-          <select formControlName="gender">
-            <option value="">Select</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Others">Others</option>
-          </select>
-        </div>
-        <div>
-          <label>Age</label>
-          <input type="number" formControlName="age" />
-        </div>
-        <div>
-          <label>Bio</label>
-          <textarea formControlName="bio" rows="3"></textarea>
-        </div>
-      </div>
-
-      <div class="address-info" formGroupName="address">
-        <h4>Address</h4>
-        <div>
-          <label>Street</label>
-          <input type="text" formControlName="street" />
-        </div>
-        <div>
-          <label>City</label>
-          <input type="text" formControlName="city" />
-        </div>
-        <div>
-          <label>State</label>
-          <input type="text" formControlName="state" />
-        </div>
-        <div>
-          <label>ZIP</label>
-          <input type="text" formControlName="zip" />
-        </div>
-      </div>
-    </div>
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>Profile Settings</h1>
+    <p>Manage your account settings and preferences</p>
   </div>
 
-  <!-- Submit -->
-  <div class="submit-section">
-    <button type="submit" class="btn" [disabled]="profileForm.invalid">
-      Update Profile
-    </button>
+  <div class="profile-content">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'basic'"
+        (click)="setActiveTab('basic')"
+      >
+        <i class="pi pi-user"></i>
+        Basic Info
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'privacy'"
+        (click)="setActiveTab('privacy')"
+      >
+        <i class="pi pi-shield"></i>
+        Privacy
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <form
+      [formGroup]="profileForm"
+      (ngSubmit)="onSubmit()"
+      class="profile-form"
+    >
+      <!-- Basic Information Tab -->
+      @if (activeTab() === 'basic') {
+      <div class="tab-content">
+        <div class="section">
+          <h2>Personal Information</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input
+                type="text"
+                id="firstName"
+                formControlName="firstName"
+                class="form-input"
+                placeholder="Enter your first name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input
+                type="text"
+                id="lastName"
+                formControlName="lastName"
+                class="form-input"
+                placeholder="Enter your last name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                class="form-input"
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input
+                type="tel"
+                id="phone"
+                formControlName="phone"
+                class="form-input"
+                placeholder="Enter your phone number"
+              />
+            </div>
+
+            <div class="form-group full-width">
+              <label for="bio">Bio</label>
+              <textarea
+                id="bio"
+                formControlName="bio"
+                class="form-textarea"
+                placeholder="Tell us about yourself"
+                rows="4"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Profile Picture</h2>
+          <div class="profile-picture-section">
+            <div class="current-picture">
+              <img
+                [src]="currentUser()?.photoUrl || defaultAvatar"
+                alt="Profile Picture"
+                class="profile-image"
+              />
+            </div>
+            <div class="picture-actions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="changeProfilePicture()"
+              >
+                <i class="pi pi-camera"></i>
+                Change Picture
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline"
+                (click)="removeProfilePicture()"
+              >
+                <i class="pi pi-trash"></i>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Privacy Tab -->
+      @if (activeTab() === 'privacy') {
+      <div class="tab-content">
+        <div class="section">
+          <h2>Privacy Settings</h2>
+          <div formGroupName="privacySettings" class="settings-list">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Show Last Seen</h3>
+                <p>Allow others to see when you were last active</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="showLastSeen" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Show Status</h3>
+                <p>Allow others to see your current status</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="showStatus" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Allow Group Invites</h3>
+                <p>Let others invite you to groups</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="allowGroupInvites" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Show Online Status</h3>
+                <p>Display when you're online to other users</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="showOnlineStatus" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="goBack()">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="profileForm.invalid || isUpdating()"
+        >
+          @if (isUpdating()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          Updating... } @else {
+          <i class="pi pi-check"></i>
+          Save Changes }
+        </button>
+      </div>
+    </form>
   </div>
-</form>
+</div>

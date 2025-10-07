@@ -1,4 +1,8 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideZoneChangeDetection,
+  ErrorHandler,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import {
@@ -8,6 +12,7 @@ import {
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth/auth.interceptor';
+import { GlobalErrorHandlerService } from './core/services/error/global-error-handler.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,5 +22,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideHttpClient(),
     provideHttpClient(withInterceptors([authInterceptor])),
+    { provide: ErrorHandler, useClass: GlobalErrorHandlerService },
   ],
 };

@@ -1,0 +1,70 @@
+<div class="group-list-container">
+  <div class="group-list-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <h1>Groups</h1>
+    <button class="create-btn" (click)="createGroup()">
+      <i class="pi pi-plus"></i>
+    </button>
+  </div>
+
+  <div class="group-list-content">
+    <!-- Search -->
+    <div class="search-section">
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          name="searchQuery"
+          placeholder="Search groups..."
+          class="search-input"
+        />
+      </div>
+    </div>
+
+    <!-- Groups List -->
+    <div class="groups-section">
+      @if (isLoading()) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading groups...</p>
+      </div>
+      } @else if (filteredGroups.length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-users"></i>
+        <h3>No groups found</h3>
+        <p>Create your first group to get started</p>
+        <button class="btn btn-primary" (click)="createGroup()">
+          <i class="pi pi-plus"></i>
+          Create Group
+        </button>
+      </div>
+      } @else {
+      <div class="groups-list">
+        @for (group of filteredGroups; track group._id) {
+        <div class="group-item" (click)="selectGroup(group)">
+          <div class="group-avatar">
+            <i class="pi pi-users"></i>
+          </div>
+          <div class="group-info">
+            <h3>{{ group.name }}</h3>
+            <p>{{ group.description }}</p>
+            <div class="group-meta">
+              <span class="group-type">{{ group.groupType }}</span>
+              <span class="member-count"
+                >{{ group.members.length }} members</span
+              >
+            </div>
+          </div>
+          <div class="group-actions">
+            <i class="pi pi-chevron-right"></i>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+</div>

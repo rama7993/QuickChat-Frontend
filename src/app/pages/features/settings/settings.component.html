@@ -1,0 +1,200 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <h1>Settings</h1>
+  </div>
+
+  <div class="settings-content">
+    <!-- Theme Settings -->
+    <div class="settings-section">
+      <h2>Theme & Appearance</h2>
+
+      <div class="theme-selector">
+        <h3>Theme Mode</h3>
+        <div class="theme-options">
+          <button
+            class="theme-option"
+            [class.active]="themeService.getBaseThemeType() === 'light-mode'"
+            (click)="switchTheme('light-mode')"
+          >
+            <i class="pi pi-sun"></i>
+            <span>Light Mode</span>
+          </button>
+          <button
+            class="theme-option"
+            [class.active]="themeService.getBaseThemeType() === 'dark-mode'"
+            (click)="switchTheme('dark-mode')"
+          >
+            <i class="pi pi-moon"></i>
+            <span>Dark Mode</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="color-customization">
+        <div class="section-header">
+          <h3>Custom Colors</h3>
+          <div class="header-actions">
+            <button class="btn btn-secondary btn-sm" (click)="resetToDefault()">
+              <i class="pi pi-refresh"></i>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="color-picker-section">
+          <div class="color-picker-grid">
+            <app-color-picker
+              type="primary"
+              label="Primary Color"
+              (colorChange)="onPrimaryColorChange($event)"
+            >
+            </app-color-picker>
+
+            <app-color-picker
+              type="surface"
+              label="Surface Color"
+              (colorChange)="onSurfaceColorChange($event)"
+            >
+            </app-color-picker>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Settings -->
+    <div class="settings-section">
+      <h2>Application Settings</h2>
+
+      <div class="settings-list">
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Animations</h3>
+            <p>Enable smooth animations and transitions</p>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="appSettings().animations"
+              (change)="onCheckboxChange('animations', $event)"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Sound Effects</h3>
+            <p>Play sounds for notifications and actions</p>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="appSettings().soundEffects"
+              (change)="onCheckboxChange('soundEffects', $event)"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Notifications</h3>
+            <p>Receive notifications for new messages</p>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="appSettings().notifications"
+              (change)="onCheckboxChange('notifications', $event)"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Language</h3>
+            <p>Select your preferred language</p>
+          </div>
+          <div class="custom-dropdown" [class.open]="languageDropdownOpen">
+            <button
+              class="dropdown-trigger"
+              (click)="toggleLanguageDropdown()"
+              type="button"
+            >
+              <span class="dropdown-label">{{ getLanguageLabel() }}</span>
+              <i class="pi pi-chevron-down dropdown-icon"></i>
+            </button>
+            <div class="dropdown-panel" *ngIf="languageDropdownOpen">
+              <div
+                class="dropdown-item"
+                *ngFor="let option of languageOptions"
+                [class.selected]="appSettings().language === option.value"
+                (click)="selectLanguage(option.value)"
+              >
+                {{ option.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Timezone</h3>
+            <p>Set your local timezone</p>
+          </div>
+          <div class="custom-dropdown" [class.open]="timezoneDropdownOpen">
+            <button
+              class="dropdown-trigger"
+              (click)="toggleTimezoneDropdown()"
+              type="button"
+            >
+              <span class="dropdown-label">{{ getTimezoneLabel() }}</span>
+              <i class="pi pi-chevron-down dropdown-icon"></i>
+            </button>
+            <div class="dropdown-panel" *ngIf="timezoneDropdownOpen">
+              <div
+                class="dropdown-item"
+                *ngFor="let option of timezoneOptions"
+                [class.selected]="appSettings().timezone === option.value"
+                (click)="selectTimezone(option.value)"
+              >
+                {{ option.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Font Size</h3>
+            <p>Adjust the text size for better readability</p>
+          </div>
+          <div class="custom-dropdown" [class.open]="fontSizeDropdownOpen">
+            <button
+              class="dropdown-trigger"
+              (click)="toggleFontSizeDropdown()"
+              type="button"
+            >
+              <span class="dropdown-label">{{ getFontSizeLabel() }}</span>
+              <i class="pi pi-chevron-down dropdown-icon"></i>
+            </button>
+            <div class="dropdown-panel" *ngIf="fontSizeDropdownOpen">
+              <div
+                class="dropdown-item"
+                *ngFor="let option of fontSizeOptions"
+                [class.selected]="appSettings().fontSize === option.value"
+                (click)="selectFontSize(option.value)"
+              >
+                {{ option.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -53,7 +53,7 @@ export class SignupComponent {
 
       this.authService.register(registerData).subscribe({
         next: (res) => {
-          console.log('Registration successful:', res);
+          // console.log('Registration successful:', res); // Commented for production
           this.alertService.successToaster('User added!');
           this.router.navigate(['/login']);
         },

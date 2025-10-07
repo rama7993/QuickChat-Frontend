@@ -60,11 +60,39 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/features/settings/settings.component').then(
+            (m) => m.SettingsComponent
+          ),
+      },
+      {
+        path: 'create-group',
+        loadComponent: () =>
+          import(
+            './pages/features/groups/create-group/create-group.component'
+          ).then((m) => m.CreateGroupComponent),
+      },
+      {
+        path: 'groups',
+        loadComponent: () =>
+          import(
+            './pages/features/groups/group-list/group-list.component'
+          ).then((m) => m.GroupListComponent),
+      },
+      {
         path: 'chat',
         loadComponent: () =>
           import('./pages/features/chat/chat.component').then(
             (m) => m.ChatComponent
           ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import(
+            './shared/components/notifications/notifications.component'
+          ).then((m) => m.NotificationsComponent),
       },
     ],
   },

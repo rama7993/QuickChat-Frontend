@@ -1,0 +1,118 @@
+<div class="file-upload-container">
+  <!-- Upload Area -->
+  <div
+    class="upload-area"
+    [class.drag-over]="dragOver()"
+    [class.uploading]="isUploading()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    (click)="triggerFileInput()"
+  >
+    <input
+      #fileInput
+      type="file"
+      [multiple]="multiple"
+      [accept]="allowedTypes.join(',')"
+      (change)="onFileSelected($event)"
+      style="display: none"
+      tabindex="-1"
+    />
+
+    @if (isUploading()) {
+    <div class="upload-progress">
+      <div class="progress-circle">
+        <svg viewBox="0 0 36 36" class="circular-chart">
+          <path
+            class="circle-bg"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+          <path
+            class="circle"
+            [style.stroke-dasharray]="uploadProgressValue() + ', 100'"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+        </svg>
+        <div class="progress-text">
+          {{ uploadProgressValue() | number : "1.0-0" }}%
+        </div>
+      </div>
+      <p>Uploading...</p>
+    </div>
+    } @else {
+    <div class="upload-content">
+      <i class="pi pi-cloud-upload upload-icon"></i>
+      <h3>Drop files here or click to browse</h3>
+      <p>
+        Maximum file size:
+        {{ maxFileSize / (1024 * 1024) | number : "1.0-0" }}MB
+      </p>
+      <div class="supported-types">
+        <span class="type-tag">Images</span>
+        <span class="type-tag">Documents</span>
+        <span class="type-tag">Videos</span>
+        <span class="type-tag">Audio</span>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Selected Files -->
+  @if (selectedFiles().length > 0) {
+  <div class="selected-files">
+    <div class="files-header">
+      <h4>Selected Files ({{ selectedFiles().length }})</h4>
+      <div class="file-actions">
+        <button class="btn btn-secondary btn-sm" (click)="clearFiles()">
+          Clear All
+        </button>
+        @if (multiple) {
+        <button
+          class="btn btn-primary btn-sm"
+          (click)="uploadSelectedFiles()"
+          [disabled]="isUploading()"
+        >
+          Upload All
+        </button>
+        }
+      </div>
+    </div>
+
+    <div class="files-list">
+      @for (file of selectedFiles(); track file.name) {
+      <div class="file-item">
+        <div class="file-info">
+          <i [class]="getFileIcon(file)" class="file-icon"></i>
+          <div class="file-details">
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ getFileSize(file) }}</span>
+          </div>
+        </div>
+        <div class="file-actions">
+          @if (!multiple) {
+          <button
+            class="btn btn-primary btn-sm"
+            (click)="uploadFile(file)"
+            [disabled]="isUploading()"
+          >
+            Upload
+          </button>
+          }
+          <button
+            class="btn btn-danger btn-sm"
+            (click)="removeFile(file)"
+            [disabled]="isUploading()"
+          >
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

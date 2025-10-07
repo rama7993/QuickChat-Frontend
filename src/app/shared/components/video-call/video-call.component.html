@@ -1,0 +1,128 @@
+<div class="video-call-container" *ngIf="callState() && callState().isActive">
+  <!-- Video Grid -->
+  <div
+    class="video-grid"
+    [ngClass]="{
+      'grid-layout': isGridLayout(),
+      'focus-layout': !isGridLayout()
+    }"
+  >
+    <div
+      *ngFor="let participant of participants$ | async"
+      class="participant-container"
+      [ngClass]="getParticipantClass(participant)"
+      (click)="selectParticipant(participant)"
+    >
+      <!-- Video Element -->
+      <video
+        #localVideo
+        *ngIf="participant.id === 'local' && !participant.isVideoOff"
+        [srcObject]="participant.stream"
+        autoplay
+        muted
+        playsinline
+        class="participant-video"
+      ></video>
+
+      <!-- Remote Video Placeholder -->
+      <div
+        *ngIf="participant.id !== 'local' && !participant.isVideoOff"
+        class="remote-video-placeholder"
+      >
+        <div class="video-placeholder">
+          <i class="pi pi-video"></i>
+          <span>Remote Video</span>
+        </div>
+      </div>
+
+      <!-- Video Off Placeholder -->
+      <div *ngIf="participant.isVideoOff" class="video-off-placeholder">
+        <div class="avatar-placeholder">
+          <i class="pi pi-user"></i>
+        </div>
+      </div>
+
+      <!-- Participant Info -->
+      <div class="participant-info">
+        <span class="participant-name">{{ participant.name }}</span>
+
+        <!-- Audio Level Indicator -->
+        <div class="audio-level" *ngIf="participant.isSpeaking">
+          <div
+            class="audio-bar"
+            [style.height.%]="getAudioLevel(participant)"
+          ></div>
+        </div>
+
+        <!-- Status Icons -->
+        <div class="status-icons">
+          <i
+            *ngIf="participant.isMuted"
+            class="pi pi-microphone-slash muted-icon"
+            title="Muted"
+          >
+          </i>
+          <i
+            *ngIf="participant.isVideoOff"
+            class="pi pi-video-slash video-off-icon"
+            title="Video Off"
+          >
+          </i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call Controls -->
+  <div class="call-controls">
+    <div class="control-buttons">
+      <!-- Mute/Unmute -->
+      <button
+        class="control-btn"
+        [class.active]="callState().isMuted"
+        (click)="toggleMute()"
+        title="Toggle Microphone"
+      >
+        <i
+          [class]="
+            callState().isMuted ? 'pi pi-microphone-slash' : 'pi pi-microphone'
+          "
+        ></i>
+      </button>
+
+      <!-- Video On/Off -->
+      <button
+        class="control-btn"
+        [class.active]="callState().isVideoOff"
+        (click)="toggleVideo()"
+        title="Toggle Video"
+      >
+        <i
+          [class]="callState().isVideoOff ? 'pi pi-video-slash' : 'pi pi-video'"
+        ></i>
+      </button>
+
+      <!-- Layout Toggle -->
+      <button
+        class="control-btn"
+        (click)="toggleLayout()"
+        title="Toggle Layout"
+      >
+        <i class="pi pi-th-large"></i>
+      </button>
+
+      <!-- End Call -->
+      <button class="control-btn end-call" (click)="endCall()" title="End Call">
+        <i class="pi pi-phone"></i>
+      </button>
+    </div>
+
+    <!-- Call Info -->
+    <div class="call-info">
+      <span class="room-id">Room: {{ roomId }}</span>
+      <span class="participant-count"
+        >{{ (participants$ | async)?.length || 0 }} participants</span
+      >
+    </div>
+  </div>
+</div>

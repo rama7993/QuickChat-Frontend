@@ -1,0 +1,92 @@
+<div class="notifications-container">
+  <!-- Header -->
+  <div class="notifications-header">
+    <div class="header-title">
+      <h3>Notifications</h3>
+      @if (unreadCount() > 0) {
+      <span class="unread-badge">{{ unreadCount() }}</span>
+      }
+    </div>
+    <div class="header-actions">
+      @if (unreadCount() > 0) {
+      <button 
+        class="action-btn"
+        (click)="markAllAsRead()"
+        title="Mark all as read">
+        <i class="pi pi-check"></i>
+      </button>
+      }
+      <button 
+        class="action-btn"
+        (click)="clearAllNotifications()"
+        title="Clear all">
+        <i class="pi pi-trash"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="notifications-content">
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading notifications...</p>
+    </div>
+    } @else if (notifications().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="pi pi-bell-slash"></i>
+      </div>
+      <h4>No notifications</h4>
+      <p>You're all caught up!</p>
+    </div>
+    } @else {
+    <div class="notifications-list">
+      @for (notification of notifications(); track notification._id) {
+      <div 
+        class="notification-item"
+        [class.unread]="!notification.read"
+        [ngClass]="getNotificationClass(notification.type)"
+        (click)="markAsRead(notification)">
+        
+        <!-- Notification Icon -->
+        <div class="notification-icon">
+          <i [class]="getNotificationIcon(notification.type)"></i>
+        </div>
+
+        <!-- Notification Content -->
+        <div class="notification-content">
+          <div class="notification-header">
+            <h4 class="notification-title">{{ notification.title }}</h4>
+            <span class="notification-time">{{ formatTimestamp(notification.createdAt) }}</span>
+          </div>
+          <p class="notification-message">{{ notification.message }}</p>
+          @if (notification.data.senderId) {
+          <div class="notification-sender">
+            <img 
+              [src]="notification.data.senderId.photoUrl || '/assets/default-avatar.png'" 
+              [alt]="notification.data.senderId.firstName + ' ' + notification.data.senderId.lastName"
+              class="sender-avatar">
+            <span class="sender-name">{{ notification.data.senderId.firstName }} {{ notification.data.senderId.lastName }}</span>
+          </div>
+          }
+        </div>
+
+        <!-- Notification Actions -->
+        <div class="notification-actions">
+          @if (!notification.read) {
+          <div class="unread-indicator"></div>
+          }
+          <button 
+            class="delete-btn"
+            (click)="deleteNotification(notification); $event.stopPropagation()"
+            title="Delete">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>
