@@ -1,106 +1,116 @@
-<div class="signup">
-  <div class="signup__header">
-    <div class="signup__logo">
-      <div class="logo-icon">
+<div class="signup auth-page">
+  <div class="signup__header auth-header">
+    <div class="signup__logo auth-logo">
+      <div class="auth-logo__icon">
         <i class="pi pi-comments"></i>
       </div>
-      <h1 class="signup__title">Quick<span>Chat</span></h1>
+      <h1 class="signup__title auth-title">
+        Quick<span class="auth-title__accent">Chat</span>
+      </h1>
     </div>
-    <p class="signup__tagline">Fast. Secure. Effortless Conversations.</p>
+    <p class="signup__tagline auth-tagline">
+      Fast. Secure. Effortless Conversations.
+    </p>
   </div>
 
-  <div class="signup__box">
-    <div class="signup__box-header">
-      <h2 class="signup__heading">Join Us</h2>
-      <p class="signup__info">Sign up to chat, share, and stay connected.</p>
+  <div class="signup__box auth-card">
+    <div class="signup__box-header auth-card-header">
+      <h2 class="signup__heading auth-heading">Join Us</h2>
+      <p class="signup__info auth-subtext">
+        Sign up to chat, share, and stay connected.
+      </p>
     </div>
 
-    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup__form">
+    <form
+      [formGroup]="signupForm"
+      (ngSubmit)="onSubmit()"
+      class="signup__form auth-form"
+    >
       <!-- First Name -->
-      <div class="signup__form-group">
-        <label for="fname" class="signup__label">
-          First name <span class="required">*</span>
+      <div class="signup__form-group auth-form-group">
+        <label for="fname" class="signup__label auth-label">
+          First name <span class="auth-label--required">*</span>
         </label>
         <input
           id="fname"
           type="text"
-          class="signup__input"
+          class="signup__input auth-input"
           [ngClass]="{ 'ng-invalid ng-touched': isInvalid('fname') }"
           formControlName="fname"
         />
-        <small *ngIf="isInvalid('fname')" class="signup__error"
+        <small *ngIf="isInvalid('fname')" class="signup__error auth-error"
           >First name is required</small
         >
       </div>
 
       <!-- Last Name -->
-      <div class="signup__form-group">
-        <label for="lname" class="signup__label">
-          Last name <span class="required">*</span>
+      <div class="signup__form-group auth-form-group">
+        <label for="lname" class="signup__label auth-label">
+          Last name <span class="auth-label--required">*</span>
         </label>
         <input
           id="lname"
           type="text"
-          class="signup__input"
+          class="signup__input auth-input"
           [ngClass]="{ 'ng-invalid ng-touched': isInvalid('lname') }"
           formControlName="lname"
         />
-        <small *ngIf="isInvalid('lname')" class="signup__error"
+        <small *ngIf="isInvalid('lname')" class="signup__error auth-error"
           >Last name is required</small
         >
       </div>
 
       <!-- Email -->
-      <div class="signup__form-group">
-        <label for="email" class="signup__label">
-          Email <span class="required">*</span>
+      <div class="signup__form-group auth-form-group">
+        <label for="email" class="signup__label auth-label">
+          Email <span class="auth-label--required">*</span>
         </label>
         <input
           id="email"
           type="email"
-          class="signup__input"
+          class="signup__input auth-input"
           [ngClass]="{ 'ng-invalid ng-touched': isInvalid('email') }"
           formControlName="email"
         />
-        <small *ngIf="isInvalid('email')" class="signup__error"
+        <small *ngIf="isInvalid('email')" class="signup__error auth-error"
           >Valid email is required</small
         >
       </div>
 
       <!-- Password -->
-      <div class="signup__form-group">
-        <label for="password" class="signup__label">
-          Password <span class="required">*</span>
+      <div class="signup__form-group auth-form-group">
+        <label for="password" class="signup__label auth-label">
+          Password <span class="auth-label--required">*</span>
         </label>
-        <div class="signup__password-wrapper">
+        <div class="signup__password-wrapper auth-password-wrapper">
           <input
             id="password"
             [type]="showPassword ? 'text' : 'password'"
-            class="signup__input"
+            class="signup__input auth-input"
             [ngClass]="{ 'ng-invalid ng-touched': isInvalid('password') }"
             formControlName="password"
           />
           <i
-            class="pi"
+            class="pi password-toggle"
             [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"
             (click)="showPassword = !showPassword"
           ></i>
         </div>
-        <small *ngIf="isInvalid('password')" class="signup__error"
+        <small *ngIf="isInvalid('password')" class="signup__error auth-error"
           >Password must be at least 6 characters</small
         >
       </div>
 
       <!-- Submit -->
-      <div class="signup__actions">
-        <button class="btn" type="submit">
+      <div class="signup__actions auth-actions">
+        <button class="signup__button auth-button" type="submit">
           <i class="pi pi-user-plus"></i>
           Sign Up
         </button>
       </div>
 
       <!-- Redirect -->
-      <div class="signup__signin">
+      <div class="signup__signin auth-link">
         Already have an account? <a [routerLink]="['/login']">Sign In</a>
       </div>
     </form>

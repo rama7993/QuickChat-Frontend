@@ -9,17 +9,19 @@
     </div>
     <div class="header-actions">
       @if (unreadCount() > 0) {
-      <button 
+      <button
         class="action-btn"
         (click)="markAllAsRead()"
-        title="Mark all as read">
+        title="Mark all as read"
+      >
         <i class="pi pi-check"></i>
       </button>
       }
-      <button 
+      <button
         class="action-btn"
         (click)="clearAllNotifications()"
-        title="Clear all">
+        title="Clear all"
+      >
         <i class="pi pi-trash"></i>
       </button>
     </div>
@@ -43,12 +45,12 @@
     } @else {
     <div class="notifications-list">
       @for (notification of notifications(); track notification._id) {
-      <div 
+      <div
         class="notification-item"
         [class.unread]="!notification.read"
         [ngClass]="getNotificationClass(notification.type)"
-        (click)="markAsRead(notification)">
-        
+        (click)="markAsRead(notification)"
+      >
         <!-- Notification Icon -->
         <div class="notification-icon">
           <i [class]="getNotificationIcon(notification.type)"></i>
@@ -58,16 +60,29 @@
         <div class="notification-content">
           <div class="notification-header">
             <h4 class="notification-title">{{ notification.title }}</h4>
-            <span class="notification-time">{{ formatTimestamp(notification.createdAt) }}</span>
+            <span class="notification-time">{{
+              formatTimestamp(notification.createdAt)
+            }}</span>
           </div>
           <p class="notification-message">{{ notification.message }}</p>
           @if (notification.data.senderId) {
           <div class="notification-sender">
-            <img 
-              [src]="notification.data.senderId.photoUrl || '/assets/default-avatar.png'" 
-              [alt]="notification.data.senderId.firstName + ' ' + notification.data.senderId.lastName"
-              class="sender-avatar">
-            <span class="sender-name">{{ notification.data.senderId.firstName }} {{ notification.data.senderId.lastName }}</span>
+            <img
+              [src]="
+                notification.data.senderId.photoUrl ||
+                '/assets/default-avatar.png'
+              "
+              [alt]="
+                notification.data.senderId.firstName +
+                ' ' +
+                notification.data.senderId.lastName
+              "
+              class="sender-avatar"
+            />
+            <span class="sender-name"
+              >{{ notification.data.senderId.firstName }}
+              {{ notification.data.senderId.lastName }}</span
+            >
           </div>
           }
         </div>
@@ -77,10 +92,11 @@
           @if (!notification.read) {
           <div class="unread-indicator"></div>
           }
-          <button 
+          <button
             class="delete-btn"
             (click)="deleteNotification(notification); $event.stopPropagation()"
-            title="Delete">
+            title="Delete"
+          >
             <i class="pi pi-times"></i>
           </button>
         </div>

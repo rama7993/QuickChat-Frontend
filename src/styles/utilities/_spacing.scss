@@ -1,0 +1,141 @@
+// Spacing Utilities
+// Margin and padding utility classes
+
+@use "../abstracts" as *;
+
+// Margin utilities
+@each $size,
+  $value
+    in (
+      "0": 0,
+      "1": var(--spacing-xs),
+      "2": var(--spacing-sm),
+      "3": var(--spacing-md),
+      "4": var(--spacing-lg),
+      "5": var(--spacing-xl),
+      "6": var(--spacing-2xl)
+    )
+{
+  .m-#{$size} {
+    margin: $value;
+  }
+  .mt-#{$size} {
+    margin-top: $value;
+  }
+  .mr-#{$size} {
+    margin-right: $value;
+  }
+  .mb-#{$size} {
+    margin-bottom: $value;
+  }
+  .ml-#{$size} {
+    margin-left: $value;
+  }
+  .mx-#{$size} {
+    margin-left: $value;
+    margin-right: $value;
+  }
+  .my-#{$size} {
+    margin-top: $value;
+    margin-bottom: $value;
+  }
+}
+
+// Padding utilities
+@each $size,
+  $value
+    in (
+      "0": 0,
+      "1": var(--spacing-xs),
+      "2": var(--spacing-sm),
+      "3": var(--spacing-md),
+      "4": var(--spacing-lg),
+      "5": var(--spacing-xl),
+      "6": var(--spacing-2xl)
+    )
+{
+  .p-#{$size} {
+    padding: $value;
+  }
+  .pt-#{$size} {
+    padding-top: $value;
+  }
+  .pr-#{$size} {
+    padding-right: $value;
+  }
+  .pb-#{$size} {
+    padding-bottom: $value;
+  }
+  .pl-#{$size} {
+    padding-left: $value;
+  }
+  .px-#{$size} {
+    padding-left: $value;
+    padding-right: $value;
+  }
+  .py-#{$size} {
+    padding-top: $value;
+    padding-bottom: $value;
+  }
+}
+
+// Auto margins
+.m-auto {
+  margin: auto;
+}
+.mt-auto {
+  margin-top: auto;
+}
+.mr-auto {
+  margin-right: auto;
+}
+.mb-auto {
+  margin-bottom: auto;
+}
+.ml-auto {
+  margin-left: auto;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+// Negative margins
+@each $size,
+  $value
+    in (
+      "1": var(--spacing-xs),
+      "2": var(--spacing-sm),
+      "3": var(--spacing-md),
+      "4": var(--spacing-lg),
+      "5": var(--spacing-xl)
+    )
+{
+  .-m-#{$size} {
+    margin: calc(-1 * #{$value});
+  }
+  .-mt-#{$size} {
+    margin-top: calc(-1 * #{$value});
+  }
+  .-mr-#{$size} {
+    margin-right: calc(-1 * #{$value});
+  }
+  .-mb-#{$size} {
+    margin-bottom: calc(-1 * #{$value});
+  }
+  .-ml-#{$size} {
+    margin-left: calc(-1 * #{$value});
+  }
+  .-mx-#{$size} {
+    margin-left: calc(-1 * #{$value});
+    margin-right: calc(-1 * #{$value});
+  }
+  .-my-#{$size} {
+    margin-top: calc(-1 * #{$value});
+    margin-bottom: calc(-1 * #{$value});
+  }
+}

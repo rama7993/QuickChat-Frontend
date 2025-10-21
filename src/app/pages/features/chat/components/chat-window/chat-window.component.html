@@ -9,7 +9,7 @@
       <h3>Welcome to QuickChat</h3>
       <p>Select a conversation from the sidebar to start chatting</p>
       <div class="empty-actions">
-        <button class="btn theme-button" (click)="goBack()">
+        <button class="btn btn-primary" (click)="goBack()">
           <i class="pi pi-plus"></i>
           Start New Chat
         </button>
@@ -231,6 +231,7 @@
                   [alt]="attachment.filename"
                   class="attachment-image"
                   (click)="openImagePreview(attachment.url)"
+                  (error)="handleImageError($event)"
                   loading="lazy"
                 />
                 @if (attachment.thumbnail) {
@@ -551,17 +552,15 @@
     @if (showEmojiPicker()) {
     <div class="panel-backdrop" (click)="showEmojiPicker.set(false)"></div>
     <div class="emoji-picker">
-      <h3 style="color: #007bff; margin: 0 0 10px 0">😊 Emoji Picker</h3>
-      <p style="color: #333; margin: 0 0 10px 0">
-        Click an emoji to add it to your message
-      </p>
-      <div class="emoji-grid">
-        @for (emoji of emojiList; track emoji) {
-        <button class="emoji-btn" (click)="addEmoji(emoji)">
-          {{ emoji }}
-        </button>
-        }
-      </div>
+      <emoji-mart
+        (emojiSelect)="addEmoji($event.emoji.native)"
+        set="apple"
+        title="Add emoji"
+        [showPreview]="false"
+        [perLine]="8"
+        [emojiSize]="22"
+        [style]="{ width: '100%' }"
+      />
     </div>
     }
   </div>

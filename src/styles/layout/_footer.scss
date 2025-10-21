@@ -1,0 +1,134 @@
+// Footer Layout
+// Footer component styles
+
+@use "../abstracts" as *;
+
+.footer {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--spacing-lg) 0;
+  margin-top: auto;
+
+  &__content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+  }
+
+  &__section {
+    flex: 1;
+    min-width: 200px;
+
+    &-title {
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text);
+      margin-bottom: var(--spacing-md);
+    }
+
+    &-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    &-item {
+      margin-bottom: var(--spacing-sm);
+
+      a {
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+
+        &:hover {
+          color: var(--color-accent);
+        }
+      }
+    }
+  }
+
+  &__bottom {
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+
+    &-copyright {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+    }
+
+    &-links {
+      @include flex-center;
+      gap: var(--spacing-lg);
+
+      a {
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        font-size: var(--font-size-sm);
+        transition: color var(--transition-fast);
+
+        &:hover {
+          color: var(--color-accent);
+        }
+      }
+    }
+  }
+
+  &__social {
+    @include flex-center;
+    gap: var(--spacing-md);
+
+    &-link {
+      @include flex-center;
+      width: 2.5rem;
+      height: 2.5rem;
+      background: var(--color-background);
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+
+      &:hover {
+        background: var(--color-accent);
+        color: var(--color-primary);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// Responsive footer
+@include respond-to("md") {
+  .footer {
+    &__content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    &__bottom {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+}
+
+@include respond-to("sm") {
+  .footer {
+    padding: var(--spacing-md) 0;
+
+    &__content {
+      padding: 0 var(--spacing-md);
+    }
+
+    &__section {
+      min-width: 100%;
+    }
+  }
+}

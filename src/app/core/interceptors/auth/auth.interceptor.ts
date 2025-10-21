@@ -20,16 +20,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         const router = inject(Router);
         const alertService = inject(AlertService);
         const authService = inject(AuthService);
-        
+
         // Show error message
         alertService.errorToaster('Unauthorized: You have been logged out.');
-        
+
         // Clear token from storage
         safeStorage.remove('authToken');
-        
+
         // Call auth service logout for complete cleanup
         authService.logout();
-        
+
         // Navigate to login
         router.navigate(['/login']);
       }

@@ -43,12 +43,14 @@ export class ChatService {
     this.socketService.message$.subscribe((socketMessage) => {
       if (socketMessage) {
         // console.log('Chat service received message:', socketMessage);
-        
+
         // Handle message deletion
         if ((socketMessage as any).deleted) {
           const messageId = socketMessage._id;
           const currentMessages = this.messagesSubject.value;
-          const updatedMessages = currentMessages.filter(msg => msg._id !== messageId);
+          const updatedMessages = currentMessages.filter(
+            (msg) => msg._id !== messageId
+          );
           this.messagesSubject.next(updatedMessages);
           return;
         }
@@ -84,38 +86,46 @@ export class ChatService {
         };
 
         const currentMessages = this.messagesSubject.value;
-        
+
         // Check if message already exists to prevent duplicates
         const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
-        
+
         if (this.processedMessageIds.has(messageKey)) {
+          console.log('Message already processed, skipping:', messageKey);
           return;
         }
-        
+
         // Additional check for messages already in the array (backup safety)
         const messageExists = currentMessages.some(
           (existingMessage) => existingMessage._id === message._id
         );
-        
+
         if (messageExists) {
+          console.log(
+            'Message already exists in array, skipping:',
+            message._id
+          );
           return;
         }
-        
+
         // Mark message as processed
         this.processedMessageIds.add(messageKey);
-        
+
         // Clean up old processed messages (keep only last 100)
         if (this.processedMessageIds.size > 100) {
           const messageKeys = Array.from(this.processedMessageIds);
           this.processedMessageIds.clear();
-          messageKeys.slice(-50).forEach(key => this.processedMessageIds.add(key));
+          messageKeys
+            .slice(-50)
+            .forEach((key) => this.processedMessageIds.add(key));
         }
-        
+
         // Add message to the array and sort by timestamp
         const updatedMessages = [...currentMessages, message].sort(
-          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
-        
+
         // console.log('Adding message to chat service. Total messages:', updatedMessages.length);
         this.messagesSubject.next(updatedMessages);
       }
@@ -200,7 +210,8 @@ export class ChatService {
         photoUrl: '',
         username: '',
       },
-      type: (fileType as 'text' | 'image' | 'video' | 'audio' | 'file') || 'text',
+      type:
+        (fileType as 'text' | 'image' | 'video' | 'audio' | 'file') || 'text',
       fileUrl: fileUrl,
       replyTo: replyTo
         ? {
@@ -214,8 +225,8 @@ export class ChatService {
 
   // Send group message (real-time)
   sendGroupMessage(
-    groupId: string, 
-    content: string, 
+    groupId: string,
+    content: string,
     replyTo?: string,
     fileUrl?: string,
     fileType?: string
@@ -223,7 +234,8 @@ export class ChatService {
     this.socketService.sendMessage({
       content,
       group: { _id: groupId, name: '', avatar: '' },
-      type: (fileType as 'text' | 'image' | 'video' | 'audio' | 'file') || 'text',
+      type:
+        (fileType as 'text' | 'image' | 'video' | 'audio' | 'file') || 'text',
       fileUrl: fileUrl,
       replyTo: replyTo
         ? {
@@ -251,7 +263,12 @@ export class ChatService {
       throw new Error('Either receiverId or groupId must be provided');
     }
 
-    return this.socketService.uploadFile(file, roomId, messageType, isGroupChat);
+    return this.socketService.uploadFile(
+      file,
+      roomId,
+      messageType,
+      isGroupChat
+    );
   }
 
   // Add reaction to message
@@ -318,7 +335,6 @@ export class ChatService {
   getCurrentTypingUsers(): TypingUser[] {
     return this.typingUsersSubject.value;
   }
-
 
   // Search messages
   searchMessages(

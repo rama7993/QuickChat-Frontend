@@ -115,7 +115,7 @@ export class SocketService {
 
   constructor() {
     this.initializeSocket();
-    
+
     // Listen for token refresh events
     this.authService.getTokenRefreshObservable().subscribe(() => {
       this.reconnectWithNewToken();
@@ -205,7 +205,7 @@ export class SocketService {
     // Message events
     this.socket.on('message_received', (message: Message) => {
       // console.log('Message received via socket:', message);
-      
+
       // Create a unique key for message deduplication
       const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
 
@@ -390,27 +390,41 @@ export class SocketService {
     isGroupChat: boolean = false
   ): Observable<any> {
     return new Observable((observer) => {
+      console.log('SocketService uploadFile called:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        messageType,
+        roomId,
+        isGroupChat,
+      });
+
       if (!this.socket || !this.isConnected()) {
+        console.error('Socket not connected');
         observer.error('Socket not connected');
         return;
       }
 
       // Create a unique upload ID
       const uploadId = Date.now().toString();
+      console.log('Created upload ID:', uploadId);
 
       // Listen for upload progress
       this.socket.on(`upload_progress_${uploadId}`, (progress) => {
+        console.log('Upload progress received:', progress);
         observer.next({ type: 'progress', progress });
       });
 
       // Listen for upload completion
       this.socket.on(`upload_complete_${uploadId}`, (result) => {
+        console.log('Upload complete received:', result);
         observer.next({ type: 'complete', result });
         observer.complete();
       });
 
       // Listen for upload error
       this.socket.on(`upload_error_${uploadId}`, (error) => {
+        console.error('Upload error received:', error);
         observer.error(error);
       });
 
@@ -418,8 +432,7 @@ export class SocketService {
       const reader = new FileReader();
       reader.onload = () => {
         const base64Data = reader.result as string;
-
-        // Send file upload data
+        console.log('File converted to base64, length:', base64Data.length);
 
         // Start upload - send file as base64
         this.socket?.emit('upload_file', {
@@ -433,9 +446,11 @@ export class SocketService {
           userId: this.currentUser()?._id,
           isGroupChat: isGroupChat,
         });
+        console.log('Upload file event emitted');
       };
 
       reader.onerror = () => {
+        console.error('Failed to read file');
         observer.error('Failed to read file');
       };
 

@@ -1,0 +1,342 @@
+// Interaction Utilities
+// Cursor, pointer events, and user selection utilities
+
+@use "../abstracts" as *;
+
+// Cursor
+.cursor-auto {
+  cursor: auto;
+}
+.cursor-default {
+  cursor: default;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.cursor-wait {
+  cursor: wait;
+}
+.cursor-text {
+  cursor: text;
+}
+.cursor-move {
+  cursor: move;
+}
+.cursor-help {
+  cursor: help;
+}
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+.cursor-none {
+  cursor: none;
+}
+.cursor-context-menu {
+  cursor: context-menu;
+}
+.cursor-progress {
+  cursor: progress;
+}
+.cursor-cell {
+  cursor: cell;
+}
+.cursor-crosshair {
+  cursor: crosshair;
+}
+.cursor-vertical-text {
+  cursor: vertical-text;
+}
+.cursor-alias {
+  cursor: alias;
+}
+.cursor-copy {
+  cursor: copy;
+}
+.cursor-no-drop {
+  cursor: no-drop;
+}
+.cursor-grab {
+  cursor: grab;
+}
+.cursor-grabbing {
+  cursor: grabbing;
+}
+.cursor-all-scroll {
+  cursor: all-scroll;
+}
+.cursor-col-resize {
+  cursor: col-resize;
+}
+.cursor-row-resize {
+  cursor: row-resize;
+}
+.cursor-n-resize {
+  cursor: n-resize;
+}
+.cursor-e-resize {
+  cursor: e-resize;
+}
+.cursor-s-resize {
+  cursor: s-resize;
+}
+.cursor-w-resize {
+  cursor: w-resize;
+}
+.cursor-ne-resize {
+  cursor: ne-resize;
+}
+.cursor-nw-resize {
+  cursor: nw-resize;
+}
+.cursor-se-resize {
+  cursor: se-resize;
+}
+.cursor-sw-resize {
+  cursor: sw-resize;
+}
+.cursor-ew-resize {
+  cursor: ew-resize;
+}
+.cursor-ns-resize {
+  cursor: ns-resize;
+}
+.cursor-nesw-resize {
+  cursor: nesw-resize;
+}
+.cursor-nwse-resize {
+  cursor: nwse-resize;
+}
+.cursor-zoom-in {
+  cursor: zoom-in;
+}
+.cursor-zoom-out {
+  cursor: zoom-out;
+}
+
+// Pointer events
+.pointer-events-none {
+  pointer-events: none;
+}
+.pointer-events-auto {
+  pointer-events: auto;
+}
+
+// Resize
+.resize-none {
+  resize: none;
+}
+.resize-y {
+  resize: vertical;
+}
+.resize-x {
+  resize: horizontal;
+}
+.resize {
+  resize: both;
+}
+
+// User select
+.select-none {
+  user-select: none;
+}
+.select-text {
+  user-select: text;
+}
+.select-all {
+  user-select: all;
+}
+.select-auto {
+  user-select: auto;
+}
+
+// Scroll behavior
+.scroll-auto {
+  scroll-behavior: auto;
+}
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+// Scroll snap type
+.snap-none {
+  scroll-snap-type: none;
+}
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+.snap-y {
+  scroll-snap-type: y mandatory;
+}
+.snap-both {
+  scroll-snap-type: both mandatory;
+}
+
+// Scroll snap align
+.snap-start {
+  scroll-snap-align: start;
+}
+.snap-end {
+  scroll-snap-align: end;
+}
+.snap-center {
+  scroll-snap-align: center;
+}
+.snap-align-none {
+  scroll-snap-align: none;
+}
+
+// Scroll snap stop
+.snap-normal {
+  scroll-snap-stop: normal;
+}
+.snap-always {
+  scroll-snap-stop: always;
+}
+
+// Touch action
+.touch-auto {
+  touch-action: auto;
+}
+.touch-none {
+  touch-action: none;
+}
+.touch-pan-x {
+  touch-action: pan-x;
+}
+.touch-pan-left {
+  touch-action: pan-left;
+}
+.touch-pan-right {
+  touch-action: pan-right;
+}
+.touch-pan-y {
+  touch-action: pan-y;
+}
+.touch-pan-up {
+  touch-action: pan-up;
+}
+.touch-pan-down {
+  touch-action: pan-down;
+}
+.touch-pinch-zoom {
+  touch-action: pinch-zoom;
+}
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+// Will change
+.will-change-auto {
+  will-change: auto;
+}
+.will-change-scroll {
+  will-change: scroll-position;
+}
+.will-change-contents {
+  will-change: contents;
+}
+.will-change-transform {
+  will-change: transform;
+}
+
+// Focus
+.focus\:outline-none:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.focus\:outline:focus {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus\:outline-2:focus {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus\:outline-4:focus {
+  outline: 4px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus\:outline-8:focus {
+  outline: 8px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+// Focus visible
+.focus-visible\:outline-none:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.focus-visible\:outline:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus-visible\:outline-2:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus-visible\:outline-4:focus-visible {
+  outline: 4px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus-visible\:outline-8:focus-visible {
+  outline: 8px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+// Focus within
+.focus-within\:outline-none:focus-within {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.focus-within\:outline:focus-within {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus-within\:outline-2:focus-within {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus-within\:outline-4:focus-within {
+  outline: 4px solid var(--color-text);
+  outline-offset: 2px;
+}
+.focus-within\:outline-8:focus-within {
+  outline: 8px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+// Active
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+.active\:scale-100:active {
+  transform: scale(1);
+}
+.active\:scale-105:active {
+  transform: scale(1.05);
+}
+
+// Hover
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+.hover\:scale-110:hover {
+  transform: scale(1.1);
+}
+.hover\:scale-125:hover {
+  transform: scale(1.25);
+}
+
+// Disabled
+.disabled\:opacity-50:disabled {
+  opacity: 0.5;
+}
+.disabled\:opacity-75:disabled {
+  opacity: 0.75;
+}
+.disabled\:cursor-not-allowed:disabled {
+  cursor: not-allowed;
+}
+.disabled\:pointer-events-none:disabled {
+  pointer-events: none;
+}

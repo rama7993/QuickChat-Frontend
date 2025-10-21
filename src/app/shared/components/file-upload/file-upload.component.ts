@@ -83,37 +83,9 @@ export class FileUploadComponent implements AfterViewInit {
   }
 
   triggerFileInput() {
-    // console.log(
-    //   'Triggering file input, fileInput available:',
-    //   !!this.fileInput
-    // ); // Commented for production
-    
-    // Always use the fallback method for better reliability
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = this.multiple;
-    input.accept = this.allowedTypes.join(',');
-    input.style.display = 'none';
-    
-    input.onchange = (event: any) => {
-      // console.log('File input changed, files:', event.target.files); // Commented for production
-      if (event.target.files && event.target.files.length > 0) {
-        this.handleFiles(Array.from(event.target.files));
-      }
-      // Clean up
-      document.body.removeChild(input);
-    };
-    
-    input.oncancel = () => {
-      // console.log('File input cancelled'); // Commented for production
-      document.body.removeChild(input);
-    };
-    
-    // Add to DOM temporarily and trigger
-    document.body.appendChild(input);
-    input.click();
-    
-    // console.log('File input dialog triggered'); // Commented for production
+    if (this.fileInput && this.fileInput.nativeElement) {
+      this.fileInput.nativeElement.click();
+    }
   }
 
   private handleFiles(files: File[]) {
@@ -121,6 +93,15 @@ export class FileUploadComponent implements AfterViewInit {
     const errors: string[] = [];
 
     files.forEach((file) => {
+      // Check if file already exists
+      const existingFile = this.selectedFiles().find(
+        (f) => f.name === file.name && f.size === file.size
+      );
+      if (existingFile) {
+        errors.push(`${file.name}: File already selected`);
+        return;
+      }
+
       // Check file size
       if (file.size > this.maxFileSize) {
         errors.push(
@@ -152,7 +133,10 @@ export class FileUploadComponent implements AfterViewInit {
     }
 
     if (validFiles.length > 0) {
-      this.selectedFiles.set(validFiles);
+      // Add new files to existing selection instead of replacing
+      const currentFiles = this.selectedFiles();
+      this.selectedFiles.set([...currentFiles, ...validFiles]);
+
       if (!this.multiple && validFiles.length === 1) {
         this.uploadFile(validFiles[0]);
       }
@@ -160,6 +144,14 @@ export class FileUploadComponent implements AfterViewInit {
   }
 
   async uploadFile(file: File) {
+    console.log('Starting upload for file:', file.name, 'Size:', file.size);
+
+    // Prevent multiple uploads of the same file
+    if (this.isUploading()) {
+      console.log('Already uploading, skipping:', file.name);
+      return;
+    }
+
     this.isUploading.set(true);
     this.uploadProgressValue.set(0);
 
@@ -171,8 +163,11 @@ export class FileUploadComponent implements AfterViewInit {
         this.groupId
       );
 
+      console.log('Upload observable created, subscribing...');
+
       uploadObservable.subscribe({
         next: (result) => {
+          console.log('Upload result:', result);
           if (result.type === 'progress') {
             this.uploadProgressValue.set(result.progress);
             this.uploadProgress.emit(result.progress);
@@ -188,20 +183,33 @@ export class FileUploadComponent implements AfterViewInit {
               name: file.name,
             };
 
+            console.log('Upload completed:', fileResult);
             this.fileUploaded.emit(fileResult);
-            this.selectedFiles.set([]);
+
+            // Remove the uploaded file from selection
+            const remainingFiles = this.selectedFiles().filter(
+              (f) => f !== file
+            );
+            this.selectedFiles.set(remainingFiles);
+
+            // Reset upload state after successful upload
+            this.isUploading.set(false);
+            this.uploadProgressValue.set(0);
           }
         },
         error: (error) => {
           console.error('Upload error:', error);
           this.uploadError.emit(error.message || 'Upload failed');
-        },
-        complete: () => {
           this.isUploading.set(false);
           this.uploadProgressValue.set(0);
         },
+        complete: () => {
+          console.log('Upload observable completed');
+          // Don't reset here as it might interfere with the next upload
+        },
       });
     } catch (error: any) {
+      console.error('Upload catch error:', error);
       this.uploadError.emit(error.message || 'Upload failed');
       this.isUploading.set(false);
       this.uploadProgressValue.set(0);
@@ -222,6 +230,31 @@ export class FileUploadComponent implements AfterViewInit {
 
   clearFiles() {
     this.selectedFiles.set([]);
+  }
+
+  uploadAllFiles() {
+    const files = this.selectedFiles();
+    if (files.length === 0) return;
+
+    console.log(
+      'Uploading all files:',
+      files.map((f) => f.name)
+    );
+
+    // Reset upload state
+    this.isUploading.set(false);
+    this.uploadProgressValue.set(0);
+
+    // Upload files one by one
+    files.forEach((file, index) => {
+      setTimeout(() => {
+        this.uploadFile(file);
+      }, index * 200); // Increased delay between uploads
+    });
+  }
+
+  getFileSize(file: File): string {
+    return this.formatFileSize(file.size);
   }
 
   private getFileType(
@@ -253,9 +286,5 @@ export class FileUploadComponent implements AfterViewInit {
       default:
         return 'pi pi-file';
     }
-  }
-
-  getFileSize(file: File): string {
-    return this.formatFileSize(file.size);
   }
 }

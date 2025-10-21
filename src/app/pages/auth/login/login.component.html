@@ -1,51 +1,60 @@
-<div class="login">
-  <header class="login__header">
-    <div class="login__logo">
-      <div class="logo-icon">
+<div class="login auth-page">
+  <header class="login__header auth-header">
+    <div class="login__logo auth-logo">
+      <div class="auth-logo__icon">
         <i class="pi pi-comments"></i>
       </div>
-      <h1 class="login__title">Quick<span>Chat</span></h1>
+      <h1 class="login__title auth-title">
+        Quick<span class="auth-title__accent">Chat</span>
+      </h1>
     </div>
-    <p class="login__tagline">Fast. Secure. Effortless Conversations.</p>
+    <p class="login__tagline auth-tagline">
+      Fast. Secure. Effortless Conversations.
+    </p>
   </header>
 
-  <section class="login__box">
-    <div class="login__box-header">
-      <h2 class="login__heading">Welcome Back</h2>
-      <p class="login__subtext">Log in to resume your conversations.</p>
+  <section class="login__box auth-card">
+    <div class="login__box-header auth-card-header">
+      <h2 class="login__heading auth-heading">Welcome Back</h2>
+      <p class="login__subtext auth-subtext">
+        Log in to resume your conversations.
+      </p>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login__form">
-      <div class="login__form-group">
-        <label for="email" class="login__label">
-          Email <span class="text-danger">*</span>
+    <form
+      [formGroup]="loginForm"
+      (ngSubmit)="onSubmit()"
+      class="login__form auth-form"
+    >
+      <div class="login__form-group auth-form-group">
+        <label for="email" class="login__label auth-label">
+          Email <span class="auth-label--required">*</span>
         </label>
         <input
           type="email"
           id="email"
-          class="login__input"
+          class="login__input auth-input"
           formControlName="email"
           [ngClass]="{ 'ng-invalid ng-touched': isInvalid('email') }"
         />
-        <div class="login__error" *ngIf="email.touched && email.invalid">
-          <small class="text-danger" *ngIf="email.errors?.['required']"
-            >Email is required</small
-          >
-          <small class="text-danger" *ngIf="email.errors?.['email']"
-            >Invalid email address</small
-          >
+        <div
+          class="login__error auth-error"
+          *ngIf="email.touched && email.invalid"
+        >
+          <small *ngIf="email.errors?.['required']">Email is required</small>
+          <small *ngIf="email.errors?.['email']">Invalid email address</small>
         </div>
       </div>
 
-      <div class="login__form-group">
-        <label for="password" class="login__label">
-          Password <span class="text-danger">*</span>
+      <div class="login__form-group auth-form-group">
+        <label for="password" class="login__label auth-label">
+          Password <span class="auth-label--required">*</span>
         </label>
-        <div class="login__password-wrapper">
+        <div class="login__password-wrapper auth-password-wrapper">
           <input
             [type]="showPassword ? 'text' : 'password'"
             id="password"
-            class="login__input"
+            class="login__input auth-input"
             formControlName="password"
             [ngClass]="{ 'ng-invalid ng-touched': isInvalid('password') }"
           />
@@ -55,34 +64,37 @@
             (click)="showPassword = !showPassword"
           ></i>
         </div>
-        <div class="login__error" *ngIf="password.touched && password.invalid">
-          <small class="text-danger" *ngIf="password.errors?.['required']"
+        <div
+          class="login__error auth-error"
+          *ngIf="password.touched && password.invalid"
+        >
+          <small *ngIf="password.errors?.['required']"
             >Password is required</small
           >
         </div>
       </div>
 
-      <div class="login__actions">
-        <button type="submit" class="login__button btn" pButton>
+      <div class="login__actions auth-actions">
+        <button type="submit" class="login__button auth-button" pButton>
           <i class="pi pi-sign-in"></i>
           Sign In
         </button>
       </div>
 
-      <div class="login__signup">
+      <div class="login__signup auth-link">
         Don't have an account?
-        <a [routerLink]="['/signup']" class="login__link">Sign Up</a>
+        <a [routerLink]="['/signup']">Sign Up</a>
       </div>
     </form>
 
-    <div class="login__divider">
+    <div class="login__divider auth-divider">
       <span>or continue with</span>
     </div>
 
-    <div class="login__social">
+    <div class="login__social auth-social">
       <button
         type="button"
-        class="login__social-btn google"
+        class="login__social-btn auth-social-button auth-social-button--google"
         (click)="loginWith('google')"
       >
         <i class="pi pi-google"></i>

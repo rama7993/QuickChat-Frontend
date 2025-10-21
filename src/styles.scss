@@ -1,236 +1,26 @@
-@use "./styles/themes.scss";
-@import "primeicons/primeicons.css";
+// Main SCSS File
+// Following the 7-1 SCSS Architecture Pattern
 
-// Legacy variables for backward compatibility
-:root {
-  --primary: var(--color-primary);
-  --secondary: var(--color-secondary);
-  --accent: var(--color-accent);
-  --hover: var(--color-accent);
-  --focus: var(--color-accent);
-  --warning: var(--color-warning);
-  --dark: var(--color-primary);
-  --light: var(--color-surface);
-  --primary-dark: var(--color-primary);
-  --primary-light: var(--color-accent);
-  --background: var(--color-background);
-  --text-light: var(--color-text);
-  --text-dark: var(--color-text);
-}
+// 1. Abstracts
+@use 'styles/abstracts';
 
-* {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  outline: none;
-  border: none;
-  text-decoration: none;
-  transition: all var(--transition-fast);
-}
+// 2. Vendors
+@use 'styles/vendors';
 
-*::selection {
-  background: var(--color-accent);
-  color: var(--color-primary);
-}
+// 3. Base
+@use 'styles/base';
 
-html {
-  // font-size: 62.5%; // 1rem = 10px
-  overflow-x: hidden;
-  scroll-padding-top: 6.5rem;
-  scroll-behavior: smooth;
-}
+// 4. Layout
+@use 'styles/layout';
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  color: var(--color-text);
-  background-color: var(--color-background);
-}
+// 5. Components
+@use 'styles/components';
 
-a {
-  text-decoration: none;
-}
+// 6. Pages
+@use 'styles/pages';
 
-ul,
-ol,
-li {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
+// 7. Themes
+@use 'styles/themes';
 
-p {
-  margin: 0;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
-
-button {
-  cursor: pointer;
-  font-family: inherit;
-}
-
-input,
-button,
-textarea,
-select {
-  font: inherit;
-}
-
-.btn {
-  background: var(--gradient-primary);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-medium);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-medium);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-}
-
-label {
-  display: block;
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
-  margin-bottom: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-
-  span {
-    color: var(--color-error);
-    margin-left: var(--spacing-xs);
-  }
-}
-
-// PrimeNG Global Styling
-.p-dropdown {
-  background: var(--color-surface) !important;
-  border: 1px solid var(--color-border) !important;
-  border-radius: var(--radius-medium) !important;
-  transition: all 0.2s ease;
-  min-width: 200px;
-  box-shadow: none !important;
-
-  &:not(.p-disabled):hover {
-    border-color: var(--color-accent) !important;
-  }
-
-  &:not(.p-disabled).p-focus {
-    border-color: var(--color-accent) !important;
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1) !important;
-  }
-
-  .p-dropdown-label {
-    color: var(--color-text) !important;
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.75rem 1rem;
-  }
-
-  .p-dropdown-trigger {
-    color: var(--color-text-secondary) !important;
-
-    .p-dropdown-trigger-icon {
-      color: var(--color-text-secondary) !important;
-    }
-  }
-}
-
-.p-dropdown-panel {
-  background: var(--color-surface) !important;
-  border: 1px solid var(--color-border) !important;
-  border-radius: var(--radius-medium) !important;
-  box-shadow: var(--shadow-large) !important;
-  z-index: 1000;
-
-  .p-dropdown-items {
-    .p-dropdown-item {
-      color: var(--color-text) !important;
-      font-size: 0.875rem;
-      font-weight: 500;
-      padding: 0.75rem 1rem;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: var(--color-background) !important;
-        color: var(--color-accent) !important;
-      }
-
-      &.p-highlight {
-        background: var(--color-accent) !important;
-        color: #ffffff !important;
-      }
-
-      &.p-focus {
-        background: var(--color-background) !important;
-        color: var(--color-accent) !important;
-      }
-    }
-  }
-}
-
-// Additional PrimeNG component styling
-.p-component {
-  font-family: inherit;
-}
-
-.p-inputtext {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-medium);
-  color: var(--color-text);
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: var(--color-accent);
-  }
-
-  &:focus {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1);
-  }
-}
-
-.p-button {
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: var(--radius-medium);
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-medium);
-  }
-
-  &:focus {
-    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1);
-  }
-}
+// 8. Utilities
+@use 'styles/utilities';

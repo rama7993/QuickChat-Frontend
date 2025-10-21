@@ -13,7 +13,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-// import { PickerModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import { ChatService } from '../../../../../core/services/chat/chat.service';
 import { GroupService } from '../../../../../core/services/group/group.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
@@ -21,6 +20,7 @@ import { SocketService } from '../../../../../core/services/socket/socket.servic
 import { User, Group } from '../../../../../core/interfaces/group.model';
 import { Message } from '../../../../../core/interfaces/message.model';
 import { FileUploadComponent } from '../../../../../shared/components/file-upload/file-upload.component';
+import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { VideoCallComponent } from '../../../../../shared/components/video-call/video-call.component';
 import {
   VoiceRecorderComponent,
@@ -34,7 +34,7 @@ import { Default_Img_Url } from '../../../../../../utils/constants.utils';
   imports: [
     CommonModule,
     FormsModule,
-    // PickerModule,
+    PickerComponent,
     FileUploadComponent,
     VideoCallComponent,
     VoiceRecorderComponent,
@@ -91,350 +91,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   // Audio playback state
   private audioElements = new Map<string, HTMLAudioElement>();
   private audioProgress = new Map<string, number>();
-
-  // Emoji list for the picker
-  public emojiList = [
-    '😀',
-    '😃',
-    '😄',
-    '😁',
-    '😆',
-    '😅',
-    '😂',
-    '🤣',
-    '😊',
-    '😇',
-    '🙂',
-    '🙃',
-    '😉',
-    '😌',
-    '😍',
-    '🥰',
-    '😘',
-    '😗',
-    '😙',
-    '😚',
-    '😋',
-    '😛',
-    '😝',
-    '😜',
-    '🤪',
-    '🤨',
-    '🧐',
-    '🤓',
-    '😎',
-    '🤩',
-    '🥳',
-    '😏',
-    '😒',
-    '😞',
-    '😔',
-    '😟',
-    '😕',
-    '🙁',
-    '☹️',
-    '😣',
-    '😖',
-    '😫',
-    '😩',
-    '🥺',
-    '😢',
-    '😭',
-    '😤',
-    '😠',
-    '😡',
-    '🤬',
-    '🤯',
-    '😳',
-    '🥵',
-    '🥶',
-    '😱',
-    '😨',
-    '😰',
-    '😥',
-    '😓',
-    '🤗',
-    '🤔',
-    '🤭',
-    '🤫',
-    '🤥',
-    '😶',
-    '😐',
-    '😑',
-    '😬',
-    '🙄',
-    '😯',
-    '😦',
-    '😧',
-    '😮',
-    '😲',
-    '🥱',
-    '😴',
-    '🤤',
-    '😪',
-    '😵',
-    '🤐',
-    '🥴',
-    '🤢',
-    '🤮',
-    '🤧',
-    '😷',
-    '🤒',
-    '🤕',
-    '🤑',
-    '🤠',
-    '😈',
-    '👿',
-    '👹',
-    '👺',
-    '🤡',
-    '💩',
-    '👻',
-    '💀',
-    '☠️',
-    '👽',
-    '👾',
-    '🤖',
-    '🎃',
-    '😺',
-    '😸',
-    '😹',
-    '😻',
-    '😼',
-    '😽',
-    '🙀',
-    '😿',
-    '😾',
-    '👶',
-    '🧒',
-    '👦',
-    '👧',
-    '🧑',
-    '👨',
-    '👩',
-    '🧓',
-    '👴',
-    '👵',
-    '👤',
-    '👥',
-    '🫂',
-    '👪',
-    '👨‍👩‍👧‍👦',
-    '👨‍👨‍👧',
-    '👩‍👩‍👧',
-    '👨‍👧',
-    '👨‍👧‍👦',
-    '👩‍👦',
-    '👩‍👦‍👦',
-    '👨‍👩‍👧',
-    '👨‍👨‍👦',
-    '👩‍👩‍👦',
-    '👨‍👦',
-    '👨‍👦‍👦',
-    '👩‍👧',
-    '👩‍👧‍👦',
-    '👨‍👩‍👦‍👦',
-    '👍',
-    '👎',
-    '👌',
-    '✌️',
-    '🤞',
-    '🤟',
-    '🤘',
-    '🤙',
-    '👈',
-    '👉',
-    '👆',
-    '🖕',
-    '👇',
-    '☝️',
-    '👋',
-    '🤚',
-    '🖐️',
-    '✋',
-    '🖖',
-    '👏',
-    '🙌',
-    '👐',
-    '🤲',
-    '🤝',
-    '🙏',
-    '✍️',
-    '💅',
-    '🤳',
-    '💪',
-    '🦾',
-    '🦿',
-    '🦵',
-    '🦶',
-    '👂',
-    '🦻',
-    '👃',
-    '🧠',
-    '🦷',
-    '🦴',
-    '👀',
-    '👁️',
-    '👅',
-    '👄',
-    '💋',
-    '🩸',
-    '❤️',
-    '🧡',
-    '💛',
-    '💚',
-    '💙',
-    '💜',
-    '🖤',
-    '🤍',
-    '🤎',
-    '💔',
-    '❣️',
-    '💕',
-    '💞',
-    '💓',
-    '💗',
-    '💖',
-    '💘',
-    '💝',
-    '💟',
-    '☮️',
-    '✝️',
-    '☪️',
-    '🕉️',
-    '☸️',
-    '✡️',
-    '🔯',
-    '🕎',
-    '☯️',
-    '☦️',
-    '🛐',
-    '⛎',
-    '♈',
-    '♉',
-    '♊',
-    '♋',
-    '♌',
-    '♍',
-    '♎',
-    '♏',
-    '♐',
-    '♑',
-    '♒',
-    '♓',
-    '🆔',
-    '⚛️',
-    '🉑',
-    '☢️',
-    '☣️',
-    '📴',
-    '📳',
-    '🈶',
-    '🈚',
-    '🈸',
-    '🈺',
-    '🈷️',
-    '✴️',
-    '🆚',
-    '💮',
-    '🉐',
-    '㊙️',
-    '㊗️',
-    '🈴',
-    '🈵',
-    '🈹',
-    '🈲',
-    '🅰️',
-    '🅱️',
-    '🆎',
-    '🆑',
-    '🅾️',
-    '🆘',
-    '❌',
-    '⭕',
-    '🛑',
-    '⛔',
-    '📛',
-    '🚫',
-    '💯',
-    '💢',
-    '♨️',
-    '🚷',
-    '🚯',
-    '🚳',
-    '🚱',
-    '🔞',
-    '📵',
-    '🚭',
-    '❗',
-    '❕',
-    '❓',
-    '❔',
-    '‼️',
-    '⁉️',
-    '🔅',
-    '🔆',
-    '〽️',
-    '⚠️',
-    '🚸',
-    '🔱',
-    '⚜️',
-    '🔰',
-    '♻️',
-    '✅',
-    '🈯',
-    '💹',
-    '❇️',
-    '✳️',
-    '❎',
-    '🌐',
-    '💠',
-    'Ⓜ️',
-    '🌀',
-    '💤',
-    '🏧',
-    '🚾',
-    '♿',
-    '🅿️',
-    '🛗',
-    '🈳',
-    '🈂️',
-    '🛂',
-    '🛃',
-    '🛄',
-    '🛅',
-    '🚹',
-    '🚺',
-    '🚼',
-    '⚧️',
-    '🚻',
-    '🚮',
-    '🎦',
-    '📶',
-    '🈁',
-    '🔣',
-    '🔤',
-    'ℹ️',
-    '🔡',
-    '🔠',
-    '🆖',
-    '🆗',
-    '🆙',
-    '🆒',
-    '🆕',
-    '🆓',
-    '0️⃣',
-    '1️⃣',
-    '2️⃣',
-    '3️⃣',
-    '4️⃣',
-    '5️⃣',
-    '6️⃣',
-    '7️⃣',
-    '8️⃣',
-    '9️⃣',
-    '🔟',
-  ];
 
   // Voice recording
   public isRecording = signal(false);
@@ -826,13 +482,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showFileUpload.set(!this.showFileUpload());
     this.showEmojiPicker.set(false);
     this.showVoiceRecording.set(false);
-
-    // If showing file upload, trigger the file input after a short delay
-    if (this.showFileUpload()) {
-      setTimeout(() => {
-        this.triggerFileInput();
-      }, 100);
-    }
   }
 
   toggleVoiceRecording() {
@@ -929,30 +578,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // File Upload Methods
   onFileUploaded(result: any) {
-    // Create a file message and send it immediately
-    const fileMessage = this.createFileMessage(result);
-
-    try {
-      if (this.isGroupChat()) {
-        this.chatService.sendGroupMessage(
-          this.selectedGroup()!._id,
-          fileMessage.content,
-          undefined,
-          result.url,
-          result.type
-        );
-      } else {
-        this.chatService.sendPrivateMessage(
-          this.selectedUser()!._id,
-          fileMessage.content,
-          undefined,
-          result.url,
-          result.type
-        );
-      }
-    } catch (error) {
-      // Handle error silently
-    }
+    console.log(
+      'File upload completed, message will be created by backend:',
+      result
+    );
 
     this.showFileUpload.set(false);
   }
@@ -1012,9 +641,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
           .subscribe({
             next: (uploadResult) => {
               // Voice message uploaded successfully
+              this.showVoiceRecording.set(false);
             },
             error: (error) => {
               // Handle error silently
+              this.showVoiceRecording.set(false);
             },
           });
       } else {
@@ -1028,19 +659,23 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
           .subscribe({
             next: (uploadResult) => {
               // Voice message uploaded successfully
+              this.showVoiceRecording.set(false);
             },
             error: (error) => {
               // Handle error silently
+              this.showVoiceRecording.set(false);
             },
           });
       }
     } catch (error) {
       // Handle error silently
+      this.showVoiceRecording.set(false);
     }
   }
 
   onVoiceRecordingError(error: string) {
     // Handle voice recording error silently
+    this.showVoiceRecording.set(false);
   }
 
   onVoiceRecordingCancelled() {
@@ -1240,6 +875,20 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   closeVideoPreview() {
     this.showVideoPreview.set(false);
     this.previewVideoUrl.set('');
+  }
+
+  handleImageError(event: any) {
+    console.error('Image failed to load:', event.target.src);
+
+    // If it's a local URL, try to construct the full URL
+    if (event.target.src.startsWith('/uploads/')) {
+      const fullUrl = `${window.location.origin}${event.target.src}`;
+      console.log('Trying full URL:', fullUrl);
+      event.target.src = fullUrl;
+    } else {
+      // Hide the image if it still fails
+      event.target.style.display = 'none';
+    }
   }
 
   toggleAudioPlayback(audioUrl: string) {

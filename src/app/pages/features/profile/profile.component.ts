@@ -58,6 +58,7 @@ export class ProfileComponent {
       lastName: ['', Validators.required],
       username: [''],
       email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.pattern(/^[\+]?[1-9][\d]{0,15}$/)]],
       gender: [''],
       bio: ['', [Validators.maxLength(2000)]],
       photoUrl: [''],
@@ -85,6 +86,7 @@ export class ProfileComponent {
       privacySettings: this.fb.group({
         showLastSeen: [true],
         showStatus: [true],
+        showOnlineStatus: [true],
         allowGroupInvites: [true],
         allowFriendRequests: [true],
       }),
@@ -101,7 +103,22 @@ export class ProfileComponent {
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        this.alertService.errorToaster('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        this.alertService.errorToaster('Image size must be less than 5MB');
+        return;
+      }
+
       this.uploadedFile = file;
+      
+      // Create preview
       const reader = new FileReader();
       reader.onload = () => {
         this.previewUrl = reader.result;
@@ -112,26 +129,87 @@ export class ProfileComponent {
   }
 
   onSubmit() {
-    if (this.profileForm.invalid) return;
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      this.alertService.errorToaster('Please fix the form errors before submitting');
+      return;
+    }
 
     const userId = this.currentUser()?._id;
-    if (!userId) return;
+    if (!userId) {
+      this.alertService.errorToaster('User not found. Please log in again.');
+      return;
+    }
 
     this.isUpdating.set(true);
-    const formValue = this.profileForm.value;
+    
+    // If there's an uploaded file, upload it first
+    if (this.uploadedFile) {
+      this.uploadProfilePicture(this.uploadedFile, userId);
+    } else {
+      // No file upload, just update profile
+      this.updateProfile(userId);
+    }
+  }
 
-    this.authService.updateUserById(userId, formValue).subscribe({
+  private uploadProfilePicture(file: File, userId: string) {
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    
+    // Upload file first
+    this.authService.uploadProfilePicture(formData).subscribe({
+      next: (uploadResponse: any) => {
+        // Update profile with the uploaded image URL
+        const formValue = this.cleanFormData(this.profileForm.value);
+        formValue.photoUrl = uploadResponse.url || uploadResponse.imageUrl;
+        
+        this.updateProfile(userId, formValue);
+      },
+      error: (err) => {
+        console.error('File upload failed', err);
+        this.alertService.errorToaster('Failed to upload profile picture');
+        this.isUpdating.set(false);
+      }
+    });
+  }
+
+  private updateProfile(userId: string, formValue?: any) {
+    const profileData = formValue || this.cleanFormData(this.profileForm.value);
+    
+    this.authService.updateUserById(userId, profileData).subscribe({
       next: (resp: any) => {
         this.authService.updateUser(resp.user);
         this.alertService.successToaster('Profile updated successfully!');
         this.isUpdating.set(false);
+        this.uploadedFile = null; // Clear uploaded file
       },
       error: (err) => {
         console.error('Update failed', err);
-        this.alertService.errorToaster(err?.error || err?.message || err);
+        const errorMessage = err?.error?.message || err?.message || 'Failed to update profile';
+        this.alertService.errorToaster(errorMessage);
         this.isUpdating.set(false);
       },
     });
+  }
+
+  private cleanFormData(data: any): any {
+    const cleaned: any = {};
+    
+    for (const key in data) {
+      if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
+        if (typeof data[key] === 'object' && !Array.isArray(data[key])) {
+          const cleanedNested = this.cleanFormData(data[key]);
+          if (Object.keys(cleanedNested).length > 0) {
+            cleaned[key] = cleanedNested;
+          }
+        } else {
+          cleaned[key] = data[key];
+        }
+      }
+    }
+    
+    return cleaned;
   }
 
   onFileUploaded(result: any) {
@@ -157,8 +235,10 @@ export class ProfileComponent {
   }
 
   removeProfilePicture() {
-    // Implement profile picture removal functionality
-    // console.log('Remove profile picture'); // Commented for production
+    this.previewUrl = null;
+    this.uploadedFile = null;
+    this.profileForm.get('photoUrl')?.setValue('');
+    this.alertService.successToaster('Profile picture removed. Click Save Changes to apply.');
   }
 
   getThemeOptions() {

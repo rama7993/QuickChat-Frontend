@@ -7,7 +7,7 @@ import { map, catchError, of } from 'rxjs';
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   const authService = inject(AuthService);
-  
+
   // Check if token exists in localStorage
   const token = localStorage.getItem('authToken');
   if (!token) {

@@ -56,11 +56,11 @@ export class AuthService {
   }
 
   fetchCurrentUser(): Observable<any> {
-    return this.http
-      .get(`${this.API_URL}/users/me`)
-      .pipe(tap((user) => {
+    return this.http.get(`${this.API_URL}/users/me`).pipe(
+      tap((user) => {
         this.userSignal.set(user);
-      }));
+      })
+    );
   }
 
   get currentUser() {
@@ -77,6 +77,10 @@ export class AuthService {
 
   updateUserById(id: string, userData: any): Observable<any> {
     return this.http.put(`${this.API_URL}/users/${id}`, userData);
+  }
+
+  uploadProfilePicture(formData: FormData): Observable<any> {
+    return this.http.post(`${this.API_URL}/upload/profile-picture`, formData);
   }
 
   // Refresh token before it expires
