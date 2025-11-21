@@ -27,16 +27,19 @@ A modern real-time chat application frontend built with Angular 19, featuring a 
 ## Installation
 
 1. Clone the repository and navigate to the frontend directory:
+
 ```bash
 cd "QuickChat frontend/client"
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Install Angular CLI globally (if not already installed):
+
 ```bash
 npm install -g @angular/cli
 ```
@@ -44,6 +47,7 @@ npm install -g @angular/cli
 ## Running the Application
 
 ### Development Mode
+
 ```bash
 npm start
 ```
@@ -51,6 +55,7 @@ npm start
 The application will start on `http://localhost:4200` and automatically open in your browser.
 
 ### Build for Production
+
 ```bash
 npm run build
 ```
@@ -58,6 +63,7 @@ npm run build
 The build artifacts will be stored in the `dist/client/browser/` directory.
 
 ### Watch Mode
+
 ```bash
 npm run watch
 ```
@@ -92,22 +98,28 @@ src/
 ├── environments/              # Environment configurations
 ├── styles/                    # Global styles
 └── utils/                     # Utility functions
+    ├── file.utils.ts         # File operations and formatting
+    ├── message.utils.ts      # Message formatting and grouping
+    └── constants.utils.ts    # Application constants
 ```
 
 ## Key Components
 
 ### Chat Components
+
 - **ChatComponent** - Main chat container
 - **ChatWindowComponent** - Chat window with message display
 - **ChatSidebarComponent** - Sidebar with user/group lists
 
 ### Services
+
 - **SocketService** - Handles real-time communication
 - **ChatService** - Manages chat functionality
 - **AuthService** - Handles authentication
 - **GroupService** - Manages group operations
 
 ### Shared Components
+
 - **FileUploadComponent** - File upload functionality
 - **VoiceRecorderComponent** - Voice message recording
 - **VideoCallComponent** - Video call integration
@@ -118,20 +130,22 @@ src/
 The application uses environment files for configuration:
 
 ### Development (`src/environments/environment.ts`)
+
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api',
-  socketUrl: 'http://localhost:3000'
+  apiUrl: "http://localhost:3000/api",
+  socketUrl: "http://localhost:3000",
 };
 ```
 
 ### Production (`src/environments/environment.prod.ts`)
+
 ```typescript
 export const environment = {
   production: true,
-  apiUrl: 'https://your-api-domain.com/api',
-  socketUrl: 'https://your-api-domain.com'
+  apiUrl: "https://your-api-domain.com/api",
+  socketUrl: "https://your-api-domain.com",
 };
 ```
 
@@ -140,15 +154,17 @@ export const environment = {
 The application uses Socket.IO for real-time communication:
 
 ### Connection Setup
+
 ```typescript
 // Socket service automatically connects on initialization
-this.socket = io('http://localhost:3000', {
+this.socket = io("http://localhost:3000", {
   auth: { token: authToken },
-  transports: ['websocket', 'polling']
+  transports: ["websocket", "polling"],
 });
 ```
 
 ### Event Handling
+
 - **Message Events**: `message_received`, `message_updated`, `message_deleted`
 - **Typing Events**: `user_typing`, `user_stopped_typing`
 - **Status Events**: `user_online`, `user_offline`, `online_users`
@@ -168,6 +184,7 @@ public isTyping = signal(false);
 ## Styling
 
 The application uses:
+
 - **SCSS** for styling
 - **PrimeNG** components for UI elements
 - **Responsive design** with CSS Grid and Flexbox
@@ -176,16 +193,31 @@ The application uses:
 ## File Upload
 
 Supports multiple file types:
-- **Images**: jpg, png, gif, webp
-- **Videos**: mp4, webm, avi
-- **Audio**: mp3, wav, webm
-- **Documents**: pdf, doc, txt, zip
 
-Files are converted to base64 and sent via Socket.IO.
+- **Images**: jpg, png, gif, webp
+- **Videos**: mp4, webm, avi, mov
+- **Audio**: mp3, wav, webm, m4a
+- **Documents**: pdf, doc, docx, xls, xlsx, ppt, pptx, txt, zip, rar
+
+Files are converted to base64 and sent via Socket.IO. The backend automatically uploads files to Cloudinary and creates messages in real-time.
+
+## Video Calls
+
+The application supports peer-to-peer video calls using WebRTC:
+
+- **WebRTC** for peer-to-peer connections
+- **Socket.IO** for signaling
+- **STUN servers** for NAT traversal
+- **Real-time audio/video** streaming
+- **Mute/unmute** and **video on/off** controls
+- **Group video calls** support
+
+Video calls require camera and microphone permissions from the browser.
 
 ## Voice Recording
 
 Voice messages are recorded using the Web Audio API:
+
 - Real-time recording with visual feedback
 - Automatic upload after recording
 - Support for multiple audio formats
@@ -193,11 +225,13 @@ Voice messages are recorded using the Web Audio API:
 ## Testing
 
 Run unit tests:
+
 ```bash
 npm test
 ```
 
 Run tests with coverage:
+
 ```bash
 npm run test:coverage
 ```
@@ -205,6 +239,7 @@ npm run test:coverage
 ## Linting
 
 The project uses ESLint for code quality:
+
 ```bash
 npm run lint
 ```
@@ -212,12 +247,15 @@ npm run lint
 ## Building and Deployment
 
 ### Build for Production
+
 ```bash
 npm run build
 ```
 
 ### Deploy to Vercel
+
 The project includes `vercel.json` for easy deployment to Vercel:
+
 ```bash
 vercel --prod
 ```

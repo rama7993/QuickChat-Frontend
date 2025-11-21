@@ -9,6 +9,11 @@
   </div>
 
   <div class="header__actions">
+    <!-- Mobile Search Toggle Button -->
+    <button class="mobile-search-btn" (click)="toggleSearch()" title="Search">
+      <i class="pi pi-search"></i>
+    </button>
+
     <!-- Search Bar -->
     <div class="header__search" [class.active]="showSearch">
       <i class="pi pi-search" (click)="toggleSearch()"></i>
@@ -23,6 +28,9 @@
       />
     </div>
 
+    <!-- Connection Status -->
+    <app-connection-status></app-connection-status>
+
     <!-- Action Buttons -->
     <div class="header__buttons">
       <button class="action-btn" title="Create Group" (click)="createGroup()">
@@ -35,8 +43,8 @@
         (click)="toggleNotifications()"
       >
         <i class="pi pi-bell"></i>
-        <span class="notification-badge" *ngIf="unreadCount > 0">{{
-          unreadCount
+        <span class="notification-badge" *ngIf="unreadCount() > 0">{{
+          unreadCount()
         }}</span>
       </button>
     </div>

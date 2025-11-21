@@ -1,7 +1,7 @@
 // Accessibility Utilities
 // Screen reader and accessibility utility classes
 
-@use '../abstracts' as *;
+@use "../abstracts" as *;
 
 // Screen reader only
 .sr-only {
@@ -188,15 +188,15 @@
   .high-contrast\:border-2 {
     border-width: 2px;
   }
-  
+
   .high-contrast\:border-4 {
     border-width: 4px;
   }
-  
+
   .high-contrast\:text-bold {
     font-weight: 700;
   }
-  
+
   .high-contrast\:bg-opacity-100 {
     background-color: var(--color-surface);
   }
@@ -207,15 +207,15 @@
   .motion-reduce\:animate-none {
     animation: none;
   }
-  
+
   .motion-reduce\:transition-none {
     transition: none;
   }
-  
+
   .motion-reduce\:transform-none {
     transform: none;
   }
-  
+
   .motion-reduce\:scroll-auto {
     scroll-behavior: auto;
   }
@@ -226,11 +226,11 @@
   .forced-colors\:border-2 {
     border-width: 2px;
   }
-  
+
   .forced-colors\:text-bold {
     font-weight: 700;
   }
-  
+
   .forced-colors\:bg-transparent {
     background-color: transparent;
   }
@@ -241,31 +241,31 @@
   .print\:hidden {
     display: none;
   }
-  
+
   .print\:block {
     display: block;
   }
-  
+
   .print\:inline {
     display: inline;
   }
-  
+
   .print\:inline-block {
     display: inline-block;
   }
-  
+
   .print\:text-black {
     color: black;
   }
-  
+
   .print\:bg-white {
     background-color: white;
   }
-  
+
   .print\:border-black {
     border-color: black;
   }
-  
+
   .print\:shadow-none {
     box-shadow: none;
   }

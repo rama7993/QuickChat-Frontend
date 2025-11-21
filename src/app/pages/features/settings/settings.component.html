@@ -89,14 +89,25 @@
             <h3>Sound Effects</h3>
             <p>Play sounds for notifications and actions</p>
           </div>
-          <label class="toggle-switch">
-            <input
-              type="checkbox"
-              [checked]="appSettings().soundEffects"
-              (change)="onCheckboxChange('soundEffects', $event)"
-            />
-            <span class="slider"></span>
-          </label>
+          <div class="setting-controls">
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="appSettings().soundEffects"
+                (change)="onCheckboxChange('soundEffects', $event)"
+              />
+              <span class="slider"></span>
+            </label>
+            <button
+              class="btn btn-secondary btn-sm"
+              (click)="testSound()"
+              [disabled]="!appSettings().soundEffects"
+              title="Test Sound"
+            >
+              <i class="pi pi-volume-up"></i>
+              Test
+            </button>
+          </div>
         </div>
 
         <div class="setting-item">

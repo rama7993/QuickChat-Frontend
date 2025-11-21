@@ -9,7 +9,7 @@
       <h3>Welcome to QuickChat</h3>
       <p>Select a conversation from the sidebar to start chatting</p>
       <div class="empty-actions">
-        <button class="btn btn-primary" (click)="goBack()">
+        <button class="btn btn-primary" (click)="startNewChat()">
           <i class="pi pi-plus"></i>
           Start New Chat
         </button>
@@ -45,16 +45,18 @@
         <div class="chat-details">
           <h4 class="chat-title">{{ chatTitle() }}</h4>
           <p class="chat-subtitle">{{ chatSubtitle() }}</p>
-          <!-- Socket Connection Status -->
+          <!-- User Connection Status -->
+          @if (!isGroupChat() && selectedUser()) {
           <p
             class="connection-status"
-            [class.connected]="isSocketConnected()"
-            [class.disconnected]="!isSocketConnected()"
+            [class.connected]="selectedUser()?.status === 'online'"
+            [class.disconnected]="selectedUser()?.status !== 'online'"
           >
-            @if (isSocketConnected()) {
+            @if (selectedUser()?.status === 'online') {
             <i class="pi pi-check-circle"></i> Connected } @else {
-            <i class="pi pi-times-circle"></i> Disconnected }
+            <i class="pi pi-circle"></i> Offline }
           </p>
+          }
         </div>
       </div>
     </div>
@@ -99,30 +101,60 @@
 
     <!-- More Options Menu -->
     @if (showMessageOptions() === 'chat-options') {
-    <div class="more-options-menu">
-      <button class="option-btn" (click)="searchMessages()">
+    <div class="more-options-menu" (click)="$event.stopPropagation()">
+      <button class="option-btn" (click)="searchMessages(); closeMoreOptions()">
         <i class="pi pi-search"></i>
         <span>Search Messages</span>
       </button>
-      <button
-        class="option-btn"
-        (click)="toggleGroupInfo()"
-        *ngIf="isGroupChat()"
-      >
+      
+      @if (isGroupChat()) {
+      <button class="option-btn" (click)="toggleGroupInfo(); closeMoreOptions()">
         <i class="pi pi-info-circle"></i>
         <span>Group Info</span>
       </button>
-      <button class="option-btn" (click)="startVideoCall()">
+      <button class="option-btn" (click)="viewGroupMembers(); closeMoreOptions()">
+        <i class="pi pi-users"></i>
+        <span>View Members</span>
+      </button>
+      <button class="option-btn" (click)="leaveGroup(); closeMoreOptions()">
+        <i class="pi pi-sign-out"></i>
+        <span>Leave Group</span>
+      </button>
+      }
+      
+      <button class="option-btn" (click)="startVideoCall(); closeMoreOptions()">
         <i class="pi pi-video"></i>
         <span>Start Video Call</span>
       </button>
-      <button class="option-btn" (click)="clearChat()">
+      
+      @if (!isGroupChat()) {
+      <button class="option-btn" (click)="viewProfile(); closeMoreOptions()">
+        <i class="pi pi-user"></i>
+        <span>View Profile</span>
+      </button>
+      <button class="option-btn" (click)="muteNotifications(); closeMoreOptions()">
+        <i class="pi pi-bell-slash"></i>
+        <span>{{ isMuted() ? 'Unmute' : 'Mute' }} Notifications</span>
+      </button>
+      <button class="option-btn danger" (click)="blockUser(); closeMoreOptions()">
+        <i class="pi pi-ban"></i>
+        <span>Block User</span>
+      </button>
+      }
+      
+      <div class="menu-divider"></div>
+      
+      <button class="option-btn" (click)="exportChat(); closeMoreOptions()">
+        <i class="pi pi-download"></i>
+        <span>Export Chat</span>
+      </button>
+      <button class="option-btn danger" (click)="clearChat(); closeMoreOptions()">
         <i class="pi pi-trash"></i>
         <span>Clear Chat</span>
       </button>
-      <button class="option-btn" (click)="blockUser()" *ngIf="!isGroupChat()">
-        <i class="pi pi-ban"></i>
-        <span>Block User</span>
+      <button class="option-btn danger" (click)="deleteChat(); closeMoreOptions()">
+        <i class="pi pi-times-circle"></i>
+        <span>Delete Chat</span>
       </button>
     </div>
     }
@@ -265,9 +297,9 @@
                   }
                 </div>
               </div>
-              } @else if (attachment.type === 'voice') {
+              } @else if (attachment.type === 'voice' || attachment.type === 'audio') {
               <div class="audio-attachment">
-                <div class="audio-player">
+                <div class="audio-player" [class.playing]="isAudioPlaying(attachment.url)">
                   <button
                     class="play-button"
                     (click)="toggleAudioPlayback(attachment.url)"
@@ -282,13 +314,21 @@
                     <span class="audio-filename">{{
                       attachment.filename
                     }}</span>
+                    <div class="audio-waveform">
+                      <span></span><span></span><span></span><span></span>
+                      <span></span><span></span><span></span><span></span>
+                    </div>
                     @if (attachment.duration) {
                     <span class="audio-duration">{{
                       formatDuration(attachment.duration)
                     }}</span>
                     }
                   </div>
-                  <div class="audio-progress">
+                  <!-- Progress bar removed from here as it's now part of the info/waveform layout -->
+                </div>
+                <!-- Add a separate progress bar container if needed, or integrate into audio-info -->
+                <div class="audio-progress-container">
+                   <div class="audio-progress">
                     <div
                       class="progress-bar"
                       [style.width.%]="getAudioProgress(attachment.url)"
@@ -384,13 +424,13 @@
             React
           </button>
           @if (message.sender._id === currentUser()?._id) {
-          <button
+          <!-- <button
             class="menu-item"
             (click)="editMessage(message._id, message.content)"
           >
             <i class="pi pi-pencil"></i>
             Edit
-          </button>
+          </button> -->
           <button class="menu-item danger" (click)="deleteMessage(message._id)">
             <i class="pi pi-trash"></i>
             Delete

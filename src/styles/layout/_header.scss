@@ -1,14 +1,14 @@
 // Header Layout
 // Header component styles
 
-@use '../abstracts' as *;
+@use "../abstracts" as *;
 
 .header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: z('sticky');
+  z-index: z("sticky");
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   backdrop-filter: blur(10px);
@@ -101,14 +101,14 @@
       background: var(--color-surface);
     }
 
-    @include respond-to('md') {
+    @include respond-to("md") {
       display: flex;
     }
   }
 }
 
 // Responsive header
-@include respond-to('md') {
+@include respond-to("md") {
   .header {
     &__nav {
       display: none;
@@ -120,7 +120,7 @@
   }
 }
 
-@include respond-to('sm') {
+@include respond-to("sm") {
   .header {
     padding: 0 var(--spacing-md);
     height: 3.5rem;

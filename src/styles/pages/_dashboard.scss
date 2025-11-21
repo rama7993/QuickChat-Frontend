@@ -1,33 +1,33 @@
 // Dashboard Pages
 // Dashboard and main page styles
 
-@use '../abstracts' as *;
+@use "../abstracts" as *;
 
 .dashboard {
   min-height: 100vh;
   background: var(--color-background);
-  
+
   &__header {
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
     padding: var(--spacing-lg);
     @include flex-between;
   }
-  
+
   &__content {
     padding: var(--spacing-lg);
   }
-  
+
   &__stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
   }
-  
+
   &__section {
     margin-bottom: var(--spacing-xl);
-    
+
     &-title {
       font-size: var(--font-size-xl);
       font-weight: var(--font-weight-semibold);
@@ -45,19 +45,19 @@
   border-radius: var(--radius-large);
   margin-bottom: var(--spacing-xl);
   text-align: center;
-  
+
   &__title {
     font-size: var(--font-size-3xl);
     font-weight: var(--font-weight-bold);
     margin: 0 0 var(--spacing-md) 0;
   }
-  
+
   &__subtitle {
     font-size: var(--font-size-lg);
     margin: 0 0 var(--spacing-lg) 0;
     opacity: 0.9;
   }
-  
+
   &__actions {
     @include flex-center;
     gap: var(--spacing-md);
@@ -71,33 +71,33 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-xl);
-  
+
   &__item {
     @include theme-card;
     padding: var(--spacing-lg);
     text-align: center;
     cursor: pointer;
     transition: all var(--transition-normal);
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-large);
     }
-    
+
     &-icon {
       width: 3rem;
       height: 3rem;
       margin: 0 auto var(--spacing-md);
       color: var(--color-accent);
     }
-    
+
     &-title {
       font-size: var(--font-size-lg);
       font-weight: var(--font-weight-semibold);
       color: var(--color-text);
       margin: 0 0 var(--spacing-sm) 0;
     }
-    
+
     &-description {
       color: var(--color-text-secondary);
       font-size: var(--font-size-sm);
@@ -114,39 +114,39 @@
     padding: 0;
     margin: 0;
   }
-  
+
   &__item {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
-    
+
     &:last-child {
       border-bottom: none;
     }
-    
+
     &-avatar {
       @include theme-avatar("medium");
     }
-    
+
     &-content {
       flex: 1;
     }
-    
+
     &-title {
       font-size: var(--font-size-base);
       font-weight: var(--font-weight-medium);
       color: var(--color-text);
       margin: 0 0 var(--spacing-xs) 0;
     }
-    
+
     &-description {
       font-size: var(--font-size-sm);
       color: var(--color-text-secondary);
       margin: 0;
     }
-    
+
     &-time {
       font-size: var(--font-size-xs);
       color: var(--color-text-secondary);
@@ -159,7 +159,7 @@
   text-align: center;
   padding: var(--spacing-2xl);
   color: var(--color-text-secondary);
-  
+
   &__icon {
     width: 4rem;
     height: 4rem;
@@ -167,20 +167,20 @@
     color: var(--color-text-secondary);
     opacity: 0.5;
   }
-  
+
   &__title {
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text);
     margin: 0 0 var(--spacing-md) 0;
   }
-  
+
   &__description {
     font-size: var(--font-size-base);
     line-height: var(--line-height-relaxed);
     margin: 0 0 var(--spacing-lg) 0;
   }
-  
+
   &__actions {
     @include flex-center;
     gap: var(--spacing-md);
@@ -192,7 +192,7 @@
 .loading {
   @include flex-center;
   padding: var(--spacing-2xl);
-  
+
   &__spinner {
     width: 2rem;
     height: 2rem;
@@ -201,7 +201,7 @@
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
-  
+
   &__text {
     margin-left: var(--spacing-md);
     color: var(--color-text-secondary);

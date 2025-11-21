@@ -8,6 +8,7 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,9 +18,12 @@ import { ChatService } from '../../../../../core/services/chat/chat.service';
 import { GroupService } from '../../../../../core/services/group/group.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { SocketService } from '../../../../../core/services/socket/socket.service';
+import { AlertService } from '../../../../../core/services/alerts/alert.service';
+import { LoggerService } from '../../../../../core/services/logging/logger.service';
+import { VideoCallService } from '../../../../../core/services/video-call/video-call.service';
 import { User, Group } from '../../../../../core/interfaces/group.model';
 import { Message } from '../../../../../core/interfaces/message.model';
-import { FileUploadComponent } from '../../../../../shared/components/file-upload/file-upload.component';
+import { FileUploadComponent, FileUploadResult } from '../../../../../shared/components/file-upload/file-upload.component';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { VideoCallComponent } from '../../../../../shared/components/video-call/video-call.component';
 import {
@@ -27,6 +31,8 @@ import {
   VoiceRecordingResult,
 } from '../../../../../shared/components/voice-recorder/voice-recorder.component';
 import { Default_Img_Url } from '../../../../../../utils/constants.utils';
+import { formatFileSize, getFileType, createFileMessageContent } from '../../../../../../utils/file.utils';
+import { formatDuration, formatMessageTime, groupMessagesByDate } from '../../../../../../utils/message.utils';
 
 @Component({
   selector: 'app-chat-window',
@@ -55,6 +61,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   private groupService = inject(GroupService);
   private authService = inject(AuthService);
   private socketService = inject(SocketService);
+  private alertService = inject(AlertService);
+  private logger = inject(LoggerService);
+  private videoCallService = inject(VideoCallService);
 
   // Real-time message and typing streams
   private messageSubscription?: Subscription;
@@ -94,10 +103,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Voice recording
   public isRecording = signal(false);
-  private mediaRecorder: MediaRecorder | null = null;
-  private audioChunks: Blob[] = [];
-  public recordingTime = signal('00:00');
-  private recordingInterval: any = null;
 
   // Video call
   public showVideoCall = signal(false);
@@ -113,6 +118,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   public isMobile = signal(false);
   public showGroupInfo = signal(false);
   public showMessageOptions = signal<string | null>(null);
+  public isMuted = signal(false);
 
   private subscriptions: Subscription[] = [];
   private typingTimeout: any;
@@ -203,7 +209,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.connectionSubscription =
       this.socketService.connectionStatus$.subscribe((isConnected) => {
         this.isSocketConnected.set(isConnected);
-        // console.log('Socket connection status:', isConnected);
       });
   }
 
@@ -286,7 +291,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       this.messages.set(messages || []);
       this.updateGroupedMessages();
     } catch (error) {
-      console.error('Error loading user chat:', error);
+      this.logger.error('Error loading user chat', error);
     } finally {
       this.isLoading.set(false);
     }
@@ -328,7 +333,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       this.messages.set(messages || []);
       this.updateGroupedMessages();
     } catch (error) {
-      console.error('Error loading group chat:', error);
+      this.logger.error('Error loading group chat', error);
     } finally {
       this.isLoading.set(false);
     }
@@ -367,7 +372,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // Message will be added via socket listener
     } catch (error) {
-      console.error('Error sending message:', error);
+      this.logger.error('Error sending message', error);
     } finally {
       this.isSending.set(false);
     }
@@ -426,25 +431,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private groupMessagesByDate() {
-    const grouped: { [date: string]: Message[] } = {};
-
-    this.messages().forEach((message) => {
-      const dateKey = new Date(message.timestamp).toDateString();
-      if (!grouped[dateKey]) grouped[dateKey] = [];
-      grouped[dateKey].push(message);
-    });
-
-    this.groupedMessages.set(
-      Object.entries(grouped)
-        .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-        .map(([date, messages]) => ({
-          date,
-          messages: messages.sort(
-            (a, b) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          ),
-        }))
-    );
+    // Use utility function for message grouping
+    this.groupedMessages.set(groupMessagesByDate(this.messages()));
   }
 
   private generateRoomId(userId1: string, userId2: string): string {
@@ -460,15 +448,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 100);
   }
 
-  private formatLastSeen(lastSeen: Date): string {
-    const now = new Date();
-    const diffInMinutes =
-      (now.getTime() - new Date(lastSeen).getTime()) / (1000 * 60);
-
-    if (diffInMinutes < 1) return 'just now';
-    if (diffInMinutes < 60) return `${Math.floor(diffInMinutes)}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  private formatLastSeen(lastSeen: Date | string): string {
+    return formatMessageTime(lastSeen);
   }
 
   // UI Methods
@@ -529,7 +510,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       this.messages.update((msgs) => msgs.filter((m) => m._id !== messageId));
       this.groupMessagesByDate();
     } catch (error) {
-      console.error('Error deleting message:', error);
+      this.logger.error('Error deleting message', error);
     }
     this.showMessageOptions.set(null);
   }
@@ -544,7 +525,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       );
       this.groupMessagesByDate();
     } catch (error) {
-      console.error('Error editing message:', error);
+      this.logger.error('Error editing message', error);
     }
   }
 
@@ -553,7 +534,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       await this.chatService.addReaction(messageId, emoji).toPromise();
       // Update message with new reaction
     } catch (error) {
-      console.error('Error adding reaction:', error);
+      this.logger.error('Error adding reaction', error);
     }
   }
 
@@ -572,103 +553,89 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isMobile.set(window.innerWidth <= 768);
   }
 
+  startNewChat() {
+    this.selectedUser.set(null);
+    this.selectedGroup.set(null);
+    this.chatService.clearMessages();
+    this.chatService.requestNewChat();
+    this.router.navigate(['/chat']);
+  }
+
   goBack() {
     this.router.navigate(['/chat']);
   }
 
   // File Upload Methods
-  onFileUploaded(result: any) {
-    console.log(
-      'File upload completed, message will be created by backend:',
-      result
-    );
-
+  onFileUploaded(result: FileUploadResult) {
+    // File upload is handled by backend via socket
+    // The message is automatically created and broadcasted
+    // Just show success and close the panel
+    this.alertService.successToaster('File sent successfully');
     this.showFileUpload.set(false);
   }
 
-  private createFileMessage(fileResult: any): {
-    content: string;
-    type: 'text' | 'image' | 'video' | 'audio' | 'file';
-  } {
-    const fileType = fileResult.type;
-    const fileName = fileResult.name;
-    const fileSize = this.formatFileSize(fileResult.size);
-
-    let content = '';
-    let type: 'text' | 'image' | 'video' | 'audio' | 'file' = 'text';
-
-    switch (fileType) {
-      case 'image':
-        content = `📷 Image: ${fileName} (${fileSize})`;
-        type = 'image';
-        break;
-      case 'video':
-        content = `🎥 Video: ${fileName} (${fileSize})`;
-        type = 'video';
-        break;
-      case 'audio':
-        content = `🎵 Audio: ${fileName} (${fileSize})`;
-        type = 'audio';
-        break;
-      default:
-        content = `📄 File: ${fileName} (${fileSize})`;
-        type = 'file';
-    }
-
-    return { content, type };
-  }
-
   onFileUploadError(error: string) {
-    // Handle file upload error silently
+    this.alertService.errorToaster(error || 'Failed to upload file');
+    this.showFileUpload.set(false);
   }
 
   onVoiceRecordingComplete(result: VoiceRecordingResult) {
     // Create a file from the audio blob
     const audioFile = new File([result.audioBlob], `voice-${Date.now()}.webm`, {
-      type: 'audio/webm',
+      type: result.audioBlob.type || 'audio/webm',
     });
 
     // Send voice message through file upload service
     try {
-      if (this.isGroupChat()) {
+      if (this.isGroupChat() && this.selectedGroup()) {
         this.chatService
           .uploadFile(
             audioFile,
             undefined, // receiverId
-            this.selectedGroup()!._id, // groupId
-            `Voice message (${this.formatDuration(result.duration)})`
+            this.selectedGroup()!._id // groupId
           )
           .subscribe({
             next: (uploadResult) => {
-              // Voice message uploaded successfully
-              this.showVoiceRecording.set(false);
+              if (uploadResult.type === 'complete') {
+                // Voice message uploaded successfully
+                this.showVoiceRecording.set(false);
+                this.alertService.successToaster('Voice message sent successfully');
+              }
             },
             error: (error) => {
-              // Handle error silently
+              this.logger.error('Voice message upload error', error);
+              this.alertService.errorToaster('Failed to send voice message');
               this.showVoiceRecording.set(false);
             },
           });
-      } else {
+      } else if (this.selectedUser()) {
         this.chatService
           .uploadFile(
             audioFile,
             this.selectedUser()!._id, // receiverId
-            undefined, // groupId
-            `Voice message (${this.formatDuration(result.duration)})`
+            undefined // groupId
           )
           .subscribe({
             next: (uploadResult) => {
-              // Voice message uploaded successfully
-              this.showVoiceRecording.set(false);
+              if (uploadResult.type === 'complete') {
+                // Voice message uploaded successfully
+                this.showVoiceRecording.set(false);
+                this.alertService.successToaster('Voice message sent successfully');
+              }
             },
             error: (error) => {
-              // Handle error silently
+              this.logger.error('Voice message upload error', error);
+              this.alertService.errorToaster('Failed to send voice message');
               this.showVoiceRecording.set(false);
             },
           });
+      } else {
+        this.alertService.errorToaster('Please select a chat to send voice message');
+        this.showVoiceRecording.set(false);
       }
-    } catch (error) {
-      // Handle error silently
+    } catch (error: any) {
+      this.logger.error('Voice message error', error);
+      this.alertService.errorToaster('Failed to send voice message');
       this.showVoiceRecording.set(false);
     }
   }
@@ -682,86 +649,31 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     // Voice recording cancelled
   }
 
-  // Voice Recording Methods
-  async startRecording() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.mediaRecorder = new MediaRecorder(stream);
-      this.audioChunks = [];
-
-      this.mediaRecorder.ondataavailable = (event) => {
-        this.audioChunks.push(event.data);
-      };
-
-      this.mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-        this.sendVoiceMessage(audioBlob);
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      this.mediaRecorder.start();
-      this.isRecording.set(true);
-      this.startRecordingTimer();
-    } catch (error) {
-      console.error('Error starting recording:', error);
-    }
-  }
-
-  stopRecording() {
-    if (this.mediaRecorder && this.isRecording()) {
-      this.mediaRecorder.stop();
-      this.isRecording.set(false);
-      this.stopRecordingTimer();
-    }
-  }
-
-  cancelRecording() {
-    if (this.mediaRecorder && this.isRecording()) {
-      this.mediaRecorder.stop();
-      this.isRecording.set(false);
-      this.stopRecordingTimer();
-      this.audioChunks = [];
-    }
-  }
-
-  private startRecordingTimer() {
-    let seconds = 0;
-    this.recordingInterval = setInterval(() => {
-      seconds++;
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = seconds % 60;
-      this.recordingTime.set(
-        `${minutes.toString().padStart(2, '0')}:${remainingSeconds
-          .toString()
-          .padStart(2, '0')}`
-      );
-    }, 1000);
-  }
-
-  private stopRecordingTimer() {
-    if (this.recordingInterval) {
-      clearInterval(this.recordingInterval);
-      this.recordingInterval = null;
-      this.recordingTime.set('00:00');
-    }
-  }
-
-  private sendVoiceMessage(audioBlob: Blob) {
-    const audioUrl = URL.createObjectURL(audioBlob);
-
-    // Add the voice message to the current message text
-    this.messageText.update(
-      (text) => text + `[Voice Message: ${Math.round(audioBlob.size / 1024)}KB]`
-    );
-    this.showVoiceRecording.set(false);
-  }
 
   // Video Call Methods
-  startVideoCall() {
-    const roomId = `room_${Date.now()}`;
+  async startVideoCall() {
+    if (!this.selectedUser() && !this.selectedGroup()) {
+      this.alertService.errorToaster('Please select a chat to start video call');
+      return;
+    }
+
+    const currentUser = this.currentUser();
+    if (!currentUser) {
+      this.alertService.errorToaster('User not authenticated');
+      return;
+    }
+
+    const roomId = this.isGroupChat()
+      ? `group_${this.selectedGroup()!._id}`
+      : this.generateRoomId(currentUser._id, this.selectedUser()!._id);
+
     const participants = this.isGroupChat()
-      ? this.selectedGroup()?.members?.map((m) => m._id) || []
-      : [this.selectedUser()?._id || ''];
+      ? this.selectedGroup()?.members?.map((m) => m._id.toString()) || []
+      : [this.selectedUser()!._id.toString()];
+
+    if (this.showVideoCall()) {
+      return;
+    }
 
     this.videoCallRoomId.set(roomId);
     this.videoCallParticipants.set(participants);
@@ -830,23 +742,131 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         'Are you sure you want to clear this chat? This action cannot be undone.'
       )
     ) {
-      // Implement clear chat functionality
-      // console.log('Clear chat'); // Commented for production
+      this.chatService.clearMessages();
+      this.messages.set([]);
+      this.groupedMessages.set([]);
       this.showMessageOptions.set(null);
+      this.alertService.successToaster('Chat cleared successfully');
     }
   }
 
   blockUser() {
     if (confirm('Are you sure you want to block this user?')) {
-      // Implement block user functionality
-      // console.log('Block user'); // Commented for production
-      this.showMessageOptions.set(null);
+      const userId = this.selectedUser()?._id;
+      if (userId) {
+        // TODO: Implement block user API call
+        this.alertService.infoToaster('Block user functionality coming soon');
+        this.showMessageOptions.set(null);
+      }
     }
   }
 
   toggleGroupInfo() {
     this.showGroupInfo.set(!this.showGroupInfo());
     this.showMessageOptions.set(null);
+  }
+
+  closeMoreOptions() {
+    this.showMessageOptions.set(null);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    // Close more options menu when clicking outside
+    const target = event.target as HTMLElement;
+    if (!target.closest('.more-options-menu') && !target.closest('.action-btn')) {
+      if (this.showMessageOptions() === 'chat-options') {
+        this.closeMoreOptions();
+      }
+    }
+  }
+
+  viewProfile() {
+    if (this.selectedUser()) {
+      // Navigate to user profile or show profile modal
+      this.alertService.infoToaster('View profile feature coming soon');
+      this.closeMoreOptions();
+    }
+  }
+
+  viewGroupMembers() {
+    if (this.selectedGroup()) {
+      // Show group members modal
+      this.showGroupInfo.set(true);
+      this.closeMoreOptions();
+    }
+  }
+
+  leaveGroup() {
+    if (this.selectedGroup()) {
+      const groupName = this.selectedGroup()!.name;
+      const currentUser = this.currentUser();
+      if (!currentUser?._id) {
+        this.alertService.errorToaster('User not found. Please log in again.');
+        return;
+      }
+      if (confirm(`Are you sure you want to leave "${groupName}"?`)) {
+        this.groupService.leaveGroup(this.selectedGroup()!._id, currentUser._id).subscribe({
+          next: () => {
+            this.alertService.successToaster('Left group successfully');
+            this.router.navigate(['/chat']);
+            this.closeMoreOptions();
+          },
+          error: (error) => {
+            this.alertService.errorToaster('Failed to leave group');
+            this.logger.error('Error leaving group', error);
+          }
+        });
+      }
+    }
+  }
+
+  muteNotifications() {
+    this.isMuted.update(current => !current);
+    const status = this.isMuted() ? 'muted' : 'unmuted';
+    this.alertService.successToaster(`Notifications ${status}`);
+  }
+
+  exportChat() {
+    // Export chat messages as file
+    const messages = this.messages();
+    if (messages.length === 0) {
+      this.alertService.warningToaster('No messages to export');
+      return;
+    }
+
+    const chatData = messages.map(msg => ({
+      sender: `${msg.sender.firstName} ${msg.sender.lastName}`,
+      content: msg.content,
+      timestamp: new Date(msg.timestamp).toLocaleString(),
+      type: msg.type
+    }));
+
+    const dataStr = JSON.stringify(chatData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `chat-export-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    this.alertService.successToaster('Chat exported successfully');
+  }
+
+  deleteChat() {
+    const chatName = this.isGroupChat() 
+      ? this.selectedGroup()?.name 
+      : `${this.selectedUser()?.firstName} ${this.selectedUser()?.lastName}`;
+    
+    if (confirm(`Are you sure you want to delete chat with "${chatName}"? This action cannot be undone.`)) {
+      // Delete chat history
+      this.messages.set([]);
+      this.groupedMessages.set([]);
+      this.alertService.successToaster('Chat deleted successfully');
+      this.router.navigate(['/chat']);
+      this.closeMoreOptions();
+    }
   }
 
   // Helper method to trigger file input
@@ -878,12 +898,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   handleImageError(event: any) {
-    console.error('Image failed to load:', event.target.src);
-
     // If it's a local URL, try to construct the full URL
     if (event.target.src.startsWith('/uploads/')) {
       const fullUrl = `${window.location.origin}${event.target.src}`;
-      console.log('Trying full URL:', fullUrl);
       event.target.src = fullUrl;
     } else {
       // Hide the image if it still fails
@@ -928,33 +945,20 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getFileIcon(mimeType: string): string {
-    if (mimeType.startsWith('image/')) return 'pi-image';
-    if (mimeType.startsWith('video/')) return 'pi-video';
-    if (mimeType.startsWith('audio/')) return 'pi-volume-up';
-    if (mimeType.includes('pdf')) return 'pi-file-pdf';
-    if (mimeType.includes('word')) return 'pi-file-word';
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet'))
-      return 'pi-file-excel';
-    if (mimeType.includes('powerpoint') || mimeType.includes('presentation'))
-      return 'pi-file-powerpoint';
-    if (mimeType.includes('zip') || mimeType.includes('rar'))
-      return 'pi-file-archive';
-    return 'pi-file';
+    return getFileType(mimeType) === 'image' ? 'pi-image' :
+           getFileType(mimeType) === 'video' ? 'pi-video' :
+           getFileType(mimeType) === 'audio' ? 'pi-volume-up' :
+           mimeType.includes('pdf') ? 'pi-file-pdf' :
+           mimeType.includes('word') ? 'pi-file-word' :
+           mimeType.includes('excel') || mimeType.includes('spreadsheet') ? 'pi-file-excel' :
+           mimeType.includes('powerpoint') || mimeType.includes('presentation') ? 'pi-file-powerpoint' :
+           mimeType.includes('zip') || mimeType.includes('rar') ? 'pi-file-archive' :
+           'pi-file';
   }
 
-  public formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-  formatDuration(seconds: number): string {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
+  // Use utility functions
+  public formatFileSize = formatFileSize;
+  public formatDuration = formatDuration;
 
   downloadFile(url: string, filename: string) {
     const link = document.createElement('a');

@@ -1,7 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, BehaviorSubject, catchError, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { SafeStorageService } from '../storage/safe-storage.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ export class AuthService {
   private readonly userSignal = signal<any | null>(null);
   private readonly tokenRefreshSubject = new BehaviorSubject<boolean>(false);
   private refreshTimer?: any;
+  private safeStorage = inject(SafeStorageService);
 
   constructor(private http: HttpClient) {
     this.initializeTokenRefresh();
@@ -24,7 +26,7 @@ export class AuthService {
       })
       .pipe(
         tap((res) => {
-          localStorage.setItem('authToken', res.token);
+          this.safeStorage.set('authToken', res.token);
           this.updateUser(res.user);
           this.startTokenRefreshTimer();
         })
@@ -41,15 +43,15 @@ export class AuthService {
   }
 
   logout(): void {
-    // Clear token from localStorage
-    localStorage.removeItem('authToken');
+    // Clear token from storage
+    this.safeStorage.remove('authToken');
 
     // Clear user signal
     this.userSignal.set(null);
 
     // Clear any other auth-related data
-    localStorage.removeItem('user');
-    localStorage.removeItem('rememberMe');
+    this.safeStorage.remove('user');
+    this.safeStorage.remove('rememberMe');
 
     // Stop token refresh timer
     this.stopTokenRefreshTimer();
@@ -83,12 +85,30 @@ export class AuthService {
     return this.http.post(`${this.API_URL}/upload/profile-picture`, formData);
   }
 
+  changePassword(oldPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/auth/change-password`, {
+      oldPassword,
+      newPassword,
+    });
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/auth/reset-password`, {
+      token,
+      password,
+    });
+  }
+
   // Refresh token before it expires
   refreshToken(): Observable<any> {
     return this.http.post(`${this.API_URL}/auth/refresh`, {}).pipe(
       tap((response: any) => {
         if (response.token) {
-          localStorage.setItem('authToken', response.token);
+          this.safeStorage.set('authToken', response.token);
           this.tokenRefreshSubject.next(true);
           this.startTokenRefreshTimer(); // Restart timer with new token
         }
@@ -108,7 +128,7 @@ export class AuthService {
 
   // Check if user is logged in (has valid token)
   isLoggedIn(): boolean {
-    const token = localStorage.getItem('authToken');
+    const token = this.safeStorage.get('authToken');
 
     if (!token) {
       return false;
@@ -127,7 +147,7 @@ export class AuthService {
 
   // Get token expiration time in seconds
   getTokenExpirationTime(): number | null {
-    const token = localStorage.getItem('authToken');
+    const token = this.safeStorage.get('authToken');
     if (!token) return null;
 
     try {

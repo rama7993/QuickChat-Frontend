@@ -2,14 +2,16 @@ import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
+import { SafeStorageService } from '../../services/storage/safe-storage.service';
 import { map, catchError, of } from 'rxjs';
 
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   const authService = inject(AuthService);
+  const safeStorage = inject(SafeStorageService);
 
-  // Check if token exists in localStorage
-  const token = localStorage.getItem('authToken');
+  // Check if token exists in storage
+  const token = safeStorage.get('authToken');
   if (!token) {
     router.navigate(['/login']);
     return false;
@@ -26,7 +28,8 @@ export const authGuard: CanActivateFn = () => {
       return false;
     }),
     catchError(() => {
-      localStorage.removeItem('authToken');
+      const safeStorage = inject(SafeStorageService);
+      safeStorage.remove('authToken');
       router.navigate(['/login']);
       return of(false);
     })

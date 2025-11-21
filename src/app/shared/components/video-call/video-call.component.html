@@ -1,6 +1,15 @@
-<div class="video-call-container" *ngIf="callState() && callState().isActive">
+<div class="video-call-container">
+  <!-- Loading State -->
+  <div *ngIf="!callState().isActive" class="loading-state">
+    <div class="loading-content">
+      <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+      <p>Starting video call...</p>
+    </div>
+  </div>
+
   <!-- Video Grid -->
   <div
+    *ngIf="callState().isActive"
     class="video-grid"
     [ngClass]="{
       'grid-layout': isGridLayout(),
@@ -15,23 +24,45 @@
     >
       <!-- Video Element -->
       <video
-        #localVideo
-        *ngIf="participant.id === 'local' && !participant.isVideoOff"
-        [srcObject]="participant.stream"
+        *ngIf="
+          participant.id === 'local' &&
+          !participant.isVideoOff &&
+          participant.stream
+        "
+        [attr.data-participant-id]="participant.id"
         autoplay
         muted
         playsinline
         class="participant-video"
+        #videoElement
       ></video>
 
-      <!-- Remote Video Placeholder -->
+      <!-- Remote Video Element -->
+      <video
+        *ngIf="
+          participant.id !== 'local' &&
+          !participant.isVideoOff &&
+          participant.stream
+        "
+        [attr.data-participant-id]="participant.id"
+        autoplay
+        playsinline
+        class="participant-video"
+        #videoElement
+      ></video>
+
+      <!-- Remote Video Placeholder (only if no stream) -->
       <div
-        *ngIf="participant.id !== 'local' && !participant.isVideoOff"
+        *ngIf="
+          participant.id !== 'local' &&
+          !participant.isVideoOff &&
+          !participant.stream
+        "
         class="remote-video-placeholder"
       >
         <div class="video-placeholder">
           <i class="pi pi-video"></i>
-          <span>Remote Video</span>
+          <span>Waiting for video...</span>
         </div>
       </div>
 
@@ -40,6 +71,12 @@
         <div class="avatar-placeholder">
           <i class="pi pi-user"></i>
         </div>
+        <p
+          class="device-message"
+          *ngIf="participant.id === 'local' && deviceStatusMessage()"
+        >
+          {{ deviceStatusMessage() }}
+        </p>
       </div>
 
       <!-- Participant Info -->
@@ -74,12 +111,13 @@
   </div>
 
   <!-- Call Controls -->
-  <div class="call-controls">
+  <div class="call-controls" *ngIf="callState().isActive">
     <div class="control-buttons">
       <!-- Mute/Unmute -->
       <button
-        class="control-btn"
-        [class.active]="callState().isMuted"
+        class="control-btn mic"
+        [class.is-off]="callState().isMuted"
+        [class.is-on]="!callState().isMuted"
         (click)="toggleMute()"
         title="Toggle Microphone"
       >
@@ -92,8 +130,9 @@
 
       <!-- Video On/Off -->
       <button
-        class="control-btn"
-        [class.active]="callState().isVideoOff"
+        class="control-btn camera"
+        [class.is-off]="callState().isVideoOff"
+        [class.is-on]="!callState().isVideoOff"
         (click)="toggleVideo()"
         title="Toggle Video"
       >

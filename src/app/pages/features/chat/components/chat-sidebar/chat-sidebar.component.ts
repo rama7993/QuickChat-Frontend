@@ -1,4 +1,11 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -29,7 +36,7 @@ export interface ChatItem {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './chat-sidebar.component.html',
-  styleUrl: './chat-sidebar.component.scss'
+  styleUrl: './chat-sidebar.component.scss',
 })
 export class ChatSidebarComponent implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -46,50 +53,65 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   public currentUser = this.authService.currentUser;
   public defaultAvatar = Default_Img_Url;
   public isLoading = signal(false);
+  public showNewChatModal = signal(false);
+  public newChatSearch = signal('');
 
   private subscriptions: Subscription[] = [];
 
   public filteredChatItems = computed(() => {
     const search = this.searchText().toLowerCase();
     if (!search) return this.chatItems();
-    
-    return this.chatItems().filter(item => 
-      item.name.toLowerCase().includes(search) ||
-      item.lastMessage?.toLowerCase().includes(search)
+
+    return this.chatItems().filter(
+      (item) =>
+        item.name.toLowerCase().includes(search) ||
+        item.lastMessage?.toLowerCase().includes(search)
     );
   });
 
-  public recentChats = computed(() => 
-    this.filteredChatItems().filter(item => item.type === 'user')
+  public recentChats = computed(() =>
+    this.filteredChatItems().filter((item) => item.type === 'user')
   );
 
-  public groupChats = computed(() => 
-    this.filteredChatItems().filter(item => item.type === 'group')
+  public groupChats = computed(() =>
+    this.filteredChatItems().filter((item) => item.type === 'group')
   );
+
+  public filteredUsersForNewChat = computed(() => {
+    const query = this.newChatSearch().toLowerCase();
+    const list = this.users();
+    if (!query) return list;
+    return list.filter((user) =>
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(query)
+    );
+  });
 
   public getCurrentTabItems() {
-    return this.selectedTab() === 'chats' ? this.recentChats() : this.groupChats();
+    return this.selectedTab() === 'chats'
+      ? this.recentChats()
+      : this.groupChats();
   }
 
   ngOnInit() {
     this.loadData();
     this.setupSocketListeners();
+    this.subscribeToNewChatRequests();
   }
 
   ngOnDestroy() {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   private loadData() {
     this.isLoading.set(true);
-    
+
     // Load users and groups in parallel
     const usersSub = this.chatService.getUsers().subscribe({
       next: (users) => {
-        this.users.set(users.filter(u => u._id !== this.currentUser()?._id));
+        this.users.set(users.filter((u) => u._id !== this.currentUser()?._id));
         this.updateChatItems();
       },
-      error: (error) => console.error('Error loading users:', error)
+      error: (error) => console.error('Error loading users:', error),
     });
 
     const groupsSub = this.groupService.getMyGroups().subscribe({
@@ -97,7 +119,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
         this.groups.set(groups);
         this.updateChatItems();
       },
-      error: (error) => console.error('Error loading groups:', error)
+      error: (error) => console.error('Error loading groups:', error),
     });
 
     this.subscriptions.push(usersSub, groupsSub);
@@ -107,7 +129,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     const items: ChatItem[] = [];
 
     // Add user chats
-    this.users().forEach(user => {
+    this.users().forEach((user) => {
       items.push({
         id: user._id,
         type: 'user',
@@ -116,19 +138,19 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
         unreadCount: user.unreadCount || 0,
         isOnline: user.status === 'online',
         status: user.statusMessage,
-        data: user
+        data: user,
       });
     });
 
     // Add group chats
-    this.groups().forEach(group => {
+    this.groups().forEach((group) => {
       items.push({
         id: group._id,
         type: 'group',
         name: group.name,
         avatar: group.avatar || this.defaultAvatar,
         unreadCount: group.unreadCount || 0,
-        data: group
+        data: group,
       });
     });
 
@@ -145,11 +167,13 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   private setupSocketListeners() {
     // Listen for new messages
-    const messageSub = this.socketService.message$.subscribe((message: Message | null) => {
-      if (message) {
-        this.updateLastMessage(message);
+    const messageSub = this.socketService.message$.subscribe(
+      (message: Message | null) => {
+        if (message) {
+          this.updateLastMessage(message);
+        }
       }
-    });
+    );
 
     // Listen for user status changes (if method exists)
     // const statusSub = this.socketService.onUserStatusChange().subscribe((data: any) => {
@@ -159,11 +183,20 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     this.subscriptions.push(messageSub);
   }
 
+  private subscribeToNewChatRequests() {
+    const newChatSub = this.chatService.newChatRequested$.subscribe(() => {
+      this.openNewChatModal();
+    });
+    this.subscriptions.push(newChatSub);
+  }
+
   private updateLastMessage(message: Message) {
     const items = this.chatItems();
-    const itemIndex = items.findIndex(item => {
+    const itemIndex = items.findIndex((item) => {
       if (item.type === 'user') {
-        return item.id === message.sender._id || item.id === message.receiver?._id;
+        return (
+          item.id === message.sender._id || item.id === message.receiver?._id
+        );
       } else {
         return item.id === message.group?._id;
       }
@@ -181,8 +214,8 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   private updateUserStatus(userId: string, status: string) {
     const items = this.chatItems();
-    const itemIndex = items.findIndex(item => 
-      item.type === 'user' && item.id === userId
+    const itemIndex = items.findIndex(
+      (item) => item.type === 'user' && item.id === userId
     );
 
     if (itemIndex !== -1) {
@@ -194,12 +227,12 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   selectChatItem(item: ChatItem) {
     if (item.type === 'user') {
-      this.router.navigate(['/chat'], { 
-        queryParams: { userId: item.id } 
+      this.router.navigate(['/chat'], {
+        queryParams: { userId: item.id },
       });
     } else {
-      this.router.navigate(['/chat'], { 
-        queryParams: { groupId: item.id } 
+      this.router.navigate(['/chat'], {
+        queryParams: { groupId: item.id },
       });
     }
   }
@@ -209,8 +242,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   createNewChat() {
-    // This could open a modal to select users for a new chat
-    // console.log('Create new chat'); // Commented for production
+    this.openNewChatModal();
   }
 
   createNewGroup() {
@@ -224,18 +256,37 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   formatTimestamp(timestamp: Date): string {
     if (!timestamp) return '';
-    
+
     const now = new Date();
-    const diffInHours = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60);
-    
+    const diffInHours =
+      (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60);
+
     if (diffInHours < 1) {
       return 'now';
     } else if (diffInHours < 24) {
       return `${Math.floor(diffInHours)}h`;
-    } else if (diffInHours < 168) { // 7 days
+    } else if (diffInHours < 168) {
+      // 7 days
       return `${Math.floor(diffInHours / 24)}d`;
     } else {
       return timestamp.toLocaleDateString();
     }
+  }
+
+  private openNewChatModal() {
+    this.showNewChatModal.set(true);
+    this.newChatSearch.set('');
+  }
+
+  closeNewChatModal() {
+    this.showNewChatModal.set(false);
+    this.newChatSearch.set('');
+  }
+
+  startChatWithUser(user: User) {
+    this.closeNewChatModal();
+    this.router.navigate(['/chat'], {
+      queryParams: { userId: user._id },
+    });
   }
 }

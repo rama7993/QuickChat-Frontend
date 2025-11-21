@@ -72,12 +72,23 @@
             >Password is required</small
           >
         </div>
+        <div class="login__forgot-password">
+          <a [routerLink]="['/forgot-password']" class="auth-link--small"
+            >Forgot password?</a
+          >
+        </div>
       </div>
 
       <div class="login__actions auth-actions">
-        <button type="submit" class="login__button auth-button" pButton>
-          <i class="pi pi-sign-in"></i>
-          Sign In
+        <button
+          type="submit"
+          class="login__button auth-button"
+          [disabled]="isSubmitting || loginForm.invalid"
+        >
+          <i
+            [class]="isSubmitting ? 'pi pi-spin pi-spinner' : 'pi pi-sign-in'"
+          ></i>
+          {{ isSubmitting ? "Signing In..." : "Sign In" }}
         </button>
       </div>
 

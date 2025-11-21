@@ -5,7 +5,7 @@
   justify-content: center;
   background: var(--color-background);
   padding: var(--spacing-xl);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
   .success-content {
     text-align: center;
@@ -42,18 +42,42 @@
         border-radius: 50%;
         animation: particleFloat 3s infinite ease-out;
 
-        &:nth-child(1) { animation-delay: 0s; }
-        &:nth-child(2) { animation-delay: 0.2s; }
-        &:nth-child(3) { animation-delay: 0.4s; }
-        &:nth-child(4) { animation-delay: 0.6s; }
-        &:nth-child(5) { animation-delay: 0.8s; }
-        &:nth-child(6) { animation-delay: 1s; }
-        &:nth-child(7) { animation-delay: 1.2s; }
-        &:nth-child(8) { animation-delay: 1.4s; }
-        &:nth-child(9) { animation-delay: 1.6s; }
-        &:nth-child(10) { animation-delay: 1.8s; }
-        &:nth-child(11) { animation-delay: 2s; }
-        &:nth-child(12) { animation-delay: 2.2s; }
+        &:nth-child(1) {
+          animation-delay: 0s;
+        }
+        &:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        &:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+        &:nth-child(4) {
+          animation-delay: 0.6s;
+        }
+        &:nth-child(5) {
+          animation-delay: 0.8s;
+        }
+        &:nth-child(6) {
+          animation-delay: 1s;
+        }
+        &:nth-child(7) {
+          animation-delay: 1.2s;
+        }
+        &:nth-child(8) {
+          animation-delay: 1.4s;
+        }
+        &:nth-child(9) {
+          animation-delay: 1.6s;
+        }
+        &:nth-child(10) {
+          animation-delay: 1.8s;
+        }
+        &:nth-child(11) {
+          animation-delay: 2s;
+        }
+        &:nth-child(12) {
+          animation-delay: 2.2s;
+        }
       }
     }
   }
@@ -103,13 +127,18 @@
         position: relative;
 
         &::after {
-          content: '';
+          content: "";
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
           animation: progressShine 2s infinite;
         }
       }
@@ -228,7 +257,8 @@
 }
 
 @keyframes successPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -242,7 +272,8 @@
     opacity: 1;
   }
   100% {
-    transform: translate(var(--random-x, 100px), var(--random-y, -100px)) scale(1);
+    transform: translate(var(--random-x, 100px), var(--random-y, -100px))
+      scale(1);
     opacity: 0;
   }
 }

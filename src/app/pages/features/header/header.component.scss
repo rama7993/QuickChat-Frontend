@@ -7,9 +7,14 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   position: relative;
-  z-index: 100;
+  z-index: 1100;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
 
   &__main {
+    flex-shrink: 0;
+
     .logo-container {
       display: flex;
       align-items: center;
@@ -54,11 +59,19 @@
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    flex-wrap: nowrap;
+    min-width: 0;
+
+    .mobile-search-btn {
+      display: none;
+    }
 
     .header__search {
       position: relative;
       display: flex;
       align-items: center;
+      flex-shrink: 1;
+      min-width: 0;
 
       i {
         position: absolute;
@@ -81,8 +94,11 @@
         color: white;
         font-size: 0.875rem;
         width: 300px;
+        max-width: 100%;
+        min-width: 0;
         backdrop-filter: blur(10px);
         transition: all 0.3s ease;
+        box-sizing: border-box;
 
         &:focus {
           outline: none;
@@ -113,6 +129,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-shrink: 0;
 
       .action-btn {
         position: relative;
@@ -161,6 +178,7 @@
       border-radius: 25px;
       transition: all 0.3s ease;
       position: relative;
+      flex-shrink: 0;
 
       &:hover {
         background: rgba(255, 255, 255, 0.1);
@@ -171,10 +189,16 @@
         flex-direction: column;
         line-height: 1.2;
         color: white;
+        min-width: 0;
+        overflow: hidden;
 
         .header__name {
           font-weight: 600;
           font-size: 0.875rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 120px;
         }
 
         .header__role {
@@ -202,9 +226,11 @@
   border: 1px solid var(--color-border) !important;
   border-radius: 12px;
   box-shadow: var(--shadow-large);
-  z-index: 1000;
+  z-index: 1200;
   width: 320px;
+  max-width: calc(100vw - 2rem);
   overflow: hidden;
+  box-sizing: border-box;
 
   .user-menu-header {
     padding: 1.5rem;
@@ -351,16 +377,221 @@
 }
 
 // Responsive Design
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .header {
-    padding: 1rem;
+    padding: 2rem 1.5rem;
 
     &__actions {
       gap: 1rem;
 
       .header__search {
         .search-input {
+          width: 250px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 992px) {
+  .header {
+    padding: 1.5rem 1.25rem;
+
+    &__main {
+      .logo-container {
+        .logo {
+          font-size: 1.5rem;
+        }
+
+        .chat-icon {
+          width: 36px;
+          height: 36px;
+
+          i {
+            font-size: 1.25rem;
+          }
+        }
+      }
+    }
+
+    &__actions {
+      gap: 0.75rem;
+
+      .header__search {
+        .search-input {
           width: 200px;
+          font-size: 0.8125rem;
+          padding: 0.625rem 0.875rem 0.625rem 2.25rem;
+        }
+
+        i {
+          left: 0.875rem;
+          font-size: 0.875rem;
+        }
+      }
+
+      .header__buttons {
+        .action-btn {
+          padding: 0.625rem;
+          font-size: 1rem;
+        }
+      }
+
+      .header__profile {
+        gap: 0.5rem;
+        padding: 0.375rem;
+
+        .header__user-info {
+          .header__name {
+            font-size: 0.8125rem;
+          }
+
+          .header__role {
+            font-size: 0.6875rem;
+          }
+        }
+      }
+    }
+  }
+
+  .user-menu {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+    flex-wrap: nowrap;
+    min-height: 64px;
+    gap: 0.75rem;
+
+    &__main {
+      flex: 0 0 auto;
+      min-width: 0;
+
+      .logo-container {
+        gap: 0.5rem;
+
+        .logo {
+          font-size: 1.125rem;
+          white-space: nowrap;
+        }
+
+        .chat-icon {
+          width: 32px;
+          height: 32px;
+          flex-shrink: 0;
+
+          i {
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+
+    &__actions {
+      flex: 1 1 auto;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      flex-wrap: nowrap;
+      min-width: 0;
+
+      .mobile-search-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+
+        &:hover {
+          background: var(--color-accent);
+          color: var(--color-primary);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        i {
+          font-size: 1rem;
+        }
+      }
+
+      .header__search {
+        display: none;
+
+        &.active {
+          display: flex;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          width: 100%;
+          margin: 0;
+          padding: 0.75rem 1rem;
+          background: var(--gradient-primary);
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          z-index: 1101;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+          .search-input {
+            width: 100%;
+            max-width: 100%;
+          }
+        }
+      }
+
+      app-connection-status {
+        flex-shrink: 0;
+
+        ::ng-deep {
+          .connection-status {
+            font-size: 0.75rem;
+            padding: 0.375rem 0.625rem;
+            white-space: nowrap;
+          }
+        }
+      }
+
+      .header__buttons {
+        flex-shrink: 0;
+        gap: 0.375rem;
+        display: flex;
+
+        .action-btn {
+          padding: 0.5rem;
+          font-size: 0.9375rem;
+          width: 36px;
+          height: 36px;
+          flex-shrink: 0;
+        }
+      }
+
+      .header__profile {
+        flex-shrink: 0;
+        gap: 0;
+        padding: 0.25rem;
+
+        .header__user-info {
+          display: none;
+        }
+
+        ::ng-deep {
+          p-avatar {
+            .p-avatar {
+              width: 36px !important;
+              height: 36px !important;
+            }
+          }
         }
       }
     }
@@ -369,17 +600,271 @@
   .user-menu {
     right: 0.5rem;
     width: calc(100vw - 1rem);
-    max-width: 300px;
+    max-width: 320px;
+    top: 4rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .header {
+    padding: 0.875rem 0.75rem;
+    min-height: 56px;
+    gap: 0.5rem;
+
+    &__main {
+      .logo-container {
+        gap: 0.375rem;
+
+        .logo {
+          font-size: 1rem;
+        }
+
+        .chat-icon {
+          width: 28px;
+          height: 28px;
+
+          i {
+            font-size: 0.9375rem;
+          }
+        }
+      }
+    }
+
+    &__actions {
+      gap: 0.375rem;
+
+      .mobile-search-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0.4375rem;
+        font-size: 0.875rem;
+      }
+
+      .header__search {
+        &.active {
+          padding: 0.625rem 0.75rem;
+
+          .search-input {
+            padding: 0.5rem 0.75rem 0.5rem 2rem;
+            font-size: 0.875rem;
+          }
+
+          i {
+            left: 0.875rem;
+            font-size: 0.875rem;
+          }
+        }
+      }
+
+      app-connection-status {
+        ::ng-deep {
+          .connection-status {
+            font-size: 0.6875rem;
+            padding: 0.3125rem 0.5rem;
+
+            span {
+              display: none;
+            }
+
+            i {
+              margin: 0;
+            }
+          }
+        }
+      }
+
+      .header__buttons {
+        gap: 0.25rem;
+
+        .action-btn {
+          padding: 0.4375rem;
+          font-size: 0.875rem;
+          width: 32px;
+          height: 32px;
+
+          .notification-badge {
+            top: -0.125rem;
+            right: -0.125rem;
+            font-size: 0.5625rem;
+            min-width: 14px;
+            height: 14px;
+            padding: 0.125rem 0.25rem;
+          }
+        }
+      }
+
+      .header__profile {
+        padding: 0.125rem;
+
+        ::ng-deep {
+          p-avatar {
+            .p-avatar {
+              width: 32px !important;
+              height: 32px !important;
+              font-size: 0.875rem !important;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .user-menu {
+    right: 0.5rem;
+    width: calc(100vw - 1rem);
+    top: 3.75rem;
+
+    .user-menu-header {
+      padding: 1rem;
+
+      .user-info {
+        gap: 0.75rem;
+
+        .user-details {
+          h4 {
+            font-size: 1rem;
+          }
+
+          p {
+            font-size: 0.8125rem;
+          }
+        }
+      }
+    }
+
+    .user-menu-content {
+      padding: 0.75rem 0;
+
+      ul {
+        li {
+          padding: 0.625rem 1rem;
+          font-size: 0.875rem;
+
+          i {
+            font-size: 0.9375rem;
+            width: 18px;
+          }
+        }
+      }
+
+      .theme-section,
+      .navigation-section {
+        padding: 0.75rem 1rem;
+
+        h5 {
+          font-size: 0.8125rem;
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      .user-menu-footer {
+        padding: 0.75rem 1rem;
+
+        .logout-btn {
+          padding: 0.625rem;
+          font-size: 0.875rem;
+        }
+      }
+    }
   }
 }
 
 @media (max-width: 480px) {
   .header {
-    &__actions {
-      .header__search {
-        display: none;
+    padding: 0.75rem 0.5rem;
+    min-height: 52px;
+    gap: 0.375rem;
+
+    &__main {
+      .logo-container {
+        gap: 0.25rem;
+
+        .logo {
+          font-size: 0.9375rem;
+        }
+
+        .chat-icon {
+          width: 24px;
+          height: 24px;
+
+          i {
+            font-size: 0.875rem;
+          }
+        }
       }
     }
+
+    &__actions {
+      gap: 0.25rem;
+
+      .mobile-search-btn {
+        width: 30px;
+        height: 30px;
+        padding: 0.3125rem;
+        font-size: 0.8125rem;
+      }
+
+      .header__search {
+        &.active {
+          padding: 0.5rem;
+
+          .search-input {
+            padding: 0.4375rem 0.625rem 0.4375rem 1.875rem;
+            font-size: 0.8125rem;
+          }
+
+          i {
+            left: 0.75rem;
+            font-size: 0.8125rem;
+          }
+        }
+      }
+
+      app-connection-status {
+        ::ng-deep {
+          .connection-status {
+            padding: 0.25rem 0.375rem;
+            min-width: auto;
+          }
+        }
+      }
+
+      .header__buttons {
+        gap: 0.1875rem;
+
+        .action-btn {
+          width: 30px;
+          height: 30px;
+          padding: 0.3125rem;
+          font-size: 0.8125rem;
+
+          .notification-badge {
+            min-width: 12px;
+            height: 12px;
+            font-size: 0.5rem;
+            padding: 0.0625rem 0.1875rem;
+          }
+        }
+      }
+
+      .header__profile {
+        padding: 0.125rem;
+
+        ::ng-deep {
+          p-avatar {
+            .p-avatar {
+              width: 30px !important;
+              height: 30px !important;
+              font-size: 0.8125rem !important;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .user-menu {
+    top: 3.5rem;
   }
 }
 

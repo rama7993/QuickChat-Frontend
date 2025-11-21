@@ -78,9 +78,7 @@ export class FileUploadComponent implements AfterViewInit {
     }
   }
 
-  ngAfterViewInit() {
-    // console.log('FileUploadComponent initialized, fileInput:', this.fileInput); // Commented for production
-  }
+  ngAfterViewInit() {}
 
   triggerFileInput() {
     if (this.fileInput && this.fileInput.nativeElement) {
@@ -144,11 +142,8 @@ export class FileUploadComponent implements AfterViewInit {
   }
 
   async uploadFile(file: File) {
-    console.log('Starting upload for file:', file.name, 'Size:', file.size);
-
     // Prevent multiple uploads of the same file
     if (this.isUploading()) {
-      console.log('Already uploading, skipping:', file.name);
       return;
     }
 
@@ -163,11 +158,8 @@ export class FileUploadComponent implements AfterViewInit {
         this.groupId
       );
 
-      console.log('Upload observable created, subscribing...');
-
       uploadObservable.subscribe({
         next: (result) => {
-          console.log('Upload result:', result);
           if (result.type === 'progress') {
             this.uploadProgressValue.set(result.progress);
             this.uploadProgress.emit(result.progress);
@@ -183,7 +175,6 @@ export class FileUploadComponent implements AfterViewInit {
               name: file.name,
             };
 
-            console.log('Upload completed:', fileResult);
             this.fileUploaded.emit(fileResult);
 
             // Remove the uploaded file from selection
@@ -198,18 +189,15 @@ export class FileUploadComponent implements AfterViewInit {
           }
         },
         error: (error) => {
-          console.error('Upload error:', error);
           this.uploadError.emit(error.message || 'Upload failed');
           this.isUploading.set(false);
           this.uploadProgressValue.set(0);
         },
         complete: () => {
-          console.log('Upload observable completed');
           // Don't reset here as it might interfere with the next upload
         },
       });
     } catch (error: any) {
-      console.error('Upload catch error:', error);
       this.uploadError.emit(error.message || 'Upload failed');
       this.isUploading.set(false);
       this.uploadProgressValue.set(0);
@@ -235,11 +223,6 @@ export class FileUploadComponent implements AfterViewInit {
   uploadAllFiles() {
     const files = this.selectedFiles();
     if (files.length === 0) return;
-
-    console.log(
-      'Uploading all files:',
-      files.map((f) => f.name)
-    );
 
     // Reset upload state
     this.isUploading.set(false);

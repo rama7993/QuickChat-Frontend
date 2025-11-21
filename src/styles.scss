@@ -2,25 +2,30 @@
 // Following the 7-1 SCSS Architecture Pattern
 
 // 1. Abstracts
-@use 'styles/abstracts';
+@use "styles/abstracts";
 
 // 2. Vendors
-@use 'styles/vendors';
+@use "styles/vendors";
 
 // 3. Base
-@use 'styles/base';
+@use "styles/base";
 
 // 4. Layout
-@use 'styles/layout';
+@use "styles/layout";
 
 // 5. Components
-@use 'styles/components';
+@use "styles/components";
 
 // 6. Pages
-@use 'styles/pages';
+@use "styles/pages";
 
 // 7. Themes
-@use 'styles/themes';
+@use "styles/themes";
 
 // 8. Utilities
-@use 'styles/utilities';
+@use "styles/utilities";
+
+// Global overrides
+.swal2-container {
+  z-index: 2000 !important;
+}

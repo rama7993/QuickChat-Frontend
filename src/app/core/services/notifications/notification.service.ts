@@ -1,12 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import {
   Notification,
   NotificationResponse,
   NotificationSettings,
 } from '../../interfaces/notification.model';
+import { SocketService } from '../socket/socket.service';
+import { SoundNotificationService } from './sound-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,8 +18,15 @@ export class NotificationService {
   private apiUrl = environment.apiUrl;
   private unreadCountSubject = new BehaviorSubject<number>(0);
   public unreadCount$ = this.unreadCountSubject.asObservable();
+  private notificationsSubject = new BehaviorSubject<Notification[]>([]);
+  public notifications$ = this.notificationsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  private socketService = inject(SocketService);
+  private soundService = inject(SoundNotificationService);
+
+  constructor(private http: HttpClient) {
+    this.listenForRealtimeNotifications();
+  }
 
   // Get notifications with pagination
   getNotifications(
@@ -29,21 +39,45 @@ export class NotificationService {
     if (type) params.type = type;
     if (read !== undefined) params.read = read.toString();
 
-    return this.http.get<NotificationResponse>(`${this.apiUrl}/notifications`, {
-      params,
-    });
+    return this.http
+      .get<NotificationResponse>(`${this.apiUrl}/notifications`, {
+        params,
+      })
+      .pipe(
+        tap((response) => {
+          this.syncNotifications(response.notifications || []);
+          if (typeof response.unreadCount === 'number') {
+            this.updateUnreadCount(response.unreadCount);
+          }
+        })
+      );
   }
 
   // Get unread notifications count
   getUnreadCount(): Observable<{ count: number }> {
-    return this.http.get<{ count: number }>(
-      `${this.apiUrl}/notifications/unread-count`
-    );
+    return this.http
+      .get<{ count: number }>(`${this.apiUrl}/notifications/unread-count`)
+      .pipe(
+        tap((response) => {
+          this.updateUnreadCount(response.count);
+        })
+      );
   }
 
   // Update unread count
   updateUnreadCount(count: number): void {
     this.unreadCountSubject.next(count);
+  }
+
+  // Sync notifications cache
+  syncNotifications(notifications: Notification[]): void {
+    const sorted = [...notifications].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    this.notificationsSubject.next(sorted);
+    const unread = sorted.filter((n) => !n.read).length;
+    this.unreadCountSubject.next(unread);
   }
 
   // Mark notification as read
@@ -153,5 +187,28 @@ export class NotificationService {
       default:
         return 'text-gray-500';
     }
+  }
+
+  private listenForRealtimeNotifications(): void {
+    this.socketService.notification$.subscribe((notification) => {
+      if (notification) {
+        this.handleIncomingNotification(notification as Notification);
+      }
+    });
+  }
+
+  private handleIncomingNotification(notification: Notification): void {
+    const current = this.notificationsSubject.value;
+    const exists = current.some((n) => n._id === notification._id);
+    const updated = exists ? current : [notification, ...current].slice(0, 100);
+    this.syncNotifications(updated);
+
+    const soundType =
+      notification.type === 'group_message'
+        ? 'group'
+        : notification.type === 'system'
+        ? 'system'
+        : 'message';
+    this.soundService.playNotificationSound(soundType as any);
   }
 }

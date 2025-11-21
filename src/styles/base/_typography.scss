@@ -1,59 +1,59 @@
 // Typography
 // Typography styles and utilities
 
-@use '../abstracts' as *;
+@use "../abstracts" as *;
 
 // Font families
 $font-families: (
-  'sans': "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
-  'mono': "Courier New, Courier, monospace",
-  'serif': "Georgia, Times New Roman, Times, serif"
+  "sans": "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
+  "mono": "Courier New, Courier, monospace",
+  "serif": "Georgia, Times New Roman, Times, serif",
 );
 
 // Font weights
 $font-weights: (
-  'thin': 100,
-  'light': 300,
-  'normal': 400,
-  'medium': 500,
-  'semibold': 600,
-  'bold': 700,
-  'extrabold': 800,
-  'black': 900
+  "thin": 100,
+  "light": 300,
+  "normal": 400,
+  "medium": 500,
+  "semibold": 600,
+  "bold": 700,
+  "extrabold": 800,
+  "black": 900,
 );
 
 // Font sizes with responsive scaling
 $font-sizes: (
-  'xs': clamp-calc(12px, 14px),
-  'sm': clamp-calc(14px, 16px),
-  'base': clamp-calc(16px, 18px),
-  'lg': clamp-calc(18px, 20px),
-  'xl': clamp-calc(20px, 24px),
-  '2xl': clamp-calc(24px, 30px),
-  '3xl': clamp-calc(30px, 36px),
-  '4xl': clamp-calc(36px, 48px),
-  '5xl': clamp-calc(48px, 60px),
-  '6xl': clamp-calc(60px, 72px)
+  "xs": clamp-calc(12px, 14px),
+  "sm": clamp-calc(14px, 16px),
+  "base": clamp-calc(16px, 18px),
+  "lg": clamp-calc(18px, 20px),
+  "xl": clamp-calc(20px, 24px),
+  "2xl": clamp-calc(24px, 30px),
+  "3xl": clamp-calc(30px, 36px),
+  "4xl": clamp-calc(36px, 48px),
+  "5xl": clamp-calc(48px, 60px),
+  "6xl": clamp-calc(60px, 72px),
 );
 
 // Line heights
 $line-heights: (
-  'none': 1,
-  'tight': 1.25,
-  'snug': 1.375,
-  'normal': 1.5,
-  'relaxed': 1.625,
-  'loose': 2
+  "none": 1,
+  "tight": 1.25,
+  "snug": 1.375,
+  "normal": 1.5,
+  "relaxed": 1.625,
+  "loose": 2,
 );
 
 // Letter spacing
 $letter-spacings: (
-  'tighter': -0.05em,
-  'tight': -0.025em,
-  'normal': 0em,
-  'wide': 0.025em,
-  'wider': 0.05em,
-  'widest': 0.1em
+  "tighter": -0.05em,
+  "tight": -0.025em,
+  "normal": 0em,
+  "wide": 0.025em,
+  "wider": 0.05em,
+  "widest": 0.1em,
 );
 
 // Typography utility classes
@@ -82,21 +82,43 @@ $letter-spacings: (
 }
 
 // Text alignment
-.text-left { text-align: left; }
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.text-justify { text-align: justify; }
+.text-left {
+  text-align: left;
+}
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.text-justify {
+  text-align: justify;
+}
 
 // Text decoration
-.underline { text-decoration: underline; }
-.line-through { text-decoration: line-through; }
-.no-underline { text-decoration: none; }
+.underline {
+  text-decoration: underline;
+}
+.line-through {
+  text-decoration: line-through;
+}
+.no-underline {
+  text-decoration: none;
+}
 
 // Text transform
-.uppercase { text-transform: uppercase; }
-.lowercase { text-transform: lowercase; }
-.capitalize { text-transform: capitalize; }
-.normal-case { text-transform: none; }
+.uppercase {
+  text-transform: uppercase;
+}
+.lowercase {
+  text-transform: lowercase;
+}
+.capitalize {
+  text-transform: capitalize;
+}
+.normal-case {
+  text-transform: none;
+}
 
 // Text overflow
 .truncate {
@@ -116,10 +138,18 @@ $letter-spacings: (
 }
 
 // Text selection
-.select-none { user-select: none; }
-.select-text { user-select: text; }
-.select-all { user-select: all; }
-.select-auto { user-select: auto; }
+.select-none {
+  user-select: none;
+}
+.select-text {
+  user-select: text;
+}
+.select-all {
+  user-select: all;
+}
+.select-auto {
+  user-select: auto;
+}
 
 // Font smoothing
 .antialiased {
@@ -182,29 +212,29 @@ $letter-spacings: (
 }
 
 // Responsive typography
-@include respond-to('sm') {
+@include respond-to("sm") {
   .heading-1 {
     font-size: var(--font-size-4xl);
   }
-  
+
   .heading-2 {
     font-size: var(--font-size-3xl);
   }
-  
+
   .heading-3 {
     font-size: var(--font-size-2xl);
   }
 }
 
-@include respond-to('lg') {
+@include respond-to("lg") {
   .heading-1 {
     font-size: var(--font-size-5xl);
   }
-  
+
   .heading-2 {
     font-size: var(--font-size-4xl);
   }
-  
+
   .heading-3 {
     font-size: var(--font-size-3xl);
   }

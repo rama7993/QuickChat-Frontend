@@ -144,3 +144,43 @@
     }
   </div>
 </div>
+
+@if (showNewChatModal()) {
+<div class="new-chat-modal-backdrop" (click)="closeNewChatModal()">
+  <div class="new-chat-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Start New Chat</h3>
+      <button class="close-btn" (click)="closeNewChatModal()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="modal-search">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        [ngModel]="newChatSearch()"
+        (ngModelChange)="newChatSearch.set($event)"
+        placeholder="Search users..."
+      />
+    </div>
+    <div class="modal-list">
+      @if (filteredUsersForNewChat().length > 0) {
+      @for (user of filteredUsersForNewChat(); track user._id) {
+      <div class="modal-user" (click)="startChatWithUser(user)">
+        <img [src]="user.photoUrl || defaultAvatar" [alt]="user.firstName" />
+        <div class="user-info">
+          <span class="name">{{ user.firstName }} {{ user.lastName }}</span>
+          <span class="status">{{ user.statusMessage || 'Available' }}</span>
+        </div>
+      </div>
+      }
+      } @else {
+      <div class="empty-state modal-empty">
+        <i class="pi pi-user"></i>
+        <p>No users found</p>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+}

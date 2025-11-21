@@ -117,7 +117,7 @@ export class ProfileComponent {
       }
 
       this.uploadedFile = file;
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = () => {
@@ -131,7 +131,9 @@ export class ProfileComponent {
   onSubmit() {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
-      this.alertService.errorToaster('Please fix the form errors before submitting');
+      this.alertService.errorToaster(
+        'Please fix the form errors before submitting'
+      );
       return;
     }
 
@@ -142,7 +144,7 @@ export class ProfileComponent {
     }
 
     this.isUpdating.set(true);
-    
+
     // If there's an uploaded file, upload it first
     if (this.uploadedFile) {
       this.uploadProfilePicture(this.uploadedFile, userId);
@@ -156,27 +158,27 @@ export class ProfileComponent {
     // Create FormData for file upload
     const formData = new FormData();
     formData.append('profilePicture', file);
-    
+
     // Upload file first
     this.authService.uploadProfilePicture(formData).subscribe({
       next: (uploadResponse: any) => {
         // Update profile with the uploaded image URL
         const formValue = this.cleanFormData(this.profileForm.value);
         formValue.photoUrl = uploadResponse.url || uploadResponse.imageUrl;
-        
+
         this.updateProfile(userId, formValue);
       },
       error: (err) => {
         console.error('File upload failed', err);
         this.alertService.errorToaster('Failed to upload profile picture');
         this.isUpdating.set(false);
-      }
+      },
     });
   }
 
   private updateProfile(userId: string, formValue?: any) {
     const profileData = formValue || this.cleanFormData(this.profileForm.value);
-    
+
     this.authService.updateUserById(userId, profileData).subscribe({
       next: (resp: any) => {
         this.authService.updateUser(resp.user);
@@ -186,7 +188,8 @@ export class ProfileComponent {
       },
       error: (err) => {
         console.error('Update failed', err);
-        const errorMessage = err?.error?.message || err?.message || 'Failed to update profile';
+        const errorMessage =
+          err?.error?.message || err?.message || 'Failed to update profile';
         this.alertService.errorToaster(errorMessage);
         this.isUpdating.set(false);
       },
@@ -195,7 +198,7 @@ export class ProfileComponent {
 
   private cleanFormData(data: any): any {
     const cleaned: any = {};
-    
+
     for (const key in data) {
       if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
         if (typeof data[key] === 'object' && !Array.isArray(data[key])) {
@@ -208,7 +211,7 @@ export class ProfileComponent {
         }
       }
     }
-    
+
     return cleaned;
   }
 
@@ -230,15 +233,26 @@ export class ProfileComponent {
   }
 
   changeProfilePicture() {
-    // Implement profile picture change functionality
-    // console.log('Change profile picture'); // Commented for production
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        // TODO: Implement profile picture upload
+        this.alertService.infoToaster('Profile picture upload coming soon');
+      }
+    };
+    fileInput.click();
   }
 
   removeProfilePicture() {
     this.previewUrl = null;
     this.uploadedFile = null;
     this.profileForm.get('photoUrl')?.setValue('');
-    this.alertService.successToaster('Profile picture removed. Click Save Changes to apply.');
+    this.alertService.successToaster(
+      'Profile picture removed. Click Save Changes to apply.'
+    );
   }
 
   getThemeOptions() {

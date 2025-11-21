@@ -68,7 +68,7 @@ export interface Message {
 }
 
 export interface Attachment {
-  type: 'image' | 'file' | 'voice' | 'video';
+  type: 'image' | 'file' | 'voice' | 'video' | 'audio';
   url: string;
   filename: string;
   size: number;

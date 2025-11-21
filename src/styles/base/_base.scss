@@ -1,7 +1,7 @@
 // Base
 // Base styles for HTML elements
 
-@use '../abstracts' as *;
+@use "../abstracts" as *;
 
 // Root variables (CSS custom properties)
 :root {
@@ -110,7 +110,12 @@ body {
 }
 
 // Typography
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text);
@@ -224,7 +229,7 @@ th {
 
 // Code
 code {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   background: var(--color-surface);
   padding: 0.125rem 0.25rem;
   border-radius: var(--radius-small);
@@ -236,7 +241,7 @@ pre {
   padding: var(--spacing-md);
   border-radius: var(--radius-medium);
   overflow-x: auto;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 

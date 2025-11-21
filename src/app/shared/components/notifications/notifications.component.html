@@ -1,108 +1,163 @@
-<div class="notifications-container">
-  <!-- Header -->
-  <div class="notifications-header">
-    <div class="header-title">
-      <h3>Notifications</h3>
-      @if (unreadCount() > 0) {
-      <span class="unread-badge">{{ unreadCount() }}</span>
-      }
+<div class="notifications-shell">
+  <section class="notifications-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Activity</p>
+      <h1>Notifications</h1>
+      <span>{{ unreadCount() }} unread · {{ stats().total }} total</span>
     </div>
-    <div class="header-actions">
-      @if (unreadCount() > 0) {
+    <div class="hero-actions">
       <button
-        class="action-btn"
-        (click)="markAllAsRead()"
-        title="Mark all as read"
+        class="ghost-btn"
+        (click)="refresh()"
+        [disabled]="isLoading()"
+        title="Refresh"
       >
-        <i class="pi pi-check"></i>
+        <i class="pi pi-refresh" [class.pi-spin]="isLoading()"></i>
+        Refresh
       </button>
-      }
       <button
-        class="action-btn"
+        class="ghost-btn"
         (click)="clearAllNotifications()"
-        title="Clear all"
+        [disabled]="notifications().length === 0"
       >
         <i class="pi pi-trash"></i>
+        Clear all
+      </button>
+      <button
+        class="primary-btn"
+        (click)="markAllAsRead()"
+        [disabled]="unreadCount() === 0"
+      >
+        Mark all read
       </button>
     </div>
-  </div>
+  </section>
 
-  <!-- Notifications List -->
-  <div class="notifications-content">
+  <section class="summary-grid">
+    <div class="summary-card">
+      <p>Total</p>
+      <h3>{{ stats().total }}</h3>
+    </div>
+    <div class="summary-card">
+      <p>Unread</p>
+      <h3>{{ stats().unread }}</h3>
+    </div>
+    <div class="summary-card">
+      <p>Direct</p>
+      <h3>{{ stats().direct }}</h3>
+    </div>
+    <div class="summary-card">
+      <p>System</p>
+      <h3>{{ stats().system }}</h3>
+    </div>
+  </section>
+
+  <section class="toolbar">
+    <div class="filters">
+      @for (filter of filterOptions; track filter.value) {
+      <button
+        class="filter-chip"
+        [class.active]="activeFilter() === filter.value"
+        (click)="setFilter(filter.value)"
+      >
+        {{ filter.label }}
+        @if (filter.value === 'unread' && unreadCount() > 0) {
+        <span class="pill">{{ unreadCount() }}</span>
+        } @else if (filter.value === 'message' && stats().direct > 0) {
+        <span class="pill">{{ stats().direct }}</span>
+        } @else if (filter.value === 'system' && stats().system > 0) {
+        <span class="pill">{{ stats().system }}</span>
+        }
+      </button>
+      }
+    </div>
+
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+        placeholder="Search notifications..."
+      />
+      @if (searchTerm()) {
+      <button class="clear-btn" (click)="searchTerm.set('')">
+        <i class="pi pi-times"></i>
+      </button>
+      }
+    </div>
+  </section>
+
+  <section class="notifications-panel">
     @if (isLoading()) {
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
+    <div class="state-card">
+      <i class="pi pi-spin pi-spinner"></i>
       <p>Loading notifications...</p>
     </div>
-    } @else if (notifications().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">
-        <i class="pi pi-bell-slash"></i>
-      </div>
-      <h4>No notifications</h4>
-      <p>You're all caught up!</p>
+    } @else if (filteredNotifications().length === 0) {
+    <div class="state-card empty">
+      <i class="pi pi-bell-slash"></i>
+      <h3>No notifications</h3>
+      <p>You're all caught up. We'll let you know when something changes.</p>
     </div>
     } @else {
-    <div class="notifications-list">
-      @for (notification of notifications(); track notification._id) {
-      <div
-        class="notification-item"
+    <div class="notification-list">
+      @for (notification of filteredNotifications(); track trackById($index,
+      notification)) {
+      <article
+        class="notification-card"
         [class.unread]="!notification.read"
-        [ngClass]="getNotificationClass(notification.type)"
-        (click)="markAsRead(notification)"
+        [class.priority-urgent]="notification.priority === 'urgent'"
+        [class.priority-high]="notification.priority === 'high'"
       >
-        <!-- Notification Icon -->
-        <div class="notification-icon">
+        <div
+          class="notification-icon"
+          [ngClass]="getNotificationClass(notification.type)"
+        >
           <i [class]="getNotificationIcon(notification.type)"></i>
         </div>
 
-        <!-- Notification Content -->
-        <div class="notification-content">
-          <div class="notification-header">
-            <h4 class="notification-title">{{ notification.title }}</h4>
-            <span class="notification-time">{{
-              formatTimestamp(notification.createdAt)
-            }}</span>
-          </div>
-          <p class="notification-message">{{ notification.message }}</p>
-          @if (notification.data.senderId) {
-          <div class="notification-sender">
-            <img
-              [src]="
-                notification.data.senderId.photoUrl ||
-                '/assets/default-avatar.png'
-              "
-              [alt]="
-                notification.data.senderId.firstName +
-                ' ' +
-                notification.data.senderId.lastName
-              "
-              class="sender-avatar"
-            />
-            <span class="sender-name"
-              >{{ notification.data.senderId.firstName }}
-              {{ notification.data.senderId.lastName }}</span
-            >
+        <div class="notification-body">
+          <header>
+            <div>
+              <h4>{{ notification.title }}</h4>
+              <span class="timestamp">{{
+                formatTimestamp(notification.createdAt)
+              }}</span>
+            </div>
+            @if (notification.priority && notification.priority !== 'low') {
+            <span class="priority-pill">{{ notification.priority }}</span>
+            }
+          </header>
+          <p>{{ notification.message }}</p>
+          @if (notification.data.groupId?.name) {
+          <div class="meta">
+            <i class="pi pi-users"></i>
+            <span>{{ notification.data.groupId?.name }}</span>
           </div>
           }
         </div>
 
-        <!-- Notification Actions -->
         <div class="notification-actions">
-          @if (!notification.read) {
-          <div class="unread-indicator"></div>
-          }
           <button
-            class="delete-btn"
-            (click)="deleteNotification(notification); $event.stopPropagation()"
+            class="icon-btn"
+            (click)="markAsRead(notification)"
+            [disabled]="notification.read"
+            title="Mark as read"
+          >
+            <i class="pi pi-check"></i>
+          </button>
+          <button
+            class="icon-btn danger"
+            (click)="deleteNotification(notification)"
             title="Delete"
           >
-            <i class="pi pi-times"></i>
+            <i class="pi pi-trash"></i>
           </button>
         </div>
-      </div>
+      </article>
       }
     </div>
     }
-  </div>
+  </section>
 </div>

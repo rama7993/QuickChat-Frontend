@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Message } from '../../interfaces/message.model';
 import {
@@ -8,6 +9,7 @@ import {
   Message as SocketMessage,
   TypingUser,
 } from '../socket/socket.service';
+import { SoundNotificationService } from '../notifications/sound-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +17,7 @@ import {
 export class ChatService {
   private apiUrl = environment.apiUrl;
   private socketService = inject(SocketService);
+  private soundNotificationService = inject(SoundNotificationService);
 
   // Real-time message streams
   private messagesSubject = new BehaviorSubject<Message[]>([]);
@@ -22,9 +25,16 @@ export class ChatService {
   private currentChatSubject = new BehaviorSubject<string | null>(null);
   private processedMessageIds = new Set<string>();
 
+  // Users cache
+  private usersCache: any[] | null = null;
+  private usersCacheTimestamp: number = 0;
+  private readonly USERS_CACHE_TTL = 60000; // 1 minute cache
+  private newChatSubject = new Subject<void>();
+
   public messages$ = this.messagesSubject.asObservable();
   public typingUsers$ = this.typingUsersSubject.asObservable();
   public currentChat$ = this.currentChatSubject.asObservable();
+  public newChatRequested$ = this.newChatSubject.asObservable();
 
   // Method to clear messages when switching chats
   public clearMessages(): void {
@@ -32,6 +42,10 @@ export class ChatService {
     this.processedMessageIds.clear();
     // Also clear socket service processed messages
     this.socketService.clearProcessedMessages();
+  }
+
+  requestNewChat(): void {
+    this.newChatSubject.next();
   }
 
   constructor(private http: HttpClient) {
@@ -42,7 +56,6 @@ export class ChatService {
     // Listen for new messages
     this.socketService.message$.subscribe((socketMessage) => {
       if (socketMessage) {
-        // console.log('Chat service received message:', socketMessage);
 
         // Handle message deletion
         if ((socketMessage as any).deleted) {
@@ -91,7 +104,6 @@ export class ChatService {
         const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
 
         if (this.processedMessageIds.has(messageKey)) {
-          console.log('Message already processed, skipping:', messageKey);
           return;
         }
 
@@ -101,10 +113,6 @@ export class ChatService {
         );
 
         if (messageExists) {
-          console.log(
-            'Message already exists in array, skipping:',
-            message._id
-          );
           return;
         }
 
@@ -126,8 +134,16 @@ export class ChatService {
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
 
-        // console.log('Adding message to chat service. Total messages:', updatedMessages.length);
         this.messagesSubject.next(updatedMessages);
+        
+        // Play notification sound for new messages (only if not from current user)
+        const currentUser = this.socketService.getCurrentUser();
+        if (currentUser && message.sender._id !== currentUser._id) {
+          const soundType = message.group ? 'group' : 'message';
+          this.soundNotificationService.playNotificationSound(soundType).catch(() => {
+            // Silently fail if sound can't play (e.g., user hasn't interacted with page)
+          });
+        }
       }
     });
 
@@ -156,9 +172,37 @@ export class ChatService {
     });
   }
 
-  // Get all users
-  getUsers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/users`);
+  // Get all users with caching
+  getUsers(forceRefresh: boolean = false): Observable<any[]> {
+    const now = Date.now();
+    const isCacheValid = this.usersCache && 
+                        (now - this.usersCacheTimestamp) < this.USERS_CACHE_TTL;
+
+    // Return cached data if valid and not forcing refresh
+    if (isCacheValid && !forceRefresh) {
+      return of(this.usersCache!);
+    }
+
+    // Fetch fresh data
+    return this.http.get<any[]>(`${this.apiUrl}/users`).pipe(
+      tap(users => {
+        this.usersCache = users;
+        this.usersCacheTimestamp = now;
+      }),
+      catchError(error => {
+        // If error and we have cached data, return cache as fallback
+        if (this.usersCache) {
+          return of(this.usersCache);
+        }
+        throw error;
+      })
+    );
+  }
+
+  // Clear users cache (useful when user data might have changed)
+  clearUsersCache(): void {
+    this.usersCache = null;
+    this.usersCacheTimestamp = 0;
   }
 
   // Get private messages with pagination

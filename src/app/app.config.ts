@@ -14,6 +14,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { authInterceptor } from './core/interceptors/auth/auth.interceptor';
+import { apiResponseInterceptor } from './core/interceptors/response/api-response.interceptor';
 import { GlobalErrorHandlerService } from './core/services/error/global-error-handler.service';
 
 export const appConfig: ApplicationConfig = {
@@ -22,7 +23,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, apiResponseInterceptor])),
     providePrimeNG({
       theme: {
         preset: Aura,

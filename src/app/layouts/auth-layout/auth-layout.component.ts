@@ -15,7 +15,7 @@ export class AuthLayoutComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Store the original theme
     this.originalTheme = localStorage.getItem('quickchat-theme');
-    
+
     // Force dark mode for auth pages
     this.themeService.setTheme('dark-mode');
   }

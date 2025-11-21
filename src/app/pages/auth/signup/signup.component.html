@@ -103,9 +103,15 @@
 
       <!-- Submit -->
       <div class="signup__actions auth-actions">
-        <button class="signup__button auth-button" type="submit">
-          <i class="pi pi-user-plus"></i>
-          Sign Up
+        <button
+          class="signup__button auth-button"
+          type="submit"
+          [disabled]="isSubmitting || signupForm.invalid"
+        >
+          <i
+            [class]="isSubmitting ? 'pi pi-spin pi-spinner' : 'pi pi-user-plus'"
+          ></i>
+          {{ isSubmitting ? "Signing Up..." : "Sign Up" }}
         </button>
       </div>
 

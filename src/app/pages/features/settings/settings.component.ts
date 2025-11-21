@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ThemeService } from '../../../core/services/theme/theme.service';
 import { ColorPickerComponent } from '../../../shared/components/color-picker/color-picker.component';
+import { SoundNotificationService } from '../../../core/services/notifications/sound-notification.service';
 
 @Component({
   selector: 'app-settings',
@@ -15,6 +16,7 @@ import { ColorPickerComponent } from '../../../shared/components/color-picker/co
 export class SettingsComponent implements OnInit {
   public themeService = inject(ThemeService);
   private router = inject(Router);
+  private soundNotificationService = inject(SoundNotificationService);
 
   // Theme customization
   currentTheme = signal(this.themeService.getCurrentTheme());
@@ -67,6 +69,11 @@ export class SettingsComponent implements OnInit {
       this.appSettings().fontSize as 'smaller' | 'medium' | 'larger'
     );
 
+    // Sync sound settings with sound notification service
+    this.soundNotificationService.updateSettings({
+      enabled: this.appSettings().soundEffects,
+    });
+
     // Subscribe to theme changes
     this.themeService.currentTheme$.subscribe((theme) => {
       this.currentTheme.set(theme);
@@ -100,6 +107,13 @@ export class SettingsComponent implements OnInit {
       [setting]: target.checked,
     }));
     this.saveSettings();
+
+    // Update sound notification service if sound settings changed
+    if (setting === 'soundEffects') {
+      this.soundNotificationService.updateSettings({
+        enabled: target.checked,
+      });
+    }
   }
 
   onSelectChange(setting: string, event: Event) {
@@ -222,5 +236,10 @@ export class SettingsComponent implements OnInit {
 
   private saveSettings() {
     localStorage.setItem('appSettings', JSON.stringify(this.appSettings()));
+  }
+
+  // Test sound functionality
+  testSound() {
+    this.soundNotificationService.testSound();
   }
 }

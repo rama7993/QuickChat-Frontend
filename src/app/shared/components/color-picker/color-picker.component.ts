@@ -1,4 +1,11 @@
-import { Component, inject, signal, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  Input,
+  Output,
+  EventEmitter,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../../core/services/theme/theme.service';
@@ -13,7 +20,7 @@ export interface ColorPreset {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './color-picker.component.html',
-  styleUrl: './color-picker.component.scss'
+  styleUrl: './color-picker.component.scss',
 })
 export class ColorPickerComponent {
   private themeService = inject(ThemeService);
@@ -48,9 +55,9 @@ export class ColorPickerComponent {
         '#06b6d4', // Cyan
         '#0ea5e9', // Sky
         '#3b82f6', // Blue
-        '#6366f1'  // Indigo
-      ]
-    }
+        '#6366f1', // Indigo
+      ],
+    },
   ];
 
   public surfacePresets: ColorPreset[] = [
@@ -65,9 +72,9 @@ export class ColorPickerComponent {
         '#94a3b8', // Slate 400
         '#cbd5e1', // Slate 300
         '#e2e8f0', // Slate 200
-        '#f1f5f9'  // Slate 100
-      ]
-    }
+        '#f1f5f9', // Slate 100
+      ],
+    },
   ];
 
   ngOnInit() {

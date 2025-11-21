@@ -9,6 +9,7 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { AlertService } from '../../../core/services/alerts/alert.service';
+import { LoggerService } from '../../../core/services/logging/logger.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -20,12 +21,14 @@ import { environment } from '../../../../environments/environment';
 export class LoginComponent {
   loginForm!: FormGroup;
   showPassword = false;
+  isSubmitting = false;
 
   constructor(
     private router: Router,
     private fb: FormBuilder,
     private authService: AuthService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit() {
@@ -45,25 +48,32 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
+      this.isSubmitting = true;
       const { email, password } = this.loginForm.value;
 
       this.authService.login(email, password).subscribe({
-        next: (response) => {
-          // console.log('Login successful:', response); // Commented for production
-          // Small delay to ensure user is set in signal
+        next: () => {
           setTimeout(() => {
             this.router.navigate(['/chat']);
           }, 100);
         },
         error: (err) => {
-          console.error('Login error:', err.error);
+          this.logger.error('Login error', err.error);
           // Handle the new JSON error structure
-          const errorMessage = err.error?.message || err.error?.error || 'Login failed';
+          const errorMessage =
+            err.error?.message || err.error?.error || 'Login failed';
           this.alertService.errorToaster(errorMessage);
+          this.isSubmitting = false;
+        },
+        complete: () => {
+          this.isSubmitting = false;
         },
       });
     } else {
       this.loginForm.markAllAsTouched();
+      this.alertService.warningToaster(
+        'Please fill in all required fields correctly'
+      );
     }
   }
 

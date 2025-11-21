@@ -105,6 +105,7 @@ export class SocketService {
   private typingSubject = new BehaviorSubject<TypingUser | null>(null);
   private onlineUsersSubject = new BehaviorSubject<OnlineUser[]>([]);
   private connectionStatusSubject = new BehaviorSubject<boolean>(false);
+  private notificationSubject = new BehaviorSubject<any>(null);
   private processedMessages = new Set<string>(); // Track processed messages
 
   // Public observables
@@ -112,6 +113,7 @@ export class SocketService {
   public typing$ = this.typingSubject.asObservable();
   public onlineUsers$ = this.onlineUsersSubject.asObservable();
   public connectionStatus$ = this.connectionStatusSubject.asObservable();
+  public notification$ = this.notificationSubject.asObservable();
 
   constructor() {
     this.initializeSocket();
@@ -131,7 +133,6 @@ export class SocketService {
     const token = this.storageService.get('authToken');
 
     if (!token) {
-      // console.log('Socket initialization failed: No token found');
       return;
     }
 
@@ -139,8 +140,6 @@ export class SocketService {
     if (this.socket) {
       this.socket.disconnect();
     }
-
-    // console.log('Initializing socket connection...');
 
     // Connect to backend socket server
     this.socket = io(environment.socketUrl, {
@@ -166,19 +165,16 @@ export class SocketService {
 
     // Connection events
     this.socket.on('connect', () => {
-      // console.log('Socket connected successfully');
       this.isConnected.set(true);
       this.connectionStatusSubject.next(true);
     });
 
     this.socket.on('disconnect', (reason) => {
-      // console.log('Socket disconnected:', reason);
       this.isConnected.set(false);
       this.connectionStatusSubject.next(false);
     });
 
     this.socket.on('connect_error', (error) => {
-      // console.log('Socket connection error:', error.message);
       this.isConnected.set(false);
       this.connectionStatusSubject.next(false);
 
@@ -204,14 +200,11 @@ export class SocketService {
 
     // Message events
     this.socket.on('message_received', (message: Message) => {
-      // console.log('Message received via socket:', message);
-
       // Create a unique key for message deduplication
       const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
 
       // Check if we've already processed this message
       if (this.processedMessages.has(messageKey)) {
-        // console.log('Message already processed, skipping:', messageKey);
         return;
       }
 
@@ -219,6 +212,28 @@ export class SocketService {
       this.processedMessages.add(messageKey);
 
       // Clean up old processed messages (keep only last 100)
+      if (this.processedMessages.size > 100) {
+        const messagesArray = Array.from(this.processedMessages);
+        this.processedMessages.clear();
+        messagesArray
+          .slice(-50)
+          .forEach((key) => this.processedMessages.add(key));
+      }
+
+      this.messageSubject.next(message);
+    });
+
+    // Listen for new_message event (used for file uploads)
+    this.socket.on('new_message', (message: Message) => {
+      // Handle file upload messages the same way as regular messages
+      const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
+
+      if (this.processedMessages.has(messageKey)) {
+        return;
+      }
+
+      this.processedMessages.add(messageKey);
+
       if (this.processedMessages.size > 100) {
         const messagesArray = Array.from(this.processedMessages);
         this.processedMessages.clear();
@@ -280,6 +295,11 @@ export class SocketService {
       });
     });
 
+    // Notification events
+    this.socket.on('new_notification', (notification: any) => {
+      this.notificationSubject.next(notification);
+    });
+
     // Error handling
     this.socket.on('error', (error) => {
       // Handle socket errors silently
@@ -289,11 +309,8 @@ export class SocketService {
   // Public methods for sending data
   public sendMessage(message: Partial<Message>): void {
     if (!this.socket || !this.isConnected()) {
-      // console.log('Cannot send message: Socket not connected');
       return;
     }
-
-    // console.log('Sending message via socket:', message);
 
     // Extract receiver/group IDs for backend
     const receiverId = message.receiver?._id;
@@ -390,41 +407,27 @@ export class SocketService {
     isGroupChat: boolean = false
   ): Observable<any> {
     return new Observable((observer) => {
-      console.log('SocketService uploadFile called:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        messageType,
-        roomId,
-        isGroupChat,
-      });
-
       if (!this.socket || !this.isConnected()) {
-        console.error('Socket not connected');
         observer.error('Socket not connected');
         return;
       }
 
       // Create a unique upload ID
       const uploadId = Date.now().toString();
-      console.log('Created upload ID:', uploadId);
 
       // Listen for upload progress
       this.socket.on(`upload_progress_${uploadId}`, (progress) => {
-        console.log('Upload progress received:', progress);
         observer.next({ type: 'progress', progress });
       });
 
       // Listen for upload completion
       this.socket.on(`upload_complete_${uploadId}`, (result) => {
-        console.log('Upload complete received:', result);
         observer.next({ type: 'complete', result });
         observer.complete();
       });
 
       // Listen for upload error
       this.socket.on(`upload_error_${uploadId}`, (error) => {
-        console.error('Upload error received:', error);
         observer.error(error);
       });
 
@@ -432,7 +435,6 @@ export class SocketService {
       const reader = new FileReader();
       reader.onload = () => {
         const base64Data = reader.result as string;
-        console.log('File converted to base64, length:', base64Data.length);
 
         // Start upload - send file as base64
         this.socket?.emit('upload_file', {
@@ -446,11 +448,9 @@ export class SocketService {
           userId: this.currentUser()?._id,
           isGroupChat: isGroupChat,
         });
-        console.log('Upload file event emitted');
       };
 
       reader.onerror = () => {
-        console.error('Failed to read file');
         observer.error('Failed to read file');
       };
 
