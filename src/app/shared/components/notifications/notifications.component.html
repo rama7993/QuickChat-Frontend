@@ -130,10 +130,10 @@
             }
           </header>
           <p>{{ notification.message }}</p>
-          @if (notification.data.groupId?.name) {
+          @if (notification.data?.groupId?.name) {
           <div class="meta">
             <i class="pi pi-users"></i>
-            <span>{{ notification.data.groupId?.name }}</span>
+            <span>{{ notification.data?.groupId?.name }}</span>
           </div>
           }
         </div>

@@ -200,8 +200,16 @@ export class SocketService {
 
     // Message events
     this.socket.on('message_received', (message: Message) => {
-      // Create a unique key for message deduplication
-      const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
+      // Add null checks for message structure
+      if (!message || !message._id) {
+        return;
+      }
+
+      // Create a unique key for message deduplication with safe property access
+      const senderId = message.sender?._id || message.sender || 'unknown';
+      const messageKey = `${message._id}_${
+        message.timestamp || Date.now()
+      }_${senderId}`;
 
       // Check if we've already processed this message
       if (this.processedMessages.has(messageKey)) {
@@ -225,8 +233,16 @@ export class SocketService {
 
     // Listen for new_message event (used for file uploads)
     this.socket.on('new_message', (message: Message) => {
+      // Add null checks for message structure
+      if (!message || !message._id) {
+        return;
+      }
+
       // Handle file upload messages the same way as regular messages
-      const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
+      const senderId = message.sender?._id || message.sender || 'unknown';
+      const messageKey = `${message._id}_${
+        message.timestamp || Date.now()
+      }_${senderId}`;
 
       if (this.processedMessages.has(messageKey)) {
         return;
@@ -251,9 +267,9 @@ export class SocketService {
       this.messageSubject.next(message);
     });
 
-    this.socket.on('message_deleted', (messageId: string) => {
-      // Emit the deleted message ID so chat service can handle it
-      this.messageSubject.next({ _id: messageId, deleted: true } as any);
+    this.socket.on('message_deleted', (payload: any) => {
+      // Emit the deleted message payload so chat service can handle it
+      this.messageSubject.next(payload);
     });
 
     // Typing events
@@ -288,17 +304,29 @@ export class SocketService {
     });
 
     // Message loading
+    // Message loading - DISABLED to prevent unread count bug in sidebar
+    // ChatWindowComponent loads messages via HTTP, so this is redundant and causes
+    // the sidebar to count history as new unread messages.
+    /*
     this.socket.on('load_messages', (messages: Message[]) => {
       // Emit each message individually to maintain consistency
       messages.forEach((message) => {
         this.messageSubject.next(message);
       });
     });
+    */
 
     // Notification events
     this.socket.on('new_notification', (notification: any) => {
       this.notificationSubject.next(notification);
     });
+
+    this.socket.on(
+      'conversationDeleted',
+      (data: { userId?: string; groupId?: string }) => {
+        // Conversation deletion handled by chat service
+      }
+    );
 
     // Error handling
     this.socket.on('error', (error) => {

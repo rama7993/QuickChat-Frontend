@@ -23,7 +23,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(withInterceptors([authInterceptor, apiResponseInterceptor])),
+    provideHttpClient(
+      withInterceptors([authInterceptor, apiResponseInterceptor])
+    ),
     providePrimeNG({
       theme: {
         preset: Aura,

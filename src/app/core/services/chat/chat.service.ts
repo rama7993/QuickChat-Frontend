@@ -16,6 +16,7 @@ import { SoundNotificationService } from '../notifications/sound-notification.se
 })
 export class ChatService {
   private apiUrl = environment.apiUrl;
+  // private http = inject(HttpClient);
   private socketService = inject(SocketService);
   private soundNotificationService = inject(SoundNotificationService);
 
@@ -56,7 +57,6 @@ export class ChatService {
     // Listen for new messages
     this.socketService.message$.subscribe((socketMessage) => {
       if (socketMessage) {
-
         // Handle message deletion
         if ((socketMessage as any).deleted) {
           const messageId = socketMessage._id;
@@ -101,7 +101,12 @@ export class ChatService {
         const currentMessages = this.messagesSubject.value;
 
         // Check if message already exists to prevent duplicates
-        const messageKey = `${message._id}_${message.timestamp}_${message.sender._id}`;
+        // Add safe property access for sender
+        const senderId =
+          message.sender?._id || (message.sender as any) || 'unknown';
+        const messageKey = `${message._id}_${
+          message.timestamp || Date.now()
+        }_${senderId}`;
 
         if (this.processedMessageIds.has(messageKey)) {
           return;
@@ -135,14 +140,16 @@ export class ChatService {
         );
 
         this.messagesSubject.next(updatedMessages);
-        
+
         // Play notification sound for new messages (only if not from current user)
         const currentUser = this.socketService.getCurrentUser();
         if (currentUser && message.sender._id !== currentUser._id) {
           const soundType = message.group ? 'group' : 'message';
-          this.soundNotificationService.playNotificationSound(soundType).catch(() => {
-            // Silently fail if sound can't play (e.g., user hasn't interacted with page)
-          });
+          this.soundNotificationService
+            .playNotificationSound(soundType)
+            .catch(() => {
+              // Silently fail if sound can't play (e.g., user hasn't interacted with page)
+            });
         }
       }
     });
@@ -175,8 +182,8 @@ export class ChatService {
   // Get all users with caching
   getUsers(forceRefresh: boolean = false): Observable<any[]> {
     const now = Date.now();
-    const isCacheValid = this.usersCache && 
-                        (now - this.usersCacheTimestamp) < this.USERS_CACHE_TTL;
+    const isCacheValid =
+      this.usersCache && now - this.usersCacheTimestamp < this.USERS_CACHE_TTL;
 
     // Return cached data if valid and not forcing refresh
     if (isCacheValid && !forceRefresh) {
@@ -185,11 +192,11 @@ export class ChatService {
 
     // Fetch fresh data
     return this.http.get<any[]>(`${this.apiUrl}/users`).pipe(
-      tap(users => {
+      tap((users) => {
         this.usersCache = users;
         this.usersCacheTimestamp = now;
       }),
-      catchError(error => {
+      catchError((error) => {
         // If error and we have cached data, return cache as fallback
         if (this.usersCache) {
           return of(this.usersCache);
@@ -203,6 +210,11 @@ export class ChatService {
   clearUsersCache(): void {
     this.usersCache = null;
     this.usersCacheTimestamp = 0;
+  }
+
+  // Get recent conversations with last message and unread count
+  getConversations(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/messages/conversations`);
   }
 
   // Get private messages with pagination
@@ -333,6 +345,30 @@ export class ChatService {
   // Delete message (real-time)
   deleteMessage(messageId: string): void {
     this.socketService.deleteMessage(messageId);
+  }
+
+  // Delete entire conversation
+  deleteConversation(userId?: string, groupId?: string): Observable<any> {
+    let url = `${this.apiUrl}/messages`;
+
+    if (groupId) {
+      url += `/group/${groupId}`;
+    } else if (userId) {
+      url += `/conversation/${userId}`;
+    } else {
+      throw new Error('Either userId or groupId must be provided');
+    }
+
+    return this.http.delete(url).pipe(
+      tap(() => {
+        // Clear messages after successful deletion
+        this.clearMessages();
+      }),
+      catchError((error) => {
+        console.error('Error deleting conversation:', error);
+        throw error;
+      })
+    );
   }
 
   // Real-time chat management

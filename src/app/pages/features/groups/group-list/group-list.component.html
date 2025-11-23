@@ -32,7 +32,7 @@
         <i class="pi pi-users"></i>
         <span
           >{{ filteredGroups.length }}
-          {{ filteredGroups.length === 1 ? 'Group' : 'Groups' }}</span
+          {{ filteredGroups.length === 1 ? "Group" : "Groups" }}</span
         >
       </div>
       <button class="ghost-btn" (click)="createGroup()">
@@ -72,7 +72,7 @@
         </div>
         <div class="group-card__body">
           <h3>{{ group.name }}</h3>
-          <p>{{ group.description || 'No description provided' }}</p>
+          <p>{{ group.description || "No description provided" }}</p>
         </div>
         <div class="group-card__meta">
           <span>
@@ -81,7 +81,7 @@
           </span>
           <span>
             <i class="pi pi-clock"></i>
-            {{ group.updatedAt | date : 'MMM d, y' }}
+            {{ group.updatedAt | date : "MMM d, y" }}
           </span>
         </div>
       </div>

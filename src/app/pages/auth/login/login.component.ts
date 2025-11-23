@@ -59,9 +59,18 @@ export class LoginComponent {
         },
         error: (err) => {
           this.logger.error('Login error', err.error);
-          // Handle the new JSON error structure
-          const errorMessage =
-            err.error?.message || err.error?.error || 'Login failed';
+
+          let errorMessage = 'Login failed';
+
+          // Handle different error formats
+          if (typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.error?.message) {
+            errorMessage = err.error.message;
+          } else if (err.error?.error) {
+            errorMessage = err.error.error;
+          }
+
           this.alertService.errorToaster(errorMessage);
           this.isSubmitting = false;
         },

@@ -47,6 +47,7 @@ export class VoiceRecorderComponent implements OnDestroy {
   analyser: AnalyserNode | null = null;
   microphone: MediaStreamAudioSourceNode | null = null;
   stream: MediaStream | null = null;
+  isCancelled = false;
 
   // Wave visualization
   waveBars: { height: number; delay: number }[] = [];
@@ -114,8 +115,9 @@ export class VoiceRecorderComponent implements OnDestroy {
       };
 
       // Start recording with smaller time slices for better responsiveness
-      this.mediaRecorder.start(50); // Collect data every 50ms
+      this.mediaRecorder.start(100); // Collect data every 100ms
       this.isRecording.set(true);
+      this.isCancelled = false;
       this.recordingDuration.set(0);
       // console.log('VoiceRecorderComponent: Recording started'); // Commented for production
 
@@ -159,16 +161,26 @@ export class VoiceRecorderComponent implements OnDestroy {
   stopRecording() {
     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
       this.mediaRecorder.stop();
+      // cleanup will be called in onstop handler
+    } else {
+      this.cleanup();
     }
-    this.cleanup();
   }
 
   cancelRecording() {
+    this.isCancelled = true;
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop();
+    }
     this.cleanup();
     this.recordingCancelled.emit();
   }
 
   private processRecording() {
+    if (this.isCancelled) {
+      return;
+    }
+
     if (this.audioChunks.length === 0) {
       this.recordingError.emit('No audio data recorded');
       return;
@@ -266,7 +278,7 @@ export class VoiceRecorderComponent implements OnDestroy {
         // Update wave bars with audio level influence
         this.waveBars = this.waveBars.map((bar) => ({
           ...bar,
-          height: Math.random() * (this.audioLevel() * 0.5 + 20) + 10,
+          height: Math.max(10, Math.random() * (this.audioLevel() * 0.8 + 20)),
         }));
       }
     }, 150);

@@ -164,17 +164,16 @@
       />
     </div>
     <div class="modal-list">
-      @if (filteredUsersForNewChat().length > 0) {
-      @for (user of filteredUsersForNewChat(); track user._id) {
+      @if (filteredUsersForNewChat().length > 0) { @for (user of
+      filteredUsersForNewChat(); track user._id) {
       <div class="modal-user" (click)="startChatWithUser(user)">
         <img [src]="user.photoUrl || defaultAvatar" [alt]="user.firstName" />
         <div class="user-info">
           <span class="name">{{ user.firstName }} {{ user.lastName }}</span>
-          <span class="status">{{ user.statusMessage || 'Available' }}</span>
+          <span class="status">{{ user.statusMessage || "Available" }}</span>
         </div>
       </div>
-      }
-      } @else {
+      } } @else {
       <div class="empty-state modal-empty">
         <i class="pi pi-user"></i>
         <p>No users found</p>

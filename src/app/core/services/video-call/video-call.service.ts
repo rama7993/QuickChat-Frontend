@@ -96,7 +96,10 @@ export class VideoCallService {
         this.clearDeviceMessages();
         this.localStream = await this.requestMediaStream();
       } catch (error) {
-        console.error('Error initializing local stream for incoming call:', error);
+        console.error(
+          'Error initializing local stream for incoming call:',
+          error
+        );
         this.setErrorMessage(this.mapMediaError(error));
         return;
       }
@@ -256,8 +259,23 @@ export class VideoCallService {
 
     // Handle remote stream
     peerConnection.ontrack = (event) => {
+      console.log(
+        '[VideoCall] Received remote track:',
+        event.track.kind,
+        'from peer:',
+        remoteUserId
+      );
       const remoteStream = event.streams[0];
-      this.addRemoteParticipant(remoteUserId, 'Remote User', remoteStream);
+      if (remoteStream) {
+        console.log(
+          '[VideoCall] Remote stream received with',
+          remoteStream.getTracks().length,
+          'tracks'
+        );
+        this.addRemoteParticipant(remoteUserId, 'Remote User', remoteStream);
+      } else {
+        console.warn('[VideoCall] No remote stream in track event');
+      }
     };
 
     // Handle ICE candidates
@@ -272,6 +290,25 @@ export class VideoCallService {
           });
         }
       }
+    };
+
+    // Monitor connection state
+    peerConnection.onconnectionstatechange = () => {
+      console.log(
+        '[VideoCall] Connection state:',
+        peerConnection.connectionState,
+        'for peer:',
+        remoteUserId
+      );
+    };
+
+    peerConnection.oniceconnectionstatechange = () => {
+      console.log(
+        '[VideoCall] ICE connection state:',
+        peerConnection.iceConnectionState,
+        'for peer:',
+        remoteUserId
+      );
     };
 
     // Create and send offer if caller
@@ -515,10 +552,7 @@ export class VideoCallService {
   }
 
   private monitorAudioLevels(): void {
-    if (
-      !this.localStream ||
-      this.localStream.getAudioTracks().length === 0
-    )
+    if (!this.localStream || this.localStream.getAudioTracks().length === 0)
       return;
 
     const audioContext = new AudioContext();
@@ -686,7 +720,10 @@ export class VideoCallService {
         case 'OverconstrainedError':
           return 'Your camera does not support the requested resolution. Please switch to a different device.';
         default:
-          return error.message || 'Unable to start video call due to an unknown error.';
+          return (
+            error.message ||
+            'Unable to start video call due to an unknown error.'
+          );
       }
     }
 

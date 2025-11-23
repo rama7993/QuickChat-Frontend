@@ -15,7 +15,11 @@
   gap: var(--spacing-lg);
   padding: var(--spacing-lg) var(--spacing-xl);
   border-radius: var(--radius-large);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(16, 185, 129, 0.12));
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.12),
+    rgba(16, 185, 129, 0.12)
+  );
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: var(--shadow-medium);
 }
@@ -80,7 +84,8 @@
   padding: var(--spacing-sm) var(--spacing-xl);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 
   &:hover {
     transform: translateY(-1px);
@@ -233,7 +238,8 @@
   flex-direction: column;
   gap: var(--spacing-md);
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast), border-color var(--transition-fast);
 
   &:hover {
     transform: translateY(-3px);
@@ -252,7 +258,11 @@
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(16, 185, 129, 0.3));
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.3),
+    rgba(16, 185, 129, 0.3)
+  );
   color: #fff;
   display: flex;
   align-items: center;

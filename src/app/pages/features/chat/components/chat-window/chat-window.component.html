@@ -20,8 +20,8 @@
   <!-- Chat Header -->
   <div class="chat-window__header">
     <div class="chat-header__left">
-      @if (isMobile()) {
-      <button class="back-btn" (click)="goBack()">
+      @if (showBackButton) {
+      <button class="back-btn" (click)="backClicked.emit()">
         <i class="pi pi-arrow-left"></i>
       </button>
       }
@@ -106,13 +106,19 @@
         <i class="pi pi-search"></i>
         <span>Search Messages</span>
       </button>
-      
+
       @if (isGroupChat()) {
-      <button class="option-btn" (click)="toggleGroupInfo(); closeMoreOptions()">
+      <button
+        class="option-btn"
+        (click)="toggleGroupInfo(); closeMoreOptions()"
+      >
         <i class="pi pi-info-circle"></i>
         <span>Group Info</span>
       </button>
-      <button class="option-btn" (click)="viewGroupMembers(); closeMoreOptions()">
+      <button
+        class="option-btn"
+        (click)="viewGroupMembers(); closeMoreOptions()"
+      >
         <i class="pi pi-users"></i>
         <span>View Members</span>
       </button>
@@ -121,38 +127,50 @@
         <span>Leave Group</span>
       </button>
       }
-      
+
       <button class="option-btn" (click)="startVideoCall(); closeMoreOptions()">
         <i class="pi pi-video"></i>
         <span>Start Video Call</span>
       </button>
-      
+
       @if (!isGroupChat()) {
       <button class="option-btn" (click)="viewProfile(); closeMoreOptions()">
         <i class="pi pi-user"></i>
         <span>View Profile</span>
       </button>
-      <button class="option-btn" (click)="muteNotifications(); closeMoreOptions()">
+      <button
+        class="option-btn"
+        (click)="muteNotifications(); closeMoreOptions()"
+      >
         <i class="pi pi-bell-slash"></i>
-        <span>{{ isMuted() ? 'Unmute' : 'Mute' }} Notifications</span>
+        <span>{{ isMuted() ? "Unmute" : "Mute" }} Notifications</span>
       </button>
-      <button class="option-btn danger" (click)="blockUser(); closeMoreOptions()">
+      <button
+        class="option-btn danger"
+        (click)="blockUser(); closeMoreOptions()"
+      >
         <i class="pi pi-ban"></i>
         <span>Block User</span>
       </button>
       }
-      
+
       <div class="menu-divider"></div>
-      
+
       <button class="option-btn" (click)="exportChat(); closeMoreOptions()">
         <i class="pi pi-download"></i>
         <span>Export Chat</span>
       </button>
-      <button class="option-btn danger" (click)="clearChat(); closeMoreOptions()">
+      <button
+        class="option-btn danger"
+        (click)="clearChat(); closeMoreOptions()"
+      >
         <i class="pi pi-trash"></i>
         <span>Clear Chat</span>
       </button>
-      <button class="option-btn danger" (click)="deleteChat(); closeMoreOptions()">
+      <button
+        class="option-btn danger"
+        (click)="deleteChat(); closeMoreOptions()"
+      >
         <i class="pi pi-times-circle"></i>
         <span>Delete Chat</span>
       </button>
@@ -297,12 +315,16 @@
                   }
                 </div>
               </div>
-              } @else if (attachment.type === 'voice' || attachment.type === 'audio') {
+              } @else if (attachment.type === 'voice') {
               <div class="audio-attachment">
-                <div class="audio-player" [class.playing]="isAudioPlaying(attachment.url)">
+                <div
+                  class="voice-message-player"
+                  [class.playing]="isAudioPlaying(attachment.url)"
+                >
                   <button
-                    class="play-button"
+                    class="voice-play-btn"
                     (click)="toggleAudioPlayback(attachment.url)"
+                    [class.playing]="isAudioPlaying(attachment.url)"
                   >
                     <i
                       class="pi"
@@ -310,29 +332,38 @@
                       [class.pi-pause]="isAudioPlaying(attachment.url)"
                     ></i>
                   </button>
-                  <div class="audio-info">
-                    <span class="audio-filename">{{
-                      attachment.filename
-                    }}</span>
-                    <div class="audio-waveform">
-                      <span></span><span></span><span></span><span></span>
-                      <span></span><span></span><span></span><span></span>
+
+                  <div class="voice-content">
+                    <div class="voice-waveform-container">
+                      <div class="voice-waveform">
+                        @for (bar of
+                        [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
+                        track $index) {
+                        <div
+                          class="waveform-bar"
+                          [class.active]="isAudioPlaying(attachment.url)"
+                          [style.animation-delay.ms]="$index * 50"
+                        ></div>
+                        }
+                      </div>
+                      <div class="voice-progress-track">
+                        <div
+                          class="voice-progress-fill"
+                          [style.width.%]="getAudioProgress(attachment.url)"
+                        ></div>
+                      </div>
                     </div>
-                    @if (attachment.duration) {
-                    <span class="audio-duration">{{
-                      formatDuration(attachment.duration)
-                    }}</span>
-                    }
-                  </div>
-                  <!-- Progress bar removed from here as it's now part of the info/waveform layout -->
-                </div>
-                <!-- Add a separate progress bar container if needed, or integrate into audio-info -->
-                <div class="audio-progress-container">
-                   <div class="audio-progress">
-                    <div
-                      class="progress-bar"
-                      [style.width.%]="getAudioProgress(attachment.url)"
-                    ></div>
+
+                    <div class="voice-meta">
+                      <span class="voice-time">{{
+                        formatAudioTime(attachment.url)
+                      }}</span>
+                      @if (attachment.duration) {
+                      <span class="voice-duration">{{
+                        formatDuration(attachment.duration)
+                      }}</span>
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
@@ -424,13 +455,13 @@
             React
           </button>
           @if (message.sender._id === currentUser()?._id) {
-          <!-- <button
+          <button
             class="menu-item"
             (click)="editMessage(message._id, message.content)"
           >
             <i class="pi pi-pencil"></i>
             Edit
-          </button> -->
+          </button>
           <button class="menu-item danger" (click)="deleteMessage(message._id)">
             <i class="pi pi-trash"></i>
             Delete
@@ -576,7 +607,7 @@
     @if (showVoiceRecording()) {
     <div class="panel-backdrop" (click)="showVoiceRecording.set(false)"></div>
     <div class="voice-recording-panel">
-      <h3 style="color: #007bff; margin: 0 0 10px 0">🎤 Voice Recording</h3>
+      <h3>Voice Recording</h3>
       <app-voice-recorder
         #voiceRecorderComponent
         [receiverId]="selectedUser()?._id"

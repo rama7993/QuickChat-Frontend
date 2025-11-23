@@ -6,15 +6,17 @@ import {
   OnInit,
   OnDestroy,
   AfterViewInit,
+  AfterViewChecked,
   signal,
   ViewChild,
+  ViewChildren,
+  QueryList,
   ElementRef,
   inject,
   computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, Subscription } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
 import {
   VideoCallService,
   VideoCallParticipant,
@@ -29,12 +31,17 @@ import { AlertService } from '../../../core/services/alerts/alert.service';
   templateUrl: './video-call.component.html',
   styleUrl: './video-call.component.scss',
 })
-export class VideoCallComponent implements OnInit, OnDestroy, AfterViewInit {
+export class VideoCallComponent
+  implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked
+{
   @Input() roomId: string = '';
   @Input() participants: string[] = [];
   @Output() callEnded = new EventEmitter<void>();
 
   @ViewChild('videoGrid') videoGridRef!: ElementRef<HTMLDivElement>;
+  @ViewChildren('participantVideo') videoElements!: QueryList<
+    ElementRef<HTMLVideoElement>
+  >;
 
   private videoCallService = inject(VideoCallService);
   private authService = inject(AuthService);
@@ -54,8 +61,10 @@ export class VideoCallComponent implements OnInit, OnDestroy, AfterViewInit {
     if (error) return error;
     return this.videoCallService.getWarningMessageSignal()();
   });
+
   private participantsSubscription?: Subscription;
-  private videoElementMap = new Map<string, HTMLVideoElement>();
+  private attachedStreams = new Set<string>();
+  private viewChecked = false;
 
   ngOnInit() {
     this.participants$ = this.videoCallService.participants$;
@@ -63,89 +72,101 @@ export class VideoCallComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Subscribe to participants changes with debounce to avoid excessive updates
-    this.participantsSubscription = this.participants$
-      .pipe(debounceTime(50))
-      .subscribe((participants) => {
-        // Use requestAnimationFrame to ensure DOM is ready
-        requestAnimationFrame(() => {
-          this.updateVideoElements(participants);
-        });
-      });
+    // Subscribe to participants changes
+    this.participantsSubscription = this.participants$.subscribe(
+      (participants) => {
+        // Mark that we need to check the view on next cycle
+        this.viewChecked = false;
+      }
+    );
+  }
+
+  ngAfterViewChecked() {
+    // Only process if we haven't checked this cycle and there are video elements
+    if (
+      !this.viewChecked &&
+      this.videoElements &&
+      this.videoElements.length > 0
+    ) {
+      this.viewChecked = true;
+      // Use setTimeout to break out of the change detection cycle
+      setTimeout(() => {
+        this.attachStreamsToVideoElements();
+      }, 0);
+    }
   }
 
   ngOnDestroy() {
-    // Clean up subscription
     if (this.participantsSubscription) {
       this.participantsSubscription.unsubscribe();
     }
-    // Clear video element map
-    this.videoElementMap.clear();
+    this.attachedStreams.clear();
     this.endCall();
   }
 
-  private updateVideoElements(participants: VideoCallParticipant[]) {
-    // Update the video element map
-    participants.forEach((participant) => {
-      if (participant.stream) {
-        // Find video element by participant ID
-        let videoElement = document.querySelector(
-          `video[data-participant-id="${participant.id}"]`
-        ) as HTMLVideoElement;
+  private attachStreamsToVideoElements() {
+    if (!this.videoElements || this.videoElements.length === 0) {
+      return;
+    }
 
-        // If element not found, try to get from map
-        if (!videoElement && this.videoElementMap.has(participant.id)) {
-          videoElement = this.videoElementMap.get(participant.id)!;
-          // Check if element is still in DOM
-          if (!document.contains(videoElement)) {
-            this.videoElementMap.delete(participant.id);
-            videoElement = null as any;
-          }
-        }
+    // Get current participants from the service
+    let participants: VideoCallParticipant[] = [];
+    this.videoCallService.participants$
+      .subscribe((p) => (participants = p))
+      .unsubscribe();
 
-        if (videoElement) {
-          // Update map
-          this.videoElementMap.set(participant.id, videoElement);
+    if (participants.length === 0) {
+      return;
+    }
 
-          // Only update if srcObject changed
-          if (videoElement.srcObject !== participant.stream) {
-            // Check if element is still in DOM before updating
-            if (document.contains(videoElement)) {
-              videoElement.srcObject = participant.stream;
+    this.videoElements.forEach((elementRef) => {
+      const videoElement = elementRef.nativeElement;
+      const participantId = videoElement.getAttribute('data-participant-id');
 
-              // Only call play if video is not already playing and element is in DOM
-              if (videoElement.paused && document.contains(videoElement)) {
-                videoElement.play().catch((error) => {
-                  // Only log if it's not an abort error (which is expected during DOM updates)
+      if (!participantId) return;
+
+      const participant = participants.find(
+        (p: VideoCallParticipant) => p.id === participantId
+      );
+
+      if (participant && participant.stream) {
+        const streamKey = `${participantId}-${participant.stream.id}`;
+
+        // Only attach if not already attached
+        if (!this.attachedStreams.has(streamKey)) {
+          try {
+            console.log(
+              '[VideoCallComponent] Attaching stream for participant:',
+              participantId,
+              'stream tracks:',
+              participant.stream.getTracks().length
+            );
+            videoElement.srcObject = participant.stream;
+            this.attachedStreams.add(streamKey);
+
+            // Ensure video plays
+            const playPromise = videoElement.play();
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log(
+                    '[VideoCallComponent] Video playing for participant:',
+                    participantId
+                  );
+                })
+                .catch((error) => {
                   if (
                     error.name !== 'AbortError' &&
                     error.name !== 'NotAllowedError'
                   ) {
-                    console.error('Error playing video:', error);
+                    console.warn('Video play error:', error);
                   }
                 });
-              }
             }
-          } else if (videoElement.paused && document.contains(videoElement)) {
-            // If srcObject is same but video is paused, try to play
-            videoElement.play().catch((error) => {
-              if (
-                error.name !== 'AbortError' &&
-                error.name !== 'NotAllowedError'
-              ) {
-                console.error('Error playing video:', error);
-              }
-            });
+          } catch (error) {
+            console.error('Error attaching stream to video element:', error);
           }
         }
-      }
-    });
-
-    // Clean up map - remove entries for participants that no longer exist
-    const participantIds = new Set(participants.map((p) => p.id));
-    this.videoElementMap.forEach((element, id) => {
-      if (!participantIds.has(id) || !document.contains(element)) {
-        this.videoElementMap.delete(id);
       }
     });
   }

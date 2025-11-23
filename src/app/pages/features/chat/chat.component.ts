@@ -18,13 +18,14 @@ import { ChatWindowComponent } from './components/chat-window/chat-window.compon
 })
 export class ChatComponent implements OnInit, OnDestroy {
   public isMobile = false;
+  public showSidebar = true;
 
   ngOnInit() {
     this.checkScreenSize();
   }
 
   ngOnDestroy() {
-    // Cleanup if needed
+    // Component cleanup handled by child components
   }
 
   @HostListener('window:resize')
@@ -33,6 +34,24 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private checkScreenSize() {
+    const wasMobile = this.isMobile;
     this.isMobile = window.innerWidth <= 768;
+
+    // Reset sidebar visibility when switching between mobile/desktop
+    if (wasMobile !== this.isMobile) {
+      this.showSidebar = true;
+    }
+  }
+
+  onChatSelected() {
+    if (this.isMobile) {
+      this.showSidebar = false;
+    }
+  }
+
+  onBackClicked() {
+    if (this.isMobile) {
+      this.showSidebar = true;
+    }
   }
 }

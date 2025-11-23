@@ -230,8 +230,8 @@
       width: 3rem;
       height: 3rem;
       border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(15, 22, 34, 0.85);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
       color: var(--color-text);
       cursor: pointer;
       transition: all var(--transition-fast);
@@ -239,27 +239,56 @@
       align-items: center;
       justify-content: center;
       font-size: 1.25rem;
+      box-shadow: var(--shadow-small);
+
+      i {
+        display: block;
+        color: inherit;
+      }
 
       &:hover {
         border-color: var(--color-accent);
         color: var(--color-accent);
         transform: translateY(-1px);
+        box-shadow: var(--shadow-medium);
       }
 
       &.is-on {
-        background: rgba(15, 22, 34, 0.85);
+        background: var(--color-surface);
+        color: var(--color-text);
+        border-color: var(--color-border);
       }
 
       &.is-off.mic {
-        background: rgba(244, 67, 54, 0.15);
-        color: #fff;
-        border-color: rgba(244, 67, 54, 0.4);
+        background: rgba(244, 67, 54, 0.2);
+        color: #ff6b6b;
+        border-color: rgba(244, 67, 54, 0.5);
+
+        i {
+          color: #ff6b6b;
+        }
+
+        &:hover {
+          background: rgba(244, 67, 54, 0.3);
+          color: #ff5252;
+          border-color: rgba(244, 67, 54, 0.6);
+        }
       }
 
       &.is-off.camera {
-        background: rgba(245, 158, 11, 0.2);
-        color: #fff;
-        border-color: rgba(245, 158, 11, 0.45);
+        background: rgba(245, 158, 11, 0.25);
+        color: #ffb84d;
+        border-color: rgba(245, 158, 11, 0.5);
+
+        i {
+          color: #ffb84d;
+        }
+
+        &:hover {
+          background: rgba(245, 158, 11, 0.35);
+          color: #ffa726;
+          border-color: rgba(245, 158, 11, 0.6);
+        }
       }
 
       &.end-call {

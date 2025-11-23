@@ -24,31 +24,33 @@
     >
       <!-- Video Element -->
       <video
+        #participantVideo
         *ngIf="
           participant.id === 'local' &&
           !participant.isVideoOff &&
           participant.stream
         "
         [attr.data-participant-id]="participant.id"
+        [attr.id]="'video-' + participant.id"
         autoplay
         muted
         playsinline
         class="participant-video"
-        #videoElement
       ></video>
 
       <!-- Remote Video Element -->
       <video
+        #participantVideo
         *ngIf="
           participant.id !== 'local' &&
           !participant.isVideoOff &&
           participant.stream
         "
         [attr.data-participant-id]="participant.id"
+        [attr.id]="'video-' + participant.id"
         autoplay
         playsinline
         class="participant-video"
-        #videoElement
       ></video>
 
       <!-- Remote Video Placeholder (only if no stream) -->

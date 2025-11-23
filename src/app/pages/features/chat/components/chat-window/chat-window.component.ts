@@ -9,6 +9,10 @@ import {
   ElementRef,
   AfterViewInit,
   HostListener,
+  ChangeDetectorRef,
+  Input,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +27,10 @@ import { LoggerService } from '../../../../../core/services/logging/logger.servi
 import { VideoCallService } from '../../../../../core/services/video-call/video-call.service';
 import { User, Group } from '../../../../../core/interfaces/group.model';
 import { Message } from '../../../../../core/interfaces/message.model';
-import { FileUploadComponent, FileUploadResult } from '../../../../../shared/components/file-upload/file-upload.component';
+import {
+  FileUploadComponent,
+  FileUploadResult,
+} from '../../../../../shared/components/file-upload/file-upload.component';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { VideoCallComponent } from '../../../../../shared/components/video-call/video-call.component';
 import {
@@ -31,8 +38,16 @@ import {
   VoiceRecordingResult,
 } from '../../../../../shared/components/voice-recorder/voice-recorder.component';
 import { Default_Img_Url } from '../../../../../../utils/constants.utils';
-import { formatFileSize, getFileType, createFileMessageContent } from '../../../../../../utils/file.utils';
-import { formatDuration, formatMessageTime, groupMessagesByDate } from '../../../../../../utils/message.utils';
+import {
+  formatFileSize,
+  getFileType,
+  createFileMessageContent,
+} from '../../../../../../utils/file.utils';
+import {
+  formatDuration,
+  formatMessageTime,
+  groupMessagesByDate,
+} from '../../../../../../utils/message.utils';
 
 @Component({
   selector: 'app-chat-window',
@@ -64,6 +79,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   private alertService = inject(AlertService);
   private logger = inject(LoggerService);
   private videoCallService = inject(VideoCallService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Real-time message and typing streams
   private messageSubscription?: Subscription;
@@ -72,6 +88,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public currentUser = this.authService.currentUser;
   public defaultAvatar = Default_Img_Url;
+
+  @Input() public showBackButton: boolean = false;
+  @Output() public backClicked: EventEmitter<void> = new EventEmitter<void>();
 
   // Real-time data
   public messages = signal<Message[]>([]);
@@ -100,6 +119,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   // Audio playback state
   private audioElements = new Map<string, HTMLAudioElement>();
   private audioProgress = new Map<string, number>();
+  private audioCurrentTime = new Map<string, number>();
 
   // Voice recording
   public isRecording = signal(false);
@@ -223,9 +243,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setupSocketListeners() {
-    // Note: Message handling is done through chatService.messages$ subscription
-    // No need for direct socket message subscription to avoid duplicates
-
     // Listen for typing indicators
     const typingSub = this.socketService.typing$.subscribe(
       (typingData: any) => {
@@ -245,13 +262,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     );
-
-    // Listen for user status changes (if method exists)
-    // const statusSub = this.socketService.onUserStatusChange().subscribe((data: any) => {
-    //   if (this.selectedUser() && data.userId === this.selectedUser()!._id) {
-    //     this.selectedUser.set({ ...this.selectedUser()!, status: data.status });
-    //   }
-    // });
 
     this.subscriptions.push(typingSub);
   }
@@ -339,8 +349,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // Message handling is done through chatService.messages$ subscription
-
   sendMessage() {
     if (!this.canSendMessage()) return;
 
@@ -366,11 +374,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       this.messageText.set('');
       this.replyToMessage.set(null);
       this.showEmojiPicker.set(false);
-
-      // Stop typing indicator
       this.stopTyping();
-
-      // Message will be added via socket listener
     } catch (error) {
       this.logger.error('Error sending message', error);
     } finally {
@@ -599,7 +603,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
               if (uploadResult.type === 'complete') {
                 // Voice message uploaded successfully
                 this.showVoiceRecording.set(false);
-                this.alertService.successToaster('Voice message sent successfully');
+                this.alertService.successToaster(
+                  'Voice message sent successfully'
+                );
               }
             },
             error: (error) => {
@@ -620,7 +626,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
               if (uploadResult.type === 'complete') {
                 // Voice message uploaded successfully
                 this.showVoiceRecording.set(false);
-                this.alertService.successToaster('Voice message sent successfully');
+                this.alertService.successToaster(
+                  'Voice message sent successfully'
+                );
               }
             },
             error: (error) => {
@@ -630,7 +638,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
             },
           });
       } else {
-        this.alertService.errorToaster('Please select a chat to send voice message');
+        this.alertService.errorToaster(
+          'Please select a chat to send voice message'
+        );
         this.showVoiceRecording.set(false);
       }
     } catch (error: any) {
@@ -649,11 +659,12 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     // Voice recording cancelled
   }
 
-
   // Video Call Methods
   async startVideoCall() {
     if (!this.selectedUser() && !this.selectedGroup()) {
-      this.alertService.errorToaster('Please select a chat to start video call');
+      this.alertService.errorToaster(
+        'Please select a chat to start video call'
+      );
       return;
     }
 
@@ -754,7 +765,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     if (confirm('Are you sure you want to block this user?')) {
       const userId = this.selectedUser()?._id;
       if (userId) {
-        // TODO: Implement block user API call
         this.alertService.infoToaster('Block user functionality coming soon');
         this.showMessageOptions.set(null);
       }
@@ -774,7 +784,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   onDocumentClick(event: MouseEvent) {
     // Close more options menu when clicking outside
     const target = event.target as HTMLElement;
-    if (!target.closest('.more-options-menu') && !target.closest('.action-btn')) {
+    if (
+      !target.closest('.more-options-menu') &&
+      !target.closest('.action-btn')
+    ) {
       if (this.showMessageOptions() === 'chat-options') {
         this.closeMoreOptions();
       }
@@ -806,23 +819,25 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         return;
       }
       if (confirm(`Are you sure you want to leave "${groupName}"?`)) {
-        this.groupService.leaveGroup(this.selectedGroup()!._id, currentUser._id).subscribe({
-          next: () => {
-            this.alertService.successToaster('Left group successfully');
-            this.router.navigate(['/chat']);
-            this.closeMoreOptions();
-          },
-          error: (error) => {
-            this.alertService.errorToaster('Failed to leave group');
-            this.logger.error('Error leaving group', error);
-          }
-        });
+        this.groupService
+          .leaveGroup(this.selectedGroup()!._id, currentUser._id)
+          .subscribe({
+            next: () => {
+              this.alertService.successToaster('Left group successfully');
+              this.router.navigate(['/chat']);
+              this.closeMoreOptions();
+            },
+            error: (error) => {
+              this.alertService.errorToaster('Failed to leave group');
+              this.logger.error('Error leaving group', error);
+            },
+          });
       }
     }
   }
 
   muteNotifications() {
-    this.isMuted.update(current => !current);
+    this.isMuted.update((current) => !current);
     const status = this.isMuted() ? 'muted' : 'unmuted';
     this.alertService.successToaster(`Notifications ${status}`);
   }
@@ -835,11 +850,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    const chatData = messages.map(msg => ({
+    const chatData = messages.map((msg) => ({
       sender: `${msg.sender.firstName} ${msg.sender.lastName}`,
       content: msg.content,
       timestamp: new Date(msg.timestamp).toLocaleString(),
-      type: msg.type
+      type: msg.type,
     }));
 
     const dataStr = JSON.stringify(chatData, null, 2);
@@ -855,17 +870,44 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   deleteChat() {
-    const chatName = this.isGroupChat() 
-      ? this.selectedGroup()?.name 
+    const chatName = this.isGroupChat()
+      ? this.selectedGroup()?.name
       : `${this.selectedUser()?.firstName} ${this.selectedUser()?.lastName}`;
-    
-    if (confirm(`Are you sure you want to delete chat with "${chatName}"? This action cannot be undone.`)) {
-      // Delete chat history
-      this.messages.set([]);
-      this.groupedMessages.set([]);
-      this.alertService.successToaster('Chat deleted successfully');
-      this.router.navigate(['/chat']);
-      this.closeMoreOptions();
+
+    if (
+      confirm(
+        `Are you sure you want to delete chat with "${chatName}"? This action cannot be undone.`
+      )
+    ) {
+      const userId = this.selectedUser()?._id;
+      const groupId = this.selectedGroup()?._id;
+
+      this.chatService.deleteConversation(userId, groupId).subscribe({
+        next: () => {
+          // Clear local state
+          this.messages.set([]);
+          this.groupedMessages.set([]);
+          this.selectedUser.set(null);
+          this.selectedGroup.set(null);
+          this.chatService.clearMessages();
+
+          this.alertService.successToaster('Chat deleted successfully');
+          this.router.navigate(['/chat']);
+          this.closeMoreOptions();
+
+          // Trigger sidebar refresh by reloading data
+          // The sidebar will refresh when navigating back to /chat
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
+        },
+        error: (error) => {
+          this.logger.error('Error deleting chat:', error);
+          this.alertService.errorToaster(
+            'Failed to delete chat. Please try again.'
+          );
+        },
+      });
     }
   }
 
@@ -911,12 +953,28 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   toggleAudioPlayback(audioUrl: string) {
     if (!this.audioElements.has(audioUrl)) {
       const audio = new Audio(audioUrl);
+      // Update progress and time on timeupdate
       audio.addEventListener('timeupdate', () => {
         const progress = (audio.currentTime / audio.duration) * 100;
         this.audioProgress.set(audioUrl, progress);
+        this.audioCurrentTime.set(audioUrl, audio.currentTime);
+        // Trigger change detection for reactive updates
+        if (!(this.cdr as any).destroyed) {
+          this.cdr.markForCheck();
+        }
       });
       audio.addEventListener('ended', () => {
         this.audioProgress.set(audioUrl, 0);
+        this.audioCurrentTime.set(audioUrl, 0);
+        if (!(this.cdr as any).destroyed) {
+          this.cdr.markForCheck();
+        }
+      });
+      audio.addEventListener('loadedmetadata', () => {
+        this.audioCurrentTime.set(audioUrl, 0);
+        if (!(this.cdr as any).destroyed) {
+          this.cdr.markForCheck();
+        }
       });
       this.audioElements.set(audioUrl, audio);
     }
@@ -944,16 +1002,38 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.audioProgress.get(audioUrl) || 0;
   }
 
+  formatAudioTime(audioUrl: string): string {
+    const audio = this.audioElements.get(audioUrl);
+    if (!audio) {
+      return '0:00';
+    }
+    const currentTime = audio.currentTime || 0;
+    if (isNaN(currentTime) || currentTime < 0) {
+      return '0:00';
+    }
+    const minutes = Math.floor(currentTime / 60);
+    const seconds = Math.floor(currentTime % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
   getFileIcon(mimeType: string): string {
-    return getFileType(mimeType) === 'image' ? 'pi-image' :
-           getFileType(mimeType) === 'video' ? 'pi-video' :
-           getFileType(mimeType) === 'audio' ? 'pi-volume-up' :
-           mimeType.includes('pdf') ? 'pi-file-pdf' :
-           mimeType.includes('word') ? 'pi-file-word' :
-           mimeType.includes('excel') || mimeType.includes('spreadsheet') ? 'pi-file-excel' :
-           mimeType.includes('powerpoint') || mimeType.includes('presentation') ? 'pi-file-powerpoint' :
-           mimeType.includes('zip') || mimeType.includes('rar') ? 'pi-file-archive' :
-           'pi-file';
+    return getFileType(mimeType) === 'image'
+      ? 'pi-image'
+      : getFileType(mimeType) === 'video'
+      ? 'pi-video'
+      : getFileType(mimeType) === 'audio'
+      ? 'pi-volume-up'
+      : mimeType.includes('pdf')
+      ? 'pi-file-pdf'
+      : mimeType.includes('word')
+      ? 'pi-file-word'
+      : mimeType.includes('excel') || mimeType.includes('spreadsheet')
+      ? 'pi-file-excel'
+      : mimeType.includes('powerpoint') || mimeType.includes('presentation')
+      ? 'pi-file-powerpoint'
+      : mimeType.includes('zip') || mimeType.includes('rar')
+      ? 'pi-file-archive'
+      : 'pi-file';
   }
 
   // Use utility functions

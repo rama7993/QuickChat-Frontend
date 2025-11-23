@@ -1,22 +1,65 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Group, User } from '../../interfaces/group.model';
+import { SafeStorageService } from '../storage/safe-storage.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GroupService {
   private readonly apiUrl = environment.apiUrl;
+  private groupsCache: Group[] | null = null;
+  private groupsCacheTimestamp: number = 0;
+  private readonly GROUPS_CACHE_TTL = 60000; // 1 minute cache
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private storageService: SafeStorageService
+  ) {}
 
   /**
    * Get all groups for the current user
    */
-  getMyGroups(): Observable<Group[]> {
-    return this.http.get<Group[]>(`${this.apiUrl}/groups/my`);
+  getMyGroups(forceRefresh: boolean = false): Observable<Group[]> {
+    const now = Date.now();
+    const CACHE_KEY = 'chat_groups_cache';
+    const CACHE_TIMESTAMP_KEY = 'chat_groups_timestamp';
+
+    // Try to load from memory first
+    if (!this.groupsCache) {
+      const storedCache = this.storageService.get(CACHE_KEY);
+      const storedTimestamp = this.storageService.get(CACHE_TIMESTAMP_KEY);
+      if (storedCache && storedTimestamp) {
+        this.groupsCache = JSON.parse(storedCache);
+        this.groupsCacheTimestamp = parseInt(storedTimestamp, 10);
+      }
+    }
+
+    const isCacheValid =
+      this.groupsCache &&
+      now - this.groupsCacheTimestamp < this.GROUPS_CACHE_TTL;
+
+    if (isCacheValid && !forceRefresh) {
+      return of(this.groupsCache!);
+    }
+
+    return this.http.get<Group[]>(`${this.apiUrl}/groups/my`).pipe(
+      tap((groups) => {
+        this.groupsCache = groups;
+        this.groupsCacheTimestamp = now;
+        this.storageService.set(CACHE_KEY, JSON.stringify(groups));
+        this.storageService.set(CACHE_TIMESTAMP_KEY, now.toString());
+      }),
+      catchError((error) => {
+        if (this.groupsCache) {
+          return of(this.groupsCache);
+        }
+        throw error;
+      })
+    );
   }
 
   /**

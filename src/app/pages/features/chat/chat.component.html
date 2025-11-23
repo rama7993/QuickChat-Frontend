@@ -1,11 +1,20 @@
 <div class="chat-container" [ngClass]="{ mobile: isMobile }">
   <!-- Chat Sidebar -->
-  <div class="chat-sidebar-container">
-    <app-chat-sidebar></app-chat-sidebar>
+  <div
+    class="chat-sidebar-container"
+    [ngClass]="{ show: showSidebar || !isMobile }"
+  >
+    <app-chat-sidebar (chatSelected)="onChatSelected()"></app-chat-sidebar>
   </div>
 
   <!-- Chat Window -->
-  <div class="chat-window-container">
-    <app-chat-window></app-chat-window>
+  <div
+    class="chat-window-container"
+    [ngClass]="{ show: !showSidebar || !isMobile }"
+  >
+    <app-chat-window
+      [showBackButton]="isMobile"
+      (backClicked)="onBackClicked()"
+    ></app-chat-window>
   </div>
 </div>

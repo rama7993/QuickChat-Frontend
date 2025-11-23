@@ -5,6 +5,8 @@ import {
   computed,
   OnInit,
   OnDestroy,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -58,6 +60,8 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
+  @Output() chatSelected = new EventEmitter<void>();
+
   public filteredChatItems = computed(() => {
     const search = this.searchText().toLowerCase();
     if (!search) return this.chatItems();
@@ -105,13 +109,37 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   private loadData() {
     this.isLoading.set(true);
 
-    // Load users and groups in parallel
-    const usersSub = this.chatService.getUsers().subscribe({
-      next: (users) => {
-        this.users.set(users.filter((u) => u._id !== this.currentUser()?._id));
+    // Load conversations (users with last message and unread count)
+    const conversationsSub = this.chatService.getConversations().subscribe({
+      next: (conversations) => {
+        // Map conversations to users with additional metadata
+        const users = conversations.map((conv) => ({
+          _id: conv._id,
+          firstName: conv.userDetails.firstName,
+          lastName: conv.userDetails.lastName,
+          username: conv.userDetails.username,
+          email: conv.userDetails.email || '',
+          photoUrl: conv.userDetails.photoUrl,
+          status: conv.userDetails.status,
+          lastSeen: conv.userDetails.lastSeen,
+          unreadCount: conv.unreadCount,
+          lastMessage: conv.lastMessage?.content || '',
+          lastMessageTime: conv.lastMessage?.timestamp,
+        }));
+        this.users.set(users);
         this.updateChatItems();
       },
-      error: (error) => console.error('Error loading users:', error),
+      error: (error) => {
+        // Fallback to getUsers if conversations endpoint fails
+        this.chatService.getUsers().subscribe({
+          next: (users) => {
+            this.users.set(
+              users.filter((u) => u._id !== this.currentUser()?._id)
+            );
+            this.updateChatItems();
+          },
+        });
+      },
     });
 
     const groupsSub = this.groupService.getMyGroups().subscribe({
@@ -119,22 +147,28 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
         this.groups.set(groups);
         this.updateChatItems();
       },
-      error: (error) => console.error('Error loading groups:', error),
+      error: (error) => {
+        // Error handled silently - groups will see empty list
+      },
     });
 
-    this.subscriptions.push(usersSub, groupsSub);
+    this.subscriptions.push(conversationsSub, groupsSub);
   }
 
   private updateChatItems() {
     const items: ChatItem[] = [];
 
     // Add user chats
-    this.users().forEach((user) => {
+    this.users().forEach((user: any) => {
       items.push({
         id: user._id,
         type: 'user',
         name: `${user.firstName} ${user.lastName}`,
         avatar: user.photoUrl || this.defaultAvatar,
+        lastMessage: user.lastMessage || undefined,
+        timestamp: user.lastMessageTime
+          ? new Date(user.lastMessageTime)
+          : undefined,
         unreadCount: user.unreadCount || 0,
         isOnline: user.status === 'online',
         status: user.statusMessage,
@@ -191,21 +225,37 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   private updateLastMessage(message: Message) {
+    // Add null checks to prevent errors - but be more lenient
+    if (!message || !message._id) {
+      return;
+    }
+
+    // Check if sender exists, but don't block if it's just missing _id
+    const senderId = message.sender?._id || (message.sender as any)?._id;
+    if (!senderId && !message.group?._id) {
+      // If no sender and no group, skip but don't error
+      return;
+    }
+
     const items = this.chatItems();
     const itemIndex = items.findIndex((item) => {
       if (item.type === 'user') {
-        return (
-          item.id === message.sender._id || item.id === message.receiver?._id
-        );
+        return item.id === senderId || item.id === message.receiver?._id;
       } else {
         return item.id === message.group?._id;
       }
     });
 
     if (itemIndex !== -1) {
-      items[itemIndex].lastMessage = message.content;
-      items[itemIndex].timestamp = new Date(message.timestamp);
-      if (message.sender._id !== this.currentUser()?._id) {
+      // Update last message content - handle different message types
+      const messageContent =
+        message.content ||
+        (message.attachments && message.attachments.length > 0
+          ? `📎 ${message.attachments[0].type || 'file'}`
+          : 'Message');
+      items[itemIndex].lastMessage = messageContent;
+      items[itemIndex].timestamp = new Date(message.timestamp || Date.now());
+      if (senderId && senderId !== this.currentUser()?._id) {
         items[itemIndex].unreadCount++;
       }
       this.chatItems.set([...items]);
@@ -226,6 +276,8 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   selectChatItem(item: ChatItem) {
+    this.chatSelected.emit();
+
     if (item.type === 'user') {
       this.router.navigate(['/chat'], {
         queryParams: { userId: item.id },
