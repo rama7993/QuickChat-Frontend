@@ -54,7 +54,6 @@ export class VoiceRecorderComponent implements OnDestroy {
   waveAnimationInterval: any;
 
   async startRecording() {
-    // console.log('VoiceRecorderComponent: startRecording called'); // Commented for production
     try {
       // Request microphone access with enhanced audio settings
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -66,7 +65,6 @@ export class VoiceRecorderComponent implements OnDestroy {
           channelCount: 1,
         },
       });
-      // console.log('VoiceRecorderComponent: Microphone access granted'); // Commented for production
 
       // Set up audio context for level monitoring
       this.audioContext = new AudioContext();
@@ -119,7 +117,6 @@ export class VoiceRecorderComponent implements OnDestroy {
       this.isRecording.set(true);
       this.isCancelled = false;
       this.recordingDuration.set(0);
-      // console.log('VoiceRecorderComponent: Recording started'); // Commented for production
 
       // Start duration timer
       this.recordingInterval = setInterval(() => {

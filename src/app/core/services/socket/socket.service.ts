@@ -261,8 +261,6 @@ export class SocketService {
       this.messageSubject.next(message);
     });
 
-    // message_sent event removed - no longer needed since sender receives message via message_received
-
     this.socket.on('message_updated', (message: Message) => {
       this.messageSubject.next(message);
     });
@@ -302,19 +300,6 @@ export class SocketService {
       );
       this.onlineUsersSubject.next(updatedUsers);
     });
-
-    // Message loading
-    // Message loading - DISABLED to prevent unread count bug in sidebar
-    // ChatWindowComponent loads messages via HTTP, so this is redundant and causes
-    // the sidebar to count history as new unread messages.
-    /*
-    this.socket.on('load_messages', (messages: Message[]) => {
-      // Emit each message individually to maintain consistency
-      messages.forEach((message) => {
-        this.messageSubject.next(message);
-      });
-    });
-    */
 
     // Notification events
     this.socket.on('new_notification', (notification: any) => {

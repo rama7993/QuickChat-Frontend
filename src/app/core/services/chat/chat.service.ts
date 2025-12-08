@@ -45,6 +45,10 @@ export class ChatService {
     this.socketService.clearProcessedMessages();
   }
 
+  public setMessages(messages: Message[]): void {
+    this.messagesSubject.next(messages);
+  }
+
   requestNewChat(): void {
     this.newChatSubject.next();
   }
@@ -56,102 +60,8 @@ export class ChatService {
   private initializeSocketListeners(): void {
     // Listen for new messages
     this.socketService.message$.subscribe((socketMessage) => {
-      if (socketMessage) {
-        // Handle message deletion
-        if ((socketMessage as any).deleted) {
-          const messageId = socketMessage._id;
-          const currentMessages = this.messagesSubject.value;
-          const updatedMessages = currentMessages.filter(
-            (msg) => msg._id !== messageId
-          );
-          this.messagesSubject.next(updatedMessages);
-          return;
-        }
-
-        // Convert socket message to chat service message format
-        const message: Message = {
-          _id: socketMessage._id,
-          id: socketMessage.id,
-          sender: socketMessage.sender,
-          receiver: socketMessage.receiver,
-          group: socketMessage.group,
-          content: socketMessage.content,
-          type: socketMessage.type,
-          messageType: socketMessage.messageType,
-          attachments: socketMessage.attachments || [],
-          replyTo: socketMessage.replyTo,
-          reactions: socketMessage.reactions || [],
-          status: socketMessage.status || 'sent',
-          readBy: socketMessage.readBy || [],
-          edited: socketMessage.edited || false,
-          editedAt: socketMessage.editedAt,
-          deleted: socketMessage.deleted || false,
-          deletedAt: socketMessage.deletedAt,
-          forwarded: socketMessage.forwarded || false,
-          forwardedFrom: socketMessage.forwardedFrom,
-          timestamp: socketMessage.timestamp,
-          createdAt: socketMessage.createdAt || socketMessage.timestamp,
-          updatedAt: socketMessage.updatedAt || socketMessage.timestamp,
-          isRead: socketMessage.isRead || false,
-          fileUrl: socketMessage.fileUrl,
-          fileName: socketMessage.fileName,
-          fileSize: socketMessage.fileSize,
-        };
-
-        const currentMessages = this.messagesSubject.value;
-
-        // Check if message already exists to prevent duplicates
-        // Add safe property access for sender
-        const senderId =
-          message.sender?._id || (message.sender as any) || 'unknown';
-        const messageKey = `${message._id}_${
-          message.timestamp || Date.now()
-        }_${senderId}`;
-
-        if (this.processedMessageIds.has(messageKey)) {
-          return;
-        }
-
-        // Additional check for messages already in the array (backup safety)
-        const messageExists = currentMessages.some(
-          (existingMessage) => existingMessage._id === message._id
-        );
-
-        if (messageExists) {
-          return;
-        }
-
-        // Mark message as processed
-        this.processedMessageIds.add(messageKey);
-
-        // Clean up old processed messages (keep only last 100)
-        if (this.processedMessageIds.size > 100) {
-          const messageKeys = Array.from(this.processedMessageIds);
-          this.processedMessageIds.clear();
-          messageKeys
-            .slice(-50)
-            .forEach((key) => this.processedMessageIds.add(key));
-        }
-
-        // Add message to the array and sort by timestamp
-        const updatedMessages = [...currentMessages, message].sort(
-          (a, b) =>
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
-
-        this.messagesSubject.next(updatedMessages);
-
-        // Play notification sound for new messages (only if not from current user)
-        const currentUser = this.socketService.getCurrentUser();
-        if (currentUser && message.sender._id !== currentUser._id) {
-          const soundType = message.group ? 'group' : 'message';
-          this.soundNotificationService
-            .playNotificationSound(soundType)
-            .catch(() => {
-              // Silently fail if sound can't play (e.g., user hasn't interacted with page)
-            });
-        }
-      }
+      console.log('ChatService: Received message from socket', socketMessage);
+      this.processMessage(socketMessage);
     });
 
     // Listen for typing indicators
@@ -177,6 +87,88 @@ export class ChatService {
         this.typingUsersSubject.next([...currentTypingUsers]);
       }
     });
+  }
+
+  private processMessage(socketMessage: any): void {
+    if (!socketMessage || !socketMessage._id) return;
+
+    // Handle message deletion
+    const isDeletion =
+      (socketMessage as any).deleted || (socketMessage as any).messageId;
+    if (isDeletion) {
+      const messageId = (socketMessage as any).messageId || socketMessage._id;
+      const currentMessages = this.messagesSubject.value;
+      const updatedMessages = currentMessages.filter(
+        (msg) => msg._id !== messageId
+      );
+      this.messagesSubject.next(updatedMessages);
+      return;
+    }
+
+    // Convert socket message to chat service message format
+    const message: Message = {
+      _id: socketMessage._id,
+      id: socketMessage.id,
+      sender: socketMessage.sender,
+      receiver: socketMessage.receiver,
+      group: socketMessage.group,
+      content: socketMessage.content,
+      type: socketMessage.type,
+      messageType: socketMessage.messageType,
+      attachments: socketMessage.attachments || [],
+      replyTo: socketMessage.replyTo,
+      reactions: socketMessage.reactions || [],
+      status: socketMessage.status || 'sent',
+      readBy: socketMessage.readBy || [],
+      edited: socketMessage.edited || false,
+      editedAt: socketMessage.editedAt,
+      deleted: socketMessage.deleted || false,
+      deletedAt: socketMessage.deletedAt,
+      forwarded: socketMessage.forwarded || false,
+      forwardedFrom: socketMessage.forwardedFrom,
+      timestamp: socketMessage.timestamp,
+      createdAt: socketMessage.createdAt || socketMessage.timestamp,
+      updatedAt: socketMessage.updatedAt || socketMessage.timestamp,
+      isRead: socketMessage.isRead || false,
+      fileUrl: socketMessage.fileUrl,
+      fileName: socketMessage.fileName,
+      fileSize: socketMessage.fileSize,
+    };
+
+    const currentMessages = this.messagesSubject.value;
+
+    // Strict duplication check using ONLY _id
+    const messageExists = currentMessages.some(
+      (existingMessage) => existingMessage._id === message._id
+    );
+
+    if (messageExists) {
+      // Option: Update the existing message instead of ignoring?
+      // For now, ignore to prevent duplicates, but if it's an update, we might need to handle it.
+      // Assuming 'message_updated' handles edits.
+      return;
+    }
+
+    // Add message to the array and sort by timestamp
+    const updatedMessages = [...currentMessages, message].sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    this.messagesSubject.next(updatedMessages);
+
+    // Play notification sound
+    const currentUser = this.socketService.getCurrentUser();
+    // Safety check: sender might be just an ID string or an object
+    const senderId = message.sender._id || (message.sender as any);
+    const currentUserId = currentUser?._id;
+
+    if (currentUser && senderId !== currentUserId) {
+      const soundType = message.group ? 'group' : 'message';
+      this.soundNotificationService
+        .playNotificationSound(soundType)
+        .catch(() => {});
+    }
   }
 
   // Get all users with caching

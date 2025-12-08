@@ -47,7 +47,11 @@ export class CreateGroupComponent implements OnInit {
     this.groupService.getAvailableUsers().subscribe({
       next: (users: User[]) => {
         if (users) {
-          this.availableUsers.set(users);
+          const currentUser = this.authService.currentUser();
+          const filteredUsers = currentUser
+            ? users.filter((u) => u._id !== currentUser._id)
+            : users;
+          this.availableUsers.set(filteredUsers);
         }
       },
       error: (error: any) => {

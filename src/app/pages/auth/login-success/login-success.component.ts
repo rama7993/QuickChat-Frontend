@@ -15,20 +15,13 @@ export class LoginSuccessComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  // Animation properties
-  particles = Array(12).fill(0);
-  progress = 0;
   isRedirecting = false;
+  countdown = 3;
   loadingMessage = 'Initializing your session...';
 
-  private progressInterval: any;
-  private messageInterval: any;
   private redirectTimeout: any;
 
   ngOnInit(): void {
-    this.startProgressAnimation();
-    this.startMessageRotation();
-
     const url = new URL(window.location.href);
     const token = url.searchParams.get('token');
 
@@ -39,11 +32,17 @@ export class LoginSuccessComponent implements OnInit, OnDestroy {
     this.authService.fetchCurrentUser().subscribe({
       next: () => {
         this.isRedirecting = true;
-        this.loadingMessage = 'Redirecting to chat...';
-        this.redirectTimeout = setTimeout(
-          () => this.router.navigate(['/chat']),
-          3000
-        );
+        this.loadingMessage = `Redirecting to chat in ${this.countdown}sec...`;
+
+        this.redirectTimeout = setInterval(() => {
+          this.countdown--;
+          this.loadingMessage = `Redirecting to chat in ${this.countdown}sec...`;
+
+          if (this.countdown <= 0) {
+            clearInterval(this.redirectTimeout);
+            this.router.navigate(['/chat']);
+          }
+        }, 1000);
       },
       error: () => {
         this.loadingMessage = 'Authentication failed. Redirecting to login...';
@@ -53,44 +52,9 @@ export class LoginSuccessComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.progressInterval) {
-      clearInterval(this.progressInterval);
-    }
-    if (this.messageInterval) {
-      clearInterval(this.messageInterval);
-    }
     if (this.redirectTimeout) {
-      clearTimeout(this.redirectTimeout);
+      clearInterval(this.redirectTimeout);
     }
-  }
-
-  private startProgressAnimation(): void {
-    this.progressInterval = setInterval(() => {
-      if (this.progress < 100) {
-        this.progress += Math.random() * 15;
-        if (this.progress > 100) {
-          this.progress = 100;
-        }
-      }
-    }, 200);
-  }
-
-  private startMessageRotation(): void {
-    const messages = [
-      'Initializing your session...',
-      'Loading your conversations...',
-      'Setting up notifications...',
-      'Preparing your dashboard...',
-      'Almost ready...',
-    ];
-
-    let messageIndex = 0;
-    this.messageInterval = setInterval(() => {
-      if (!this.isRedirecting) {
-        messageIndex = (messageIndex + 1) % messages.length;
-        this.loadingMessage = messages[messageIndex];
-      }
-    }, 1000);
   }
 
   goToChat(): void {

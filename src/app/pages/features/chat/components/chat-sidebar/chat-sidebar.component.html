@@ -170,7 +170,16 @@
         <img [src]="user.photoUrl || defaultAvatar" [alt]="user.firstName" />
         <div class="user-info">
           <span class="name">{{ user.firstName }} {{ user.lastName }}</span>
-          <span class="status">{{ user.statusMessage || "Available" }}</span>
+          <div class="status-container">
+            <span
+              class="status-indicator"
+              [class.online]="user.status === 'online'"
+              [class.offline]="user.status !== 'online'"
+            ></span>
+            <span class="status-text">{{
+              user.status === "online" ? "Online" : "Offline"
+            }}</span>
+          </div>
         </div>
       </div>
       } } @else {

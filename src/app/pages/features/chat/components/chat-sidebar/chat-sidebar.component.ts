@@ -15,7 +15,10 @@ import { Subscription } from 'rxjs';
 import { ChatService } from '../../../../../core/services/chat/chat.service';
 import { GroupService } from '../../../../../core/services/group/group.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
-import { SocketService } from '../../../../../core/services/socket/socket.service';
+import {
+  SocketService,
+  OnlineUser,
+} from '../../../../../core/services/socket/socket.service';
 import { User, Group } from '../../../../../core/interfaces/group.model';
 import { Message } from '../../../../../core/interfaces/message.model';
 import { Default_Img_Url } from '../../../../../../utils/constants.utils';
@@ -58,6 +61,9 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   public showNewChatModal = signal(false);
   public newChatSearch = signal('');
 
+  // Added allUsers signal
+  public allUsers = signal<User[]>([]);
+
   private subscriptions: Subscription[] = [];
 
   @Output() chatSelected = new EventEmitter<void>();
@@ -83,7 +89,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   public filteredUsersForNewChat = computed(() => {
     const query = this.newChatSearch().toLowerCase();
-    const list = this.users();
+    const list = this.allUsers();
     if (!query) return list;
     return list.filter((user) =>
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(query)
@@ -152,7 +158,19 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       },
     });
 
-    this.subscriptions.push(conversationsSub, groupsSub);
+    // Load all users for the "New Chat" modal
+    const allUsersSub = this.chatService.getUsers().subscribe({
+      next: (users) => {
+        this.allUsers.set(
+          users.filter((u) => u._id !== this.currentUser()?._id)
+        );
+      },
+      error: (error) => {
+        console.error('Failed to load users for new chat', error);
+      },
+    });
+
+    this.subscriptions.push(conversationsSub, groupsSub, allUsersSub);
   }
 
   private updateChatItems() {
@@ -209,12 +227,41 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       }
     );
 
-    // Listen for user status changes (if method exists)
-    // const statusSub = this.socketService.onUserStatusChange().subscribe((data: any) => {
-    //   this.updateUserStatus(data.userId, data.status);
-    // });
+    // Listen for online users
+    const onlineUsersSub = this.socketService.onlineUsers$.subscribe(
+      (onlineUsers: OnlineUser[]) => {
+        this.handleOnlineStatusUpdate(onlineUsers);
+      }
+    );
 
-    this.subscriptions.push(messageSub);
+    this.subscriptions.push(messageSub, onlineUsersSub);
+  }
+
+  private handleOnlineStatusUpdate(onlineUsers: OnlineUser[]) {
+    const onlineUserIds = new Set(onlineUsers.map((u) => u.userId));
+
+    // Update conversations list users
+    const currentUsers = this.users();
+    const updatedUsers = currentUsers.map((user) => ({
+      ...user,
+      status: (onlineUserIds.has(user._id) ? 'online' : 'offline') as
+        | 'online'
+        | 'offline',
+    }));
+    this.users.set(updatedUsers);
+
+    // Update all users list (for "New Chat" modal)
+    const currentAllUsers = this.allUsers();
+    const updatedAllUsers = currentAllUsers.map((user) => ({
+      ...user,
+      status: (onlineUserIds.has(user._id) ? 'online' : 'offline') as
+        | 'online'
+        | 'offline',
+    }));
+    this.allUsers.set(updatedAllUsers);
+
+    // Update the sidebar items
+    this.updateChatItems();
   }
 
   private subscribeToNewChatRequests() {
@@ -258,19 +305,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       if (senderId && senderId !== this.currentUser()?._id) {
         items[itemIndex].unreadCount++;
       }
-      this.chatItems.set([...items]);
-    }
-  }
-
-  private updateUserStatus(userId: string, status: string) {
-    const items = this.chatItems();
-    const itemIndex = items.findIndex(
-      (item) => item.type === 'user' && item.id === userId
-    );
-
-    if (itemIndex !== -1) {
-      items[itemIndex].isOnline = status === 'online';
-      items[itemIndex].status = status;
       this.chatItems.set([...items]);
     }
   }

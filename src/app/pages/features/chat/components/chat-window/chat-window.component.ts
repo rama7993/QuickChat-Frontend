@@ -25,6 +25,7 @@ import { SocketService } from '../../../../../core/services/socket/socket.servic
 import { AlertService } from '../../../../../core/services/alerts/alert.service';
 import { LoggerService } from '../../../../../core/services/logging/logger.service';
 import { VideoCallService } from '../../../../../core/services/video-call/video-call.service';
+import { ThemeService } from '../../../../../core/services/theme/theme.service';
 import { User, Group } from '../../../../../core/interfaces/group.model';
 import { Message } from '../../../../../core/interfaces/message.model';
 import {
@@ -41,7 +42,6 @@ import { Default_Img_Url } from '../../../../../../utils/constants.utils';
 import {
   formatFileSize,
   getFileType,
-  createFileMessageContent,
 } from '../../../../../../utils/file.utils';
 import {
   formatDuration,
@@ -80,6 +80,22 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   private logger = inject(LoggerService);
   private videoCallService = inject(VideoCallService);
   private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
+
+  // Computed property for emoji picker theme
+  // Computed property for emoji picker theme
+  public emojiTheme = computed(() => {
+    const baseTheme = this.themeService.getBaseThemeType();
+    return baseTheme === 'dark-mode' ? 'dark' : 'light';
+  });
+
+  public isDarkMode = computed(() => {
+    return this.themeService.getBaseThemeType() === 'dark-mode';
+  });
+
+  public accentColor = computed(() => {
+    return this.themeService.currentTheme().colors.accent;
+  });
 
   // Real-time message and typing streams
   private messageSubscription?: Subscription;
@@ -299,6 +315,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         .getPrivateMessages(userId)
         .toPromise();
       this.messages.set(messages || []);
+      this.chatService.setMessages(messages || []);
       this.updateGroupedMessages();
     } catch (error) {
       this.logger.error('Error loading user chat', error);
@@ -341,6 +358,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         .getGroupMessages(groupId)
         .toPromise();
       this.messages.set(messages || []);
+      this.chatService.setMessages(messages || []);
       this.updateGroupedMessages();
     } catch (error) {
       this.logger.error('Error loading group chat', error);

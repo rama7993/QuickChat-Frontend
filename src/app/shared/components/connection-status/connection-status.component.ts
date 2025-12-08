@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SocketService } from '../../../core/services/socket/socket.service';
 
@@ -58,17 +58,35 @@ import { SocketService } from '../../../core/services/socket/socket.service';
     `,
   ],
 })
-export class ConnectionStatusComponent implements OnInit {
+export class ConnectionStatusComponent implements OnInit, OnDestroy {
   private socketService = inject(SocketService);
   isConnected = signal(false);
 
+  private onlineListener = () => this.checkConnectionState();
+  private offlineListener = () => this.checkConnectionState();
+
   ngOnInit(): void {
-    // Subscribe to connection status
-    this.socketService.connectionStatus$.subscribe((status) => {
-      this.isConnected.set(status);
+    // Initial check
+    this.checkConnectionState();
+
+    // Subscribe to socket connection status
+    this.socketService.connectionStatus$.subscribe((_) => {
+      this.checkConnectionState();
     });
 
-    // Initial check
-    this.isConnected.set(this.socketService.isSocketConnected());
+    // Listen for online/offline events
+    window.addEventListener('online', this.onlineListener);
+    window.addEventListener('offline', this.offlineListener);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('online', this.onlineListener);
+    window.removeEventListener('offline', this.offlineListener);
+  }
+
+  private checkConnectionState() {
+    const isOnline = navigator.onLine;
+    const isSocketConnected = this.socketService.isSocketConnected();
+    this.isConnected.set(isOnline ? isSocketConnected : false);
   }
 }

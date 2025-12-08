@@ -249,7 +249,7 @@
     message.timestamp) {
     <div
       class="message-wrapper"
-      [class.own-message]="message.sender._id === currentUser()?._id"
+      [class.own-message]="message.sender?._id === currentUser()?._id"
       [attr.data-message-id]="message._id"
     >
       <!-- Message Content -->
@@ -260,7 +260,7 @@
           <div class="reply-line"></div>
           <div class="reply-content">
             <span class="reply-sender">{{
-              message.replyTo.sender.firstName
+              message.replyTo.sender?.firstName
             }}</span>
             <span class="reply-text">{{ message.replyTo.content }}</span>
           </div>
@@ -407,7 +407,7 @@
           <span class="message-time">{{
             message.timestamp | date : "shortTime"
           }}</span>
-          @if (message.sender._id === currentUser()?._id) {
+          @if (message.sender?._id === currentUser()?._id) {
           <div class="message-status">
             @if (message.status === 'read') {
             <i class="pi pi-check-circle text-blue-500"></i>
@@ -454,7 +454,7 @@
             <i class="pi pi-thumbs-up"></i>
             React
           </button>
-          @if (message.sender._id === currentUser()?._id) {
+          @if (message.sender?._id === currentUser()?._id) {
           <button
             class="menu-item"
             (click)="editMessage(message._id, message.content)"
@@ -581,9 +581,7 @@
     <div class="panel-backdrop" (click)="showFileUpload.set(false)"></div>
     <div class="file-upload-panel">
       <h3 style="color: #007bff; margin: 0 0 10px 0">📎 File Upload</h3>
-      <p style="color: #333; margin: 0 0 10px 0">
-        Click to select files or drag and drop
-      </p>
+      <p style="margin: 0 0 10px 0">Click to select files or drag and drop</p>
       <app-file-upload
         #fileUploadComponent
         [multiple]="true"
@@ -627,6 +625,8 @@
         (emojiSelect)="addEmoji($event.emoji.native)"
         set="apple"
         title="Add emoji"
+        [darkMode]="isDarkMode()"
+        [color]="accentColor()"
         [showPreview]="false"
         [perLine]="8"
         [emojiSize]="22"
