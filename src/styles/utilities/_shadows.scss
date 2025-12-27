@@ -1,0 +1,198 @@
+// Shadow Utilities
+// Box shadow utility classes
+
+@use "../abstracts" as *;
+
+// Box shadow
+.shadow-none {
+  box-shadow: none;
+}
+.shadow-sm {
+  box-shadow: var(--shadow-small);
+}
+.shadow {
+  box-shadow: var(--shadow-medium);
+}
+.shadow-md {
+  box-shadow: var(--shadow-medium);
+}
+.shadow-lg {
+  box-shadow: var(--shadow-large);
+}
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.shadow-inner {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+// Colored shadows
+.shadow-primary {
+  box-shadow: 0 4px 16px rgba(var(--color-accent-rgb), 0.15);
+}
+.shadow-secondary {
+  box-shadow: 0 4px 16px rgba(var(--color-secondary), 0.15);
+}
+.shadow-success {
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.15);
+}
+.shadow-warning {
+  box-shadow: 0 4px 16px rgba(255, 152, 0, 0.15);
+}
+.shadow-error {
+  box-shadow: 0 4px 16px rgba(244, 67, 54, 0.15);
+}
+.shadow-info {
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.15);
+}
+
+// Drop shadow
+.drop-shadow-none {
+  filter: drop-shadow(0 0 #0000);
+}
+.drop-shadow-sm {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05));
+}
+.drop-shadow {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.06));
+}
+.drop-shadow-md {
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07))
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.06));
+}
+.drop-shadow-lg {
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.04))
+    drop-shadow(0 4px 3px rgba(0, 0, 0, 0.1));
+}
+.drop-shadow-xl {
+  filter: drop-shadow(0 20px 13px rgba(0, 0, 0, 0.03))
+    drop-shadow(0 8px 5px rgba(0, 0, 0, 0.08));
+}
+.drop-shadow-2xl {
+  filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15));
+}
+
+// Ring (focus ring)
+.ring-0 {
+  box-shadow: 0 0 #0000;
+}
+.ring-1 {
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+.ring-2 {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+.ring-4 {
+  box-shadow: 0 0 0 4px var(--color-accent);
+}
+.ring-8 {
+  box-shadow: 0 0 0 8px var(--color-accent);
+}
+.ring-inset {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+// Ring color
+.ring-primary {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+.ring-secondary {
+  box-shadow: 0 0 0 2px var(--color-secondary);
+}
+.ring-accent {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+.ring-background {
+  box-shadow: 0 0 0 2px var(--color-background);
+}
+.ring-surface {
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+.ring-text {
+  box-shadow: 0 0 0 2px var(--color-text);
+}
+.ring-text-secondary {
+  box-shadow: 0 0 0 2px var(--color-text-secondary);
+}
+.ring-border {
+  box-shadow: 0 0 0 2px var(--color-border);
+}
+.ring-success {
+  box-shadow: 0 0 0 2px var(--color-success);
+}
+.ring-warning {
+  box-shadow: 0 0 0 2px var(--color-warning);
+}
+.ring-error {
+  box-shadow: 0 0 0 2px var(--color-error);
+}
+.ring-info {
+  box-shadow: 0 0 0 2px var(--color-info);
+}
+.ring-transparent {
+  box-shadow: 0 0 0 2px transparent;
+}
+
+// Ring offset
+.ring-offset-0 {
+  box-shadow: 0 0 0 0 var(--color-background), 0 0 0 0 var(--color-accent);
+}
+.ring-offset-1 {
+  box-shadow: 0 0 0 1px var(--color-background), 0 0 0 2px var(--color-accent);
+}
+.ring-offset-2 {
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-4 {
+  box-shadow: 0 0 0 4px var(--color-background), 0 0 0 8px var(--color-accent);
+}
+.ring-offset-8 {
+  box-shadow: 0 0 0 8px var(--color-background), 0 0 0 16px var(--color-accent);
+}
+
+// Ring offset color
+.ring-offset-primary {
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-secondary {
+  box-shadow: 0 0 0 2px var(--color-secondary), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-accent {
+  box-shadow: 0 0 0 2px var(--color-accent), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-background {
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-surface {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-text {
+  box-shadow: 0 0 0 2px var(--color-text), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-text-secondary {
+  box-shadow: 0 0 0 2px var(--color-text-secondary),
+    0 0 0 4px var(--color-accent);
+}
+.ring-offset-border {
+  box-shadow: 0 0 0 2px var(--color-border), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-success {
+  box-shadow: 0 0 0 2px var(--color-success), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-warning {
+  box-shadow: 0 0 0 2px var(--color-warning), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-error {
+  box-shadow: 0 0 0 2px var(--color-error), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-info {
+  box-shadow: 0 0 0 2px var(--color-info), 0 0 0 4px var(--color-accent);
+}
+.ring-offset-transparent {
+  box-shadow: 0 0 0 2px transparent, 0 0 0 4px var(--color-accent);
+}

@@ -1,0 +1,119 @@
+// Functions
+// All global functions
+
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+@use "variables" as *;
+
+// Convert px to rem
+@function rem($pixels, $base: 16) {
+  @return math.div($pixels, $base) * 1rem;
+}
+
+// Convert px to em
+@function em($pixels, $base: 16) {
+  @return math.div($pixels, $base) * 1em;
+}
+
+// Get color from map
+@function color($color-name) {
+  @return map.get($colors, $color-name);
+}
+
+// Get breakpoint value
+@function breakpoint($breakpoint) {
+  @return map.get($breakpoints, $breakpoint);
+}
+
+// Get container max-width
+@function container-max-width($size) {
+  @return map.get($container-max-widths, $size);
+}
+
+// Calculate z-index
+@function z($layer) {
+  @return map.get(
+    (
+      "dropdown": $z-dropdown,
+      "sticky": $z-sticky,
+      "fixed": $z-fixed,
+      "modal-backdrop": $z-modal-backdrop,
+      "modal": $z-modal,
+      "popover": $z-popover,
+      "tooltip": $z-tooltip,
+    ),
+    $layer
+  );
+}
+
+// Calculate contrast ratio
+@function contrast-ratio($color1, $color2) {
+  $l1: luminance($color1);
+  $l2: luminance($color2);
+  @return math.div(max($l1, $l2) + 0.05, min($l1, $l2) + 0.05);
+}
+
+// Calculate luminance
+@function luminance($color) {
+  $red: math.div(red($color), 255);
+  $green: math.div(green($color), 255);
+  $blue: math.div(blue($color), 255);
+
+  $red: if(
+    $red <= 0.03928,
+    math.div($red, 12.92),
+    pow(math.div($red + 0.055, 1.055), 2.4)
+  );
+  $green: if(
+    $green <= 0.03928,
+    math.div($green, 12.92),
+    pow(math.div($green + 0.055, 1.055), 2.4)
+  );
+  $blue: if(
+    $blue <= 0.03928,
+    math.div($blue, 12.92),
+    pow(math.div($blue + 0.055, 1.055), 2.4)
+  );
+
+  @return 0.2126 * $red + 0.7152 * $green + 0.0722 * $blue;
+}
+
+// Power function
+@function pow($number, $exponent) {
+  $value: 1;
+  @if $exponent > 0 {
+    @for $i from 1 through $exponent {
+      $value: $value * $number;
+    }
+  }
+  @return $value;
+}
+
+// Strip unit function
+@function strip-unit($number) {
+  @if meta.type-of($number) == "number" and math.is-unitless($number) == false {
+    @return math.div($number, $number * 0 + 1);
+  }
+  @return $number;
+}
+
+// Clamp function for responsive typography
+@function clamp-calc(
+  $min-size,
+  $max-size,
+  $min-width: 320px,
+  $max-width: 1200px
+) {
+  $min-size: strip-unit($min-size);
+  $max-size: strip-unit($max-size);
+  $min-width: strip-unit($min-width);
+  $max-width: strip-unit($max-width);
+
+  @return clamp(
+    #{$min-size}px,
+    #{$min-size}px + (#{$max-size} - #{$min-size}) *
+      ((100vw - #{$min-width}px) / (#{$max-width} - #{$min-width})),
+    #{$max-size}px
+  );
+}

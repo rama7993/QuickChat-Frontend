@@ -1,0 +1,79 @@
+<div class="theme-selector" (clickOutside)="closeSelector()">
+  <!-- Current Theme Display -->
+  <button
+    class="theme-selector__trigger"
+    (click)="toggleSelector()"
+    [attr.aria-expanded]="isOpen()"
+    aria-label="Select theme"
+  >
+    <div class="theme-preview">
+      <div
+        class="theme-preview__colors"
+        [style.background]="
+          currentTheme().gradients.primary ||
+          'linear-gradient(135deg, #00d9ff, #1fe0ff)'
+        "
+      >
+        <i [class]="currentTheme().icon || 'pi pi-moon'"></i>
+      </div>
+      <div class="theme-preview__info">
+        <span class="theme-name">{{
+          currentTheme().displayName || "Dark Ocean"
+        }}</span>
+        <i class="pi pi-chevron-down" [class.rotated]="isOpen()"></i>
+      </div>
+    </div>
+  </button>
+
+  <!-- Theme Options Dropdown -->
+  @if (isOpen()) {
+  <div class="theme-selector__dropdown animate-slide-in-down">
+    <div class="theme-selector__header">
+      <h4>Choose Theme</h4>
+      <button
+        class="close-btn"
+        (click)="closeSelector()"
+        aria-label="Close theme selector"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="theme-selector__options">
+      @for (theme of themes(); track theme.id) {
+      <button
+        class="theme-option"
+        [class.active]="isThemeActive(theme)"
+        (click)="selectTheme(theme)"
+        [attr.aria-label]="'Select ' + theme.displayName + ' theme'"
+      >
+        <div class="theme-option__preview">
+          <div
+            class="theme-option__colors"
+            [style.background]="theme.gradients.primary"
+          >
+            <i [class]="theme.icon"></i>
+          </div>
+          <div class="theme-option__info">
+            <span class="theme-option__name">{{ theme.displayName }}</span>
+            <span class="theme-option__description">{{ theme.name }}</span>
+          </div>
+        </div>
+        @if (currentTheme().id === theme.id) {
+        <div class="theme-option__check">
+          <i class="pi pi-check"></i>
+        </div>
+        }
+      </button>
+      }
+    </div>
+
+    <div class="theme-selector__footer">
+      <p class="theme-info">
+        <i class="pi pi-info-circle"></i>
+        Theme preferences are saved automatically
+      </p>
+    </div>
+  </div>
+  }
+</div>

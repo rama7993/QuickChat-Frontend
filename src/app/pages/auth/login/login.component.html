@@ -1,0 +1,128 @@
+<div class="login auth-page">
+  <header class="login__header auth-header">
+    <div class="login__logo auth-logo">
+      <div class="auth-logo__icon">
+        <i class="pi pi-comments"></i>
+      </div>
+      <h1 class="login__title auth-title">
+        Quick<span class="auth-title__accent">Chat</span>
+      </h1>
+    </div>
+    <p class="login__tagline auth-tagline">
+      Fast. Secure. Effortless Conversations.
+    </p>
+  </header>
+
+  <section class="login__box auth-card">
+    <div class="login__box-header auth-card-header">
+      <h2 class="login__heading auth-heading">Welcome Back</h2>
+      <p class="login__subtext auth-subtext">
+        Log in to resume your conversations.
+      </p>
+    </div>
+
+    <form
+      [formGroup]="loginForm"
+      (ngSubmit)="onSubmit()"
+      class="login__form auth-form"
+    >
+      <div class="login__form-group auth-form-group">
+        <label for="email" class="login__label auth-label">
+          Email <span class="auth-label--required">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          class="login__input auth-input"
+          formControlName="email"
+          [ngClass]="{ 'ng-invalid ng-touched': isInvalid('email') }"
+        />
+        <div
+          class="login__error auth-error"
+          *ngIf="email.touched && email.invalid"
+        >
+          <small *ngIf="email.errors?.['required']">Email is required</small>
+          <small *ngIf="email.errors?.['email']">Invalid email address</small>
+        </div>
+      </div>
+
+      <div class="login__form-group auth-form-group">
+        <label for="password" class="login__label auth-label">
+          Password <span class="auth-label--required">*</span>
+        </label>
+        <div class="login__password-wrapper auth-password-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            class="login__input auth-input"
+            formControlName="password"
+            [ngClass]="{ 'ng-invalid ng-touched': isInvalid('password') }"
+          />
+          <i
+            class="pi password-toggle"
+            [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"
+            (click)="showPassword = !showPassword"
+          ></i>
+        </div>
+        <div
+          class="login__error auth-error"
+          *ngIf="password.touched && password.invalid"
+        >
+          <small *ngIf="password.errors?.['required']"
+            >Password is required</small
+          >
+        </div>
+        <div class="login__forgot-password">
+          <a [routerLink]="['/forgot-password']" class="auth-link--small"
+            >Forgot password?</a
+          >
+        </div>
+      </div>
+
+      <div class="login__actions auth-actions">
+        <button
+          type="submit"
+          class="login__button auth-button"
+          [disabled]="isSubmitting"
+        >
+          <i
+            [class]="isSubmitting ? 'pi pi-spin pi-spinner' : 'pi pi-sign-in'"
+          ></i>
+          {{ isSubmitting ? "Signing In..." : "Sign In" }}
+        </button>
+      </div>
+
+      <div class="login__actions auth-actions" style="margin-top: 1rem">
+        <button
+          type="button"
+          class="login__button auth-button login__button--guest"
+          (click)="loginAsDemo()"
+          [disabled]="isSubmitting"
+        >
+          <i class="pi pi-id-card" style="margin-right: 0.5rem"></i>
+          Login as Guest User
+        </button>
+      </div>
+
+      <div class="login__signup auth-link">
+        Don't have an account?
+        <a [routerLink]="['/signup']">Sign Up</a>
+      </div>
+    </form>
+
+    <div class="login__divider auth-divider">
+      <span>or continue with</span>
+    </div>
+
+    <div class="login__social auth-social">
+      <button
+        type="button"
+        class="login__social-btn auth-social-button auth-social-button--google"
+        (click)="loginWith('google')"
+      >
+        <i class="pi pi-google"></i>
+        Sign in with Google
+      </button>
+    </div>
+  </section>
+</div>

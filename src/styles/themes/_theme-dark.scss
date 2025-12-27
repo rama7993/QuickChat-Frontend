@@ -1,0 +1,146 @@
+// Dark Theme
+// Dark theme specific styles
+
+:root[data-theme="dark"] {
+  // Colors
+  --color-primary: #0a0f1c;
+  --color-secondary: #12223d;
+  --color-accent: #00d9ff;
+  --color-background: #101b2d;
+  --color-surface: #1a2332;
+  --color-text: #ffffff;
+  --color-text-secondary: #b0b8c8;
+  --color-border: #2a3441;
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-error: #f44336;
+  --color-info: #2196f3;
+
+  // RGB values for alpha transparency
+  --color-accent-rgb: 0, 217, 255;
+
+  // Gradients
+  --gradient-primary: linear-gradient(135deg, #00d9ff, #1fe0ff);
+  --gradient-secondary: linear-gradient(135deg, #12223d, #1a2332);
+  --gradient-background: linear-gradient(135deg, #0a0f1c, #101b2d);
+
+  // Shadows
+  --shadow-small: 0 2px 8px rgba(0, 217, 255, 0.1);
+  --shadow-medium: 0 4px 16px rgba(0, 217, 255, 0.15);
+  --shadow-large: 0 8px 32px rgba(0, 217, 255, 0.2);
+
+  // Spacing
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+}
+
+// Dark theme specific component overrides
+[data-theme="dark"] {
+  // PrimeNG component overrides for dark theme
+  .p-component {
+    color: var(--color-text);
+  }
+
+  .p-dropdown {
+    background: var(--color-surface) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text) !important;
+
+    .p-dropdown-label {
+      color: var(--color-text) !important;
+    }
+
+    .p-dropdown-trigger {
+      color: var(--color-text-secondary) !important;
+    }
+  }
+
+  .p-dropdown-panel {
+    background: var(--color-surface) !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: var(--shadow-large) !important;
+
+    .p-dropdown-items {
+      .p-dropdown-item {
+        color: var(--color-text) !important;
+
+        &:hover {
+          background: var(--color-background) !important;
+          color: var(--color-accent) !important;
+        }
+
+        &.p-highlight {
+          background: var(--color-accent) !important;
+          color: var(--color-primary) !important;
+        }
+      }
+    }
+  }
+
+  .p-inputtext {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+
+    &:hover {
+      border-color: var(--color-accent);
+    }
+
+    &:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1);
+    }
+  }
+
+  .p-button {
+    background: var(--gradient-primary);
+    border: none;
+    color: var(--color-primary);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1);
+    }
+  }
+
+  .p-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .p-dialog {
+    .p-dialog-header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
+    }
+
+    .p-dialog-content {
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+  }
+
+  .p-toast {
+    .p-toast-message {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+    }
+  }
+
+  .p-message {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+}

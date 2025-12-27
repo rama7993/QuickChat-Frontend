@@ -1,0 +1,45 @@
+<div class="login-success-container">
+  <div class="success-content">
+    <div class="success-animation">
+      <div class="success-icon">
+        <i class="pi pi-check-circle"></i>
+      </div>
+    </div>
+
+    <div class="success-message">
+      <h1>Welcome Back!</h1>
+      <h2>Login Successful</h2>
+      <p>You're all set! Redirecting you to your chat dashboard...</p>
+    </div>
+
+    <div class="loading-section">
+      <p class="loading-text">{{ loadingMessage }}</p>
+    </div>
+
+    <div class="success-actions">
+      <button class="btn btn-primary" (click)="goToChat()">
+        <i class="pi pi-comments"></i>
+        Go to Chat Now
+      </button>
+      <button class="btn btn-secondary" (click)="goToProfile()">
+        <i class="pi pi-user"></i>
+        View Profile
+      </button>
+    </div>
+
+    <div class="success-stats">
+      <div class="stat-item">
+        <i class="pi pi-shield"></i>
+        <span>Secure Connection</span>
+      </div>
+      <div class="stat-item">
+        <i class="pi pi-bolt"></i>
+        <span>Fast Loading</span>
+      </div>
+      <div class="stat-item">
+        <i class="pi pi-heart"></i>
+        <span>Welcome Back</span>
+      </div>
+    </div>
+  </div>
+</div>

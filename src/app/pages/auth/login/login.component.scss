@@ -1,0 +1,62 @@
+.login {
+  .auth-social-button--google {
+    background: #4a4f57;
+    color: #ffffff;
+    border: 1px solid #5c616b;
+    border-radius: 12px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+
+    &:hover {
+      color: #db4437;
+      border: 1px solid #db4437;
+      transform: translateY(-1px);
+    }
+
+    i {
+      font-size: 1.25rem;
+    }
+  }
+
+  .login__forgot-password {
+    margin-top: var(--spacing-xs);
+    text-align: right;
+
+    a {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--color-accent);
+      }
+    }
+  }
+  .login__button--guest {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    box-shadow: var(--shadow-small);
+
+    &:hover:not(:disabled) {
+      background: var(--color-surface);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
+}

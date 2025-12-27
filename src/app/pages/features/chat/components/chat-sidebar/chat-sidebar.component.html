@@ -1,0 +1,194 @@
+<div class="chat-sidebar">
+  <!-- Search -->
+  <div class="chat-sidebar__search">
+    <div class="search-input-wrapper">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        placeholder="Search chats..."
+        class="search-input"
+      />
+      @if (searchText()) {
+      <button
+        class="clear-search"
+        (click)="searchText.set('')"
+        title="Clear search"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="chat-sidebar__tabs">
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab() === 'chats'"
+      (click)="selectTab('chats')"
+    >
+      <i class="pi pi-comment"></i>
+      <span>Chats</span>
+      @if (recentChats().length > 0) {
+      <span class="tab-count">{{ recentChats().length }}</span>
+      }
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab() === 'groups'"
+      (click)="selectTab('groups')"
+    >
+      <i class="pi pi-users"></i>
+      <span>Groups</span>
+      @if (groupChats().length > 0) {
+      <span class="tab-count">{{ groupChats().length }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- Chat List -->
+  <div class="chat-sidebar__content">
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading chats...</p>
+    </div>
+    } @else if (getCurrentTabItems().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        @if (selectedTab() === 'chats') {
+        <i class="pi pi-comment"></i>
+        } @else {
+        <i class="pi pi-users"></i>
+        }
+      </div>
+      <h4>No {{ selectedTab() }} found</h4>
+      <p>
+        @if (searchText()) { Try adjusting your search terms } @else { @if
+        (selectedTab() === 'chats') { Start a new conversation } @else { Create
+        or join a group } }
+      </p>
+      @if (!searchText()) {
+      <button
+        class="empty-action-btn"
+        (click)="selectedTab() === 'chats' ? createNewChat() : createNewGroup()"
+      >
+        @if (selectedTab() === 'chats') {
+        <i class="pi pi-plus"></i>
+        Start Chat } @else {
+        <i class="pi pi-users"></i>
+        Create Group }
+      </button>
+      }
+    </div>
+    } @else {
+    <div class="chat-list">
+      @for (item of getCurrentTabItems(); track item.id) {
+      <div
+        class="chat-item"
+        [class.online]="item.isOnline"
+        (click)="selectChatItem(item)"
+      >
+        <!-- Avatar -->
+        <div class="chat-item__avatar">
+          <img [src]="item.avatar" [alt]="item.name" class="avatar-img" />
+          @if (item.type === 'group') {
+          <div class="group-indicator">
+            <i class="pi pi-users"></i>
+          </div>
+          } @if (item.isOnline && item.type === 'user') {
+          <div class="online-status"></div>
+          }
+        </div>
+
+        <!-- Content -->
+        <div class="chat-item__content">
+          <div class="chat-item__header">
+            <h4 class="chat-item__name">{{ item.name }}</h4>
+            @if (item.timestamp) {
+            <span class="chat-item__time">{{
+              formatTimestamp(item.timestamp)
+            }}</span>
+            }
+          </div>
+
+          <div class="chat-item__footer">
+            <p class="chat-item__message">
+              @if (item.lastMessage) {
+              {{ formatLastMessage(item.lastMessage) }}
+              } @else {
+              <span class="no-message">No messages yet</span>
+              }
+            </p>
+            @if (item.unreadCount > 0) {
+            <span class="unread-badge">{{
+              item.unreadCount > 99 ? "99+" : item.unreadCount
+            }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Status -->
+        @if (item.status && item.type === 'user') {
+        <div class="chat-item__status">
+          <i
+            class="pi pi-circle-fill status-icon"
+            [class]="'status-' + item.status"
+          ></i>
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>
+
+@if (showNewChatModal()) {
+<div class="new-chat-modal-backdrop" (click)="closeNewChatModal()">
+  <div class="new-chat-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Start New Chat</h3>
+      <button class="close-btn" (click)="closeNewChatModal()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="modal-search">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        [ngModel]="newChatSearch()"
+        (ngModelChange)="newChatSearch.set($event)"
+        placeholder="Search users..."
+      />
+    </div>
+    <div class="modal-list">
+      @if (filteredUsersForNewChat().length > 0) { @for (user of
+      filteredUsersForNewChat(); track user._id) {
+      <div class="modal-user" (click)="startChatWithUser(user)">
+        <img [src]="user.photoUrl || defaultAvatar" [alt]="user.firstName" />
+        <div class="user-info">
+          <span class="name">{{ user.firstName }} {{ user.lastName }}</span>
+          <div class="status-container">
+            <span
+              class="status-indicator"
+              [class.online]="user.status === 'online'"
+              [class.offline]="user.status !== 'online'"
+            ></span>
+            <span class="status-text">{{
+              user.status === "online" ? "Online" : "Offline"
+            }}</span>
+          </div>
+        </div>
+      </div>
+      } } @else {
+      <div class="empty-state modal-empty">
+        <i class="pi pi-user"></i>
+        <p>No users found</p>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+}

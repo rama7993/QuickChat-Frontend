@@ -1,0 +1,359 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>Profile Settings</h1>
+    <p>Manage your account settings and preferences</p>
+  </div>
+
+  <div class="profile-content">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'basic'"
+        (click)="setActiveTab('basic')"
+      >
+        <i class="pi pi-user"></i>
+        Basic Info
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'privacy'"
+        (click)="setActiveTab('privacy')"
+      >
+        <i class="pi pi-shield"></i>
+        Privacy & Notifications
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <form
+      [formGroup]="profileForm"
+      (ngSubmit)="onSubmit()"
+      class="profile-form"
+    >
+      <!-- Basic Information Tab -->
+      @if (activeTab() === 'basic') {
+      <div class="tab-content">
+        <div class="section">
+          <h2>Personal Information</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input
+                type="text"
+                id="firstName"
+                formControlName="firstName"
+                class="form-input"
+                placeholder="Enter your first name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input
+                type="text"
+                id="lastName"
+                formControlName="lastName"
+                class="form-input"
+                placeholder="Enter your last name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                class="form-input"
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input
+                type="tel"
+                id="phone"
+                formControlName="phone"
+                class="form-input"
+                placeholder="Enter your phone number"
+              />
+              <div
+                class="form-error"
+                *ngIf="
+                  profileForm.get('phone')?.invalid &&
+                  profileForm.get('phone')?.touched
+                "
+              >
+                Please enter a valid phone number
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="gender">Gender</label>
+              <select id="gender" formControlName="gender" class="form-input">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="age">Age</label>
+              <input
+                type="number"
+                id="age"
+                formControlName="age"
+                class="form-input"
+                placeholder="Enter your age"
+                min="18"
+                max="120"
+              />
+              <div
+                class="form-error"
+                *ngIf="
+                  profileForm.get('age')?.invalid &&
+                  profileForm.get('age')?.touched
+                "
+              >
+                Age must be between 18 and 120
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="bio">Bio</label>
+              <textarea
+                id="bio"
+                formControlName="bio"
+                class="form-textarea"
+                placeholder="Tell us about yourself"
+                rows="4"
+              ></textarea>
+              <div
+                class="form-error"
+                *ngIf="
+                  profileForm.get('bio')?.invalid &&
+                  profileForm.get('bio')?.touched
+                "
+              >
+                Bio must be less than 2000 characters
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="statusMessage">Status Message</label>
+              <input
+                type="text"
+                id="statusMessage"
+                formControlName="statusMessage"
+                class="form-input"
+                placeholder="What's on your mind?"
+                maxlength="100"
+              />
+              <div
+                class="form-error"
+                *ngIf="
+                  profileForm.get('statusMessage')?.invalid &&
+                  profileForm.get('statusMessage')?.touched
+                "
+              >
+                Status message must be less than 100 characters
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Profile Picture</h2>
+          <div class="profile-picture-section">
+            <div class="current-picture">
+              <img
+                [src]="previewUrl || currentUser()?.photoUrl || defaultAvatar"
+                alt="Profile Picture"
+                class="profile-image"
+              />
+              @if (isUpdating()) {
+              <div class="upload-overlay">
+                <i class="pi pi-spin pi-spinner"></i>
+              </div>
+              }
+            </div>
+            <div class="picture-actions">
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                style="display: none"
+              />
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="fileInput.click()"
+                [disabled]="isUpdating()"
+              >
+                <i class="pi pi-camera"></i>
+                Change Picture
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline"
+                (click)="removeProfilePicture()"
+                [disabled]="isUpdating()"
+              >
+                <i class="pi pi-trash"></i>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Privacy Tab -->
+      @if (activeTab() === 'privacy') {
+      <div class="tab-content">
+        <div class="section">
+          <h2>Privacy Settings</h2>
+          <div formGroupName="privacySettings" class="settings-list">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Show Last Seen</h3>
+                <p>Allow others to see when you were last active</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="showLastSeen" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Show Status</h3>
+                <p>Allow others to see your current status</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="showStatus" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Allow Group Invites</h3>
+                <p>Let others invite you to groups</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="allowGroupInvites" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Show Online Status</h3>
+                <p>Display when you're online to other users</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="showOnlineStatus" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Allow Friend Requests</h3>
+                <p>Let others send you friend requests</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="allowFriendRequests" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Notification Settings</h2>
+          <div formGroupName="notificationSettings" class="settings-list">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Email Notifications</h3>
+                <p>Receive notifications via email</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="emailNotifications" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Push Notifications</h3>
+                <p>Receive push notifications on your device</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="pushNotifications" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Sound Notifications</h3>
+                <p>Play sounds for new messages</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="soundNotifications" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Message Preview</h3>
+                <p>Show message content in notifications</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="messagePreview" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Group Notifications</h3>
+                <p>Receive notifications for group activities</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="groupNotifications" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="goBack()">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="profileForm.invalid || isUpdating()"
+        >
+          @if (isUpdating()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          Updating... } @else {
+          <i class="pi pi-check"></i>
+          Save Changes }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

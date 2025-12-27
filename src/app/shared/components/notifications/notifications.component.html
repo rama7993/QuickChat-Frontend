@@ -1,0 +1,163 @@
+<div class="notifications-shell">
+  <section class="notifications-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Activity</p>
+      <h1>Notifications</h1>
+      <span>{{ unreadCount() }} unread · {{ stats().total }} total</span>
+    </div>
+    <div class="hero-actions">
+      <button
+        class="ghost-btn"
+        (click)="refresh()"
+        [disabled]="isLoading()"
+        title="Refresh"
+      >
+        <i class="pi pi-refresh" [class.pi-spin]="isLoading()"></i>
+        Refresh
+      </button>
+      <button
+        class="ghost-btn"
+        (click)="clearAllNotifications()"
+        [disabled]="notifications().length === 0"
+      >
+        <i class="pi pi-trash"></i>
+        Clear all
+      </button>
+      <button
+        class="primary-btn"
+        (click)="markAllAsRead()"
+        [disabled]="unreadCount() === 0"
+      >
+        Mark all read
+      </button>
+    </div>
+  </section>
+
+  <section class="summary-grid">
+    <div class="summary-card">
+      <p>Total</p>
+      <h3>{{ stats().total }}</h3>
+    </div>
+    <div class="summary-card">
+      <p>Unread</p>
+      <h3>{{ stats().unread }}</h3>
+    </div>
+    <div class="summary-card">
+      <p>Direct</p>
+      <h3>{{ stats().direct }}</h3>
+    </div>
+    <div class="summary-card">
+      <p>System</p>
+      <h3>{{ stats().system }}</h3>
+    </div>
+  </section>
+
+  <section class="toolbar">
+    <div class="filters">
+      @for (filter of filterOptions; track filter.value) {
+      <button
+        class="filter-chip"
+        [class.active]="activeFilter() === filter.value"
+        (click)="setFilter(filter.value)"
+      >
+        {{ filter.label }}
+        @if (filter.value === 'unread' && unreadCount() > 0) {
+        <span class="pill">{{ unreadCount() }}</span>
+        } @else if (filter.value === 'message' && stats().direct > 0) {
+        <span class="pill">{{ stats().direct }}</span>
+        } @else if (filter.value === 'system' && stats().system > 0) {
+        <span class="pill">{{ stats().system }}</span>
+        }
+      </button>
+      }
+    </div>
+
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+        placeholder="Search notifications..."
+      />
+      @if (searchTerm()) {
+      <button class="clear-btn" (click)="searchTerm.set('')">
+        <i class="pi pi-times"></i>
+      </button>
+      }
+    </div>
+  </section>
+
+  <section class="notifications-panel">
+    @if (isLoading()) {
+    <div class="state-card">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading notifications...</p>
+    </div>
+    } @else if (filteredNotifications().length === 0) {
+    <div class="state-card empty">
+      <i class="pi pi-bell-slash"></i>
+      <h3>No notifications</h3>
+      <p>You're all caught up. We'll let you know when something changes.</p>
+    </div>
+    } @else {
+    <div class="notification-list">
+      @for (notification of filteredNotifications(); track trackById($index,
+      notification)) {
+      <article
+        class="notification-card"
+        [class.unread]="!notification.read"
+        [class.priority-urgent]="notification.priority === 'urgent'"
+        [class.priority-high]="notification.priority === 'high'"
+      >
+        <div
+          class="notification-icon"
+          [ngClass]="getNotificationClass(notification.type)"
+        >
+          <i [class]="getNotificationIcon(notification.type)"></i>
+        </div>
+
+        <div class="notification-body">
+          <header>
+            <div>
+              <h4>{{ notification.title }}</h4>
+              <span class="timestamp">{{
+                formatTimestamp(notification.createdAt)
+              }}</span>
+            </div>
+            @if (notification.priority && notification.priority !== 'low') {
+            <span class="priority-pill">{{ notification.priority }}</span>
+            }
+          </header>
+          <p>{{ notification.message }}</p>
+          @if (notification.data?.groupId?.name) {
+          <div class="meta">
+            <i class="pi pi-users"></i>
+            <span>{{ notification.data?.groupId?.name }}</span>
+          </div>
+          }
+        </div>
+
+        <div class="notification-actions">
+          <button
+            class="icon-btn"
+            (click)="markAsRead(notification)"
+            [disabled]="notification.read"
+            title="Mark as read"
+          >
+            <i class="pi pi-check"></i>
+          </button>
+          <button
+            class="icon-btn danger"
+            (click)="deleteNotification(notification)"
+            title="Delete"
+          >
+            <i class="pi pi-trash"></i>
+          </button>
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </section>
+</div>

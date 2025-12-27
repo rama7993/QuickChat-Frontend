@@ -1,0 +1,137 @@
+<div class="header">
+  <div class="header__main">
+    <div class="logo-container">
+      <div class="chat-icon">
+        <i class="pi pi-comments"></i>
+      </div>
+      <h2 class="logo">QuickChat</h2>
+    </div>
+  </div>
+
+  <div class="header__actions">
+    <!-- Mobile Search Toggle Button -->
+    <button class="mobile-search-btn" (click)="toggleSearch()" title="Search">
+      <i class="pi pi-search"></i>
+    </button>
+
+    <!-- Search Bar -->
+    <div class="header__search" [class.active]="showSearch">
+      <i class="pi pi-search" (click)="toggleSearch()"></i>
+      <input
+        type="text"
+        placeholder="Search chats, messages..."
+        class="search-input"
+        [(ngModel)]="searchQuery"
+        (focus)="showSearch = true"
+        (blur)="onSearchBlur()"
+        (keyup.enter)="performSearch()"
+      />
+    </div>
+
+    <!-- Connection Status -->
+    <app-connection-status></app-connection-status>
+
+    <!-- Action Buttons -->
+    <div class="header__buttons">
+      <button class="action-btn" title="Create Group" (click)="createGroup()">
+        <i class="pi pi-plus"></i>
+      </button>
+
+      <button
+        class="action-btn"
+        title="Notifications"
+        (click)="toggleNotifications()"
+      >
+        <i class="pi pi-bell"></i>
+        <span class="notification-badge" *ngIf="unreadCount() > 0">{{
+          unreadCount()
+        }}</span>
+      </button>
+    </div>
+
+    <!-- User Profile Dropdown -->
+    <div class="header__profile" (click)="toggleUserMenu()">
+      <p-avatar
+        [image]="currentUser()?.photoUrl || defaultAvatar"
+        [label]="currentUser()?.firstName?.charAt(0)"
+        size="normal"
+        shape="circle"
+      >
+      </p-avatar>
+      <div class="header__user-info">
+        <span class="header__name">{{
+          currentUser()?.firstName + " " + currentUser()?.lastName
+        }}</span>
+        <span class="header__role">
+          Account<i class="pi pi-chevron-down"></i>
+        </span>
+      </div>
+    </div>
+
+    <!-- Enhanced User Menu -->
+    @if (showUserMenu) {
+    <div class="user-menu">
+      <div class="user-menu-header">
+        <div class="user-info">
+          <p-avatar
+            [image]="currentUser()?.photoUrl || defaultAvatar"
+            [label]="currentUser()?.firstName?.charAt(0)"
+            size="large"
+            shape="circle"
+          >
+          </p-avatar>
+          <div class="user-details">
+            <h4>
+              {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}
+            </h4>
+            <p>{{ currentUser()?.email }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-menu-content">
+        <ul>
+          <li (click)="navTo('/profile')">
+            <i class="pi pi-user"></i>
+            <span>Profile</span>
+          </li>
+          <li (click)="navTo('/chat')">
+            <i class="pi pi-comment"></i>
+            <span>Chat</span>
+          </li>
+          <li (click)="navTo('/settings')">
+            <i class="pi pi-cog"></i>
+            <span>Settings</span>
+          </li>
+        </ul>
+
+        <div class="theme-section">
+          <h5>Theme</h5>
+          <app-theme-selector></app-theme-selector>
+        </div>
+
+        <div class="navigation-section">
+          <h5>Quick Actions</h5>
+          <div class="nav-links">
+            <button class="nav-link" (click)="navTo('/groups')">
+              <i class="pi pi-users"></i>
+              Groups
+            </button>
+            <button class="nav-link" (click)="navTo('/create-group')">
+              <i class="pi pi-plus"></i>
+              Create Group
+            </button>
+          </div>
+        </div>
+
+        <div class="user-menu-footer">
+          <button class="logout-btn" (click)="logout()">
+            <i class="pi pi-sign-out"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</div>

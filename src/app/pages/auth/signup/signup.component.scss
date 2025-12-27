@@ -1,0 +1,14 @@
+.signup {
+  .auth-error {
+    color: #ff4444 !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  // Ensure form validation errors are red
+  .auth-form-group .auth-error small {
+    color: #ff4444 !important;
+  }
+}

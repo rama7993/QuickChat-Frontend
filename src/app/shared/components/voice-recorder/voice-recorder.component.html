@@ -1,0 +1,83 @@
+<div class="voice-recorder-container">
+  <div class="recorder-header">
+    <div class="recording-status">
+      @if (isRecording() && !isPaused()) {
+      <span class="status-dot recording"></span>
+      <span class="status-text">Recording...</span>
+      } @else if (isPaused()) {
+      <span class="status-dot paused"></span>
+      <span class="status-text">Paused</span>
+      } @else {
+      <span class="status-text">Ready to record</span>
+      }
+    </div>
+    <div class="recording-timer">
+      {{ formatDuration(recordingDuration()) }}
+    </div>
+  </div>
+
+  <div class="visualizer-container">
+    @if (!isRecording()) {
+    <div class="start-prompt">
+      <i class="pi pi-microphone"></i>
+      <p>Click microphone to start</p>
+    </div>
+    } @else {
+    <div class="wave-visualizer">
+      @for (bar of waveBars; track $index) {
+      <div
+        class="wave-bar"
+        [style.height.px]="bar.height"
+        [style.animation-delay.ms]="bar.delay"
+        [class.active]="!isPaused()"
+      ></div>
+      }
+    </div>
+    }
+  </div>
+
+  <div class="recorder-controls">
+    <button
+      class="control-btn cancel-btn"
+      (click)="cancelRecording()"
+      title="Cancel"
+    >
+      <i class="pi pi-times"></i>
+    </button>
+
+    @if (!isRecording()) {
+    <button
+      class="control-btn record-btn large"
+      (click)="startRecording()"
+      title="Start Recording"
+    >
+      <i class="pi pi-microphone"></i>
+    </button>
+    } @else { @if (isPaused()) {
+    <button
+      class="control-btn resume-btn"
+      (click)="resumeRecording()"
+      title="Resume"
+    >
+      <i class="pi pi-play"></i>
+    </button>
+    } @else {
+    <button
+      class="control-btn pause-btn"
+      (click)="pauseRecording()"
+      title="Pause"
+    >
+      <i class="pi pi-pause"></i>
+    </button>
+    }
+
+    <button
+      class="control-btn stop-btn large"
+      (click)="stopRecording()"
+      title="Send"
+    >
+      <i class="pi pi-send"></i>
+    </button>
+    }
+  </div>
+</div>

@@ -1,0 +1,808 @@
+<div class="chat-window" [ngClass]="{ mobile: isMobile() }">
+  @if (!selectedUser() && !selectedGroup()) {
+  <!-- Empty State -->
+  <div class="chat-window__empty">
+    <div class="empty-content">
+      <div class="empty-icon">
+        <i class="pi pi-comments"></i>
+      </div>
+      <h3>Welcome to QuickChat</h3>
+      <p>Select a conversation from the sidebar to start chatting</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary" (click)="startNewChat()">
+          <i class="pi pi-plus"></i>
+          Start New Chat
+        </button>
+      </div>
+    </div>
+  </div>
+  } @else {
+  <!-- Chat Header -->
+  <div class="chat-window__header">
+    <div class="chat-header__left">
+      @if (showBackButton) {
+      <button class="back-btn" (click)="backClicked.emit()">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      }
+
+      <div class="chat-header__info">
+        <div class="chat-avatar">
+          <img
+            [src]="
+              isGroupChat()
+                ? selectedGroup()?.avatar || defaultAvatar
+                : selectedUser()?.photoUrl || defaultAvatar
+            "
+            [alt]="chatTitle()"
+            class="avatar-img"
+          />
+          @if (!isGroupChat() && selectedUser()?.status === 'online') {
+          <div class="online-indicator"></div>
+          }
+        </div>
+
+        <div class="chat-details">
+          <h4 class="chat-title">{{ chatTitle() }}</h4>
+          <p class="chat-subtitle">{{ chatSubtitle() }}</p>
+          <!-- User Connection Status -->
+          @if (!isGroupChat() && selectedUser()) {
+          <p
+            class="connection-status"
+            [class.connected]="selectedUser()?.status === 'online'"
+            [class.disconnected]="selectedUser()?.status !== 'online'"
+          >
+            @if (selectedUser()?.status === 'online') {
+            <i class="pi pi-check-circle"></i> Connected } @else {
+            <i class="pi pi-circle"></i> Offline }
+          </p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-header__actions">
+      <!-- Video Call Button -->
+      <button
+        class="action-btn video-call-btn"
+        (click)="startVideoCall()"
+        title="Start Video Call"
+      >
+        <i class="pi pi-video"></i>
+      </button>
+
+      @if (isGroupChat()) {
+      <button
+        class="action-btn"
+        (click)="showGroupInfo.set(!showGroupInfo())"
+        title="Group Info"
+      >
+        <i class="pi pi-info-circle"></i>
+      </button>
+      }
+
+      <button
+        class="action-btn"
+        (click)="searchMessages()"
+        title="Search Messages"
+      >
+        <i class="pi pi-search"></i>
+      </button>
+
+      <button
+        class="action-btn"
+        (click)="showMoreOptions()"
+        [class.active]="showMessageOptions() === 'chat-options'"
+        title="More Options"
+      >
+        <i class="pi pi-ellipsis-v"></i>
+      </button>
+    </div>
+
+    <!-- More Options Menu -->
+    @if (showMessageOptions() === 'chat-options') {
+    <div class="more-options-menu" (click)="$event.stopPropagation()">
+      <button class="option-btn" (click)="searchMessages(); closeMoreOptions()">
+        <i class="pi pi-search"></i>
+        <span>Search Messages</span>
+      </button>
+
+      @if (isGroupChat()) {
+      <button
+        class="option-btn"
+        (click)="toggleGroupInfo(); closeMoreOptions()"
+      >
+        <i class="pi pi-info-circle"></i>
+        <span>Group Info</span>
+      </button>
+      <button
+        class="option-btn"
+        (click)="viewGroupMembers(); closeMoreOptions()"
+      >
+        <i class="pi pi-users"></i>
+        <span>View Members</span>
+      </button>
+      <button class="option-btn" (click)="leaveGroup(); closeMoreOptions()">
+        <i class="pi pi-sign-out"></i>
+        <span>Leave Group</span>
+      </button>
+      }
+
+      <button class="option-btn" (click)="startVideoCall(); closeMoreOptions()">
+        <i class="pi pi-video"></i>
+        <span>Start Video Call</span>
+      </button>
+
+      @if (!isGroupChat()) {
+      <button class="option-btn" (click)="viewProfile(); closeMoreOptions()">
+        <i class="pi pi-user"></i>
+        <span>View Profile</span>
+      </button>
+      <button
+        class="option-btn"
+        (click)="muteNotifications(); closeMoreOptions()"
+      >
+        <i class="pi pi-bell-slash"></i>
+        <span>{{ isMuted() ? "Unmute" : "Mute" }} Notifications</span>
+      </button>
+      <button
+        class="option-btn danger"
+        (click)="blockUser(); closeMoreOptions()"
+      >
+        <i class="pi pi-ban"></i>
+        <span>Block User</span>
+      </button>
+      }
+
+      <div class="menu-divider"></div>
+
+      <button class="option-btn" (click)="exportChat(); closeMoreOptions()">
+        <i class="pi pi-download"></i>
+        <span>Export Chat</span>
+      </button>
+      <button
+        class="option-btn danger"
+        (click)="clearChat(); closeMoreOptions()"
+      >
+        <i class="pi pi-trash"></i>
+        <span>Clear Chat</span>
+      </button>
+      <button
+        class="option-btn danger"
+        (click)="deleteChat(); closeMoreOptions()"
+      >
+        <i class="pi pi-times-circle"></i>
+        <span>Delete Chat</span>
+      </button>
+    </div>
+    }
+  </div>
+
+  <!-- Group Info Panel -->
+  @if (showGroupInfo() && isGroupChat()) {
+  <div class="group-info-panel">
+    <div class="group-info-header">
+      <h3>Group Information</h3>
+      <button class="close-btn" (click)="showGroupInfo.set(false)">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="group-info-content">
+      <div class="group-avatar-large">
+        <img
+          [src]="selectedGroup()?.avatar || defaultAvatar"
+          [alt]="selectedGroup()?.name"
+          class="avatar-large"
+        />
+      </div>
+      <h4>{{ selectedGroup()?.name }}</h4>
+      <p class="group-description">
+        {{ selectedGroup()?.description || "No description available" }}
+      </p>
+      <div class="group-stats">
+        <div class="stat-item">
+          <i class="pi pi-users"></i>
+          <span>{{ selectedGroup()?.members?.length || 0 }} Members</span>
+        </div>
+        <div class="stat-item">
+          <i class="pi pi-calendar"></i>
+          <span>Created {{ selectedGroup()?.createdAt | date : "short" }}</span>
+        </div>
+      </div>
+      <div class="group-members">
+        <h5>Members</h5>
+        <div class="members-list">
+          @for (member of selectedGroup()?.members; track member._id) {
+          <div class="member-item">
+            <img
+              [src]="member.photoUrl || defaultAvatar"
+              [alt]="member.firstName"
+              class="member-avatar"
+            />
+            <span class="member-name"
+              >{{ member.firstName }} {{ member.lastName }}</span
+            >
+            @if (member.status === 'online') {
+            <div class="online-indicator"></div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- User Profile Modal -->
+  @if (showUserProfile() && !isGroupChat()) {
+  <div class="user-profile-modal">
+    <div class="modal-backdrop" (click)="showUserProfile.set(false)"></div>
+    <div class="modal-content">
+      <div class="profile-header">
+        <button class="close-btn" (click)="showUserProfile.set(false)">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      <div class="profile-body">
+        <div class="profile-avatar">
+          <img
+            [src]="selectedUser()?.photoUrl || defaultAvatar"
+            [alt]="selectedUser()?.firstName"
+          />
+        </div>
+        <h2>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</h2>
+        <div
+          class="profile-status"
+          [class.online]="selectedUser()?.status === 'online'"
+        >
+          <span class="status-dot"></span>
+          {{ selectedUser()?.status === "online" ? "Online" : "Offline" }}
+        </div>
+
+        <div class="profile-info">
+          <div class="info-item">
+            <i class="pi pi-envelope"></i>
+            <span>{{ selectedUser()?.email }}</span>
+          </div>
+          @if (selectedUser()?.lastSeen && selectedUser()?.status !== 'online')
+          {
+          <div class="info-item">
+            <i class="pi pi-clock"></i>
+            <span
+              >Last seen {{ selectedUser()?.lastSeen | date : "medium" }}</span
+            >
+          </div>
+          }
+        </div>
+
+        <div class="profile-actions">
+          <button
+            class="btn-action"
+            (click)="startVideoCall(); showUserProfile.set(false)"
+          >
+            <i class="pi pi-video"></i>
+            Video Call
+          </button>
+          <button
+            class="btn-action danger"
+            (click)="blockUser(); showUserProfile.set(false)"
+          >
+            <i class="pi pi-ban"></i>
+            Block
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Messages Area -->
+  <div class="chat-window__messages" #messagesContainer>
+    @if (isLoading()) {
+    <div class="loading-messages">
+      <div class="loading-spinner"></div>
+      <p>Loading messages...</p>
+    </div>
+    } @else { @for (group of groupedMessages(); track group.date) {
+    <div class="message-date">
+      <span class="date-label">{{ group.date }}</span>
+    </div>
+
+    @for (message of group.messages; track message._id + '_' +
+    message.timestamp) {
+    <div
+      class="message-wrapper"
+      [class.own-message]="message.sender?._id === currentUser()?._id"
+      [attr.data-message-id]="message._id"
+    >
+      <!-- Message Content -->
+      <div class="message-bubble" [class.edited]="message.edited">
+        <!-- Reply Context -->
+        @if (message.replyTo) {
+        <div class="reply-context">
+          <div class="reply-line"></div>
+          <div class="reply-content">
+            <span class="reply-sender">{{
+              message.replyTo.sender?.firstName
+            }}</span>
+            <span class="reply-text">{{ message.replyTo.content }}</span>
+          </div>
+        </div>
+        }
+
+        <!-- Message Content -->
+        <div class="message-content">
+          <!-- Media Attachments -->
+          @if (message.attachments && message.attachments.length > 0) {
+          <div class="message-attachments">
+            @for (attachment of message.attachments; track attachment.url) {
+            <div class="attachment" [class]="'attachment-' + attachment.type">
+              @if (attachment.type === 'image') {
+              <div class="image-attachment">
+                <img
+                  [src]="attachment.url"
+                  [alt]="attachment.filename"
+                  class="attachment-image"
+                  (click)="openImagePreview(attachment.url)"
+                  (error)="handleImageError($event)"
+                  loading="lazy"
+                />
+                @if (attachment.thumbnail) {
+                <img
+                  [src]="attachment.thumbnail"
+                  class="attachment-thumbnail"
+                  loading="lazy"
+                />
+                }
+              </div>
+              } @else if (attachment.type === 'video') {
+              <div class="video-attachment">
+                <div
+                  class="video-preview"
+                  (click)="openVideoPreview(attachment.url)"
+                >
+                  @if (attachment.thumbnail) {
+                  <img
+                    [src]="attachment.thumbnail"
+                    class="video-thumbnail"
+                    loading="lazy"
+                  />
+                  }
+                  <div class="video-overlay">
+                    <i class="pi pi-play"></i>
+                  </div>
+                  @if (attachment.duration) {
+                  <div class="video-duration">
+                    {{ formatDuration(attachment.duration) }}
+                  </div>
+                  }
+                </div>
+              </div>
+              } @else if (attachment.type === 'voice') {
+              <div class="audio-attachment">
+                <div
+                  class="voice-message-player"
+                  [class.playing]="isAudioPlaying(attachment.url)"
+                >
+                  <button
+                    class="voice-play-btn"
+                    (click)="toggleAudioPlayback(attachment.url)"
+                    [class.playing]="isAudioPlaying(attachment.url)"
+                  >
+                    <i
+                      class="pi"
+                      [class.pi-play]="!isAudioPlaying(attachment.url)"
+                      [class.pi-pause]="isAudioPlaying(attachment.url)"
+                    ></i>
+                  </button>
+
+                  <div class="voice-content">
+                    <div class="voice-waveform-container">
+                      <div class="voice-waveform">
+                        @for (bar of
+                        [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
+                        track $index) {
+                        <div
+                          class="waveform-bar"
+                          [class.active]="isAudioPlaying(attachment.url)"
+                          [style.animation-delay.ms]="$index * 50"
+                        ></div>
+                        }
+                      </div>
+                      <div class="voice-progress-track">
+                        <div
+                          class="voice-progress-fill"
+                          [style.width.%]="getAudioProgress(attachment.url)"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="voice-meta">
+                      <span class="voice-time">{{
+                        formatAudioTime(attachment.url)
+                      }}</span>
+                      @if (attachment.duration) {
+                      <span class="voice-duration">{{
+                        formatDuration(attachment.duration)
+                      }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+              } @else {
+              <div class="file-attachment">
+                <div class="file-icon">
+                  <i class="pi" [class]="getFileIcon(attachment.mimeType)"></i>
+                </div>
+                <div class="file-info">
+                  <span class="file-name">{{ attachment.filename }}</span>
+                  <span class="file-size">{{
+                    formatFileSize(attachment.size)
+                  }}</span>
+                </div>
+                <button
+                  class="download-btn"
+                  (click)="downloadFile(attachment.url, attachment.filename)"
+                >
+                  <i class="pi pi-download"></i>
+                </button>
+              </div>
+              }
+            </div>
+            }
+          </div>
+          }
+
+          <!-- Message Text -->
+          @if (message.content) {
+          <div class="message-text">
+            <p>{{ message.content }}</p>
+            @if (message.edited) {
+            <span class="edited-indicator">edited</span>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Message Meta -->
+        <div class="message-meta">
+          <span class="message-time">{{
+            message.timestamp | date : "shortTime"
+          }}</span>
+          @if (message.sender?._id === currentUser()?._id) {
+          <div class="message-status">
+            @if (message.status === 'read') {
+            <i class="pi pi-check-circle text-blue-500"></i>
+            } @else if (message.status === 'delivered') {
+            <i class="pi pi-check-circle"></i>
+            } @else {
+            <i class="pi pi-check"></i>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Reactions -->
+        @if (message.reactions && message.reactions.length > 0) {
+        <div class="message-reactions">
+          @for (reaction of message.reactions; track reaction.user._id +
+          reaction.emoji) {
+          <span class="reaction">
+            <span class="reaction-emoji">{{ reaction.emoji }}</span>
+            <span class="reaction-count">1</span>
+          </span>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Message Options -->
+      <div class="message-options">
+        <button
+          class="option-btn"
+          (click)="showMessageMenu(message._id)"
+          title="Message Options"
+        >
+          <i class="pi pi-ellipsis-h"></i>
+        </button>
+
+        @if (showMessageOptions() === message._id) {
+        <div class="message-menu">
+          <button class="menu-item" (click)="setReplyTo(message)">
+            <i class="pi pi-reply"></i>
+            Reply
+          </button>
+          @if (message.sender?._id === currentUser()?._id) {
+          <button class="menu-item" (click)="startEditing(message)">
+            <i class="pi pi-pencil"></i>
+            Edit
+          </button>
+          <button class="menu-item danger" (click)="deleteMessage(message._id)">
+            <i class="pi pi-trash"></i>
+            Delete
+          </button>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    } }
+
+    <!-- Typing Indicators -->
+    @if (typingUsers().length > 0) { @for (typingUser of typingUsers(); track
+    typingUser.userId) {
+    <div class="typing-indicator">
+      <div class="typing-avatar">
+        <img
+          [src]="defaultAvatar"
+          [alt]="typingUser.username"
+          class="avatar-img"
+        />
+      </div>
+      <div class="typing-bubble">
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span class="typing-text">{{ typingUser.username }} is typing...</span>
+      </div>
+    </div>
+    } } }
+  </div>
+
+  <!-- Reply Context -->
+  @if (replyToMessage()) {
+  <div class="reply-context-bar">
+    <div class="reply-info">
+      <span class="reply-label"
+        >Replying to {{ replyToMessage()?.sender?.firstName || "User" }}</span
+      >
+      <span class="reply-preview">{{ replyToMessage()?.content }}</span>
+    </div>
+    <button class="close-reply" (click)="clearReply()">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+  }
+
+  <!-- Editing Context -->
+  @if (editingMessage()) {
+  <div class="reply-context-bar editing-bar">
+    <div class="reply-info">
+      <span class="reply-label">Editing Message</span>
+      <span class="reply-preview">{{ editingMessage()?.content }}</span>
+    </div>
+    <button class="close-reply" (click)="cancelEditing()">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+  }
+
+  <!-- Message Input -->
+  <div class="chat-window__input">
+    <div class="input-container">
+      <!-- Message Input -->
+      <div class="message-input-wrapper">
+        <textarea
+          #messageInput
+          [(ngModel)]="messageText"
+          (keypress)="onKeyPress($event)"
+          (input)="handleTyping()"
+          placeholder="Type a message..."
+          class="message-input"
+          rows="1"
+          maxlength="2000"
+        >
+        </textarea>
+
+        <!-- Action Buttons -->
+        <div class="input-actions">
+          <!-- File Upload Button -->
+          <button
+            class="input-btn"
+            (click)="toggleFileUpload()"
+            [class.active]="showFileUpload()"
+            title="Attach File"
+          >
+            <i class="pi pi-paperclip"></i>
+          </button>
+
+          <!-- Voice Recording Button -->
+          <button
+            class="input-btn"
+            (click)="toggleVoiceRecording()"
+            [class.active]="isRecording()"
+            title="Voice Message"
+          >
+            <i class="pi pi-microphone"></i>
+          </button>
+
+          <!-- Emoji Button -->
+          <button
+            class="input-btn"
+            (click)="toggleEmojiPicker()"
+            [class.active]="showEmojiPicker()"
+            title="Add Emoji"
+          >
+            <i class="fa-regular fa-face-smile"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Send Button -->
+      <button
+        class="send-btn"
+        [class.disabled]="!canSendMessage()"
+        (click)="sendMessage()"
+        [disabled]="!canSendMessage()"
+        [title]="editingMessage() ? 'Update Message' : 'Send Message'"
+      >
+        <i
+          class="pi"
+          [class.pi-send]="!editingMessage()"
+          [class.pi-check]="editingMessage()"
+        ></i>
+      </button>
+    </div>
+
+    <!-- File Upload Area -->
+
+    <!-- File Upload Panel -->
+    @if (showFileUpload()) {
+    <div class="panel-backdrop" (click)="showFileUpload.set(false)"></div>
+    <div class="file-upload-panel">
+      <h3 style="color: #007bff; margin: 0 0 10px 0">📎 File Upload</h3>
+      <p style="margin: 0 0 10px 0">Click to select files or drag and drop</p>
+      <app-file-upload
+        #fileUploadComponent
+        [multiple]="true"
+        [allowedTypes]="[
+          'image/*',
+          'application/pdf',
+          'text/*',
+          'video/*',
+          'audio/*'
+        ]"
+        [maxFileSize]="10 * 1024 * 1024"
+        [receiverId]="selectedUser()?._id"
+        [groupId]="selectedGroup()?._id"
+        (fileUploaded)="onFileUploaded($event)"
+        (uploadError)="onFileUploadError($event)"
+      ></app-file-upload>
+    </div>
+    }
+
+    <!-- Voice Recording Panel -->
+    @if (showVoiceRecording()) {
+    <div class="panel-backdrop" (click)="showVoiceRecording.set(false)"></div>
+    <div class="voice-recording-panel">
+      <h3>Voice Recording</h3>
+      <app-voice-recorder
+        #voiceRecorderComponent
+        [receiverId]="selectedUser()?._id"
+        [groupId]="selectedGroup()?._id"
+        (recordingComplete)="onVoiceRecordingComplete($event)"
+        (recordingError)="onVoiceRecordingError($event)"
+        (recordingCancelled)="onVoiceRecordingCancelled()"
+      ></app-voice-recorder>
+    </div>
+    }
+
+    <!-- Emoji Picker -->
+    @if (showEmojiPicker()) {
+    <div class="panel-backdrop" (click)="showEmojiPicker.set(false)"></div>
+    <div class="emoji-picker">
+      <emoji-mart
+        (emojiSelect)="addEmoji($event.emoji.native)"
+        set="apple"
+        title="Add emoji"
+        [darkMode]="isDarkMode()"
+        [color]="accentColor()"
+        [showPreview]="false"
+        [perLine]="8"
+        [emojiSize]="22"
+        [style]="{ width: '100%' }"
+      />
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Video Call Component -->
+  <app-video-call
+    *ngIf="showVideoCall()"
+    [roomId]="videoCallRoomId()"
+    [participants]="videoCallParticipants()"
+    (callEnded)="endVideoCall()"
+  >
+  </app-video-call>
+
+  <!-- Message Search Overlay -->
+  @if (showMessageSearch()) {
+  <div class="message-search-overlay">
+    <div class="search-header">
+      <div class="search-input-container">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          placeholder="Search messages..."
+          [(ngModel)]="searchQuery"
+          (input)="performMessageSearch()"
+          class="search-input"
+        />
+      </div>
+      <button class="close-btn" (click)="closeMessageSearch()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="search-results">
+      @if (searchResults().length > 0) { @for (message of searchResults(); track
+      message._id) {
+      <div class="search-result-item" (click)="jumpToMessage(message)">
+        <div class="message-preview">
+          <span class="message-content">{{ message.content }}</span>
+          <span class="message-time">{{
+            message.timestamp | date : "short"
+          }}</span>
+        </div>
+      </div>
+      } } @else if (searchQuery().trim()) {
+      <div class="no-results">
+        <i class="pi pi-search"></i>
+        <p>No messages found for "{{ searchQuery() }}"</p>
+      </div>
+      } @else {
+      <div class="search-hint">
+        <i class="pi pi-info-circle"></i>
+        <p>Type to search messages in this chat</p>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Media Preview Modals -->
+  <!-- Image Preview Modal -->
+  @if (showImagePreview()) {
+  <div class="media-preview-modal" (click)="closeImagePreview()">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Image Preview</h3>
+        <button class="close-btn" (click)="closeImagePreview()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <img [src]="previewImageUrl()" class="preview-image" loading="lazy" />
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Video Preview Modal -->
+  @if (showVideoPreview()) {
+  <div class="media-preview-modal" (click)="closeVideoPreview()">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Video Preview</h3>
+        <button class="close-btn" (click)="closeVideoPreview()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <video
+          [src]="previewVideoUrl()"
+          class="preview-video"
+          controls
+          preload="metadata"
+        ></video>
+      </div>
+    </div>
+  </div>
+  }
+</div>

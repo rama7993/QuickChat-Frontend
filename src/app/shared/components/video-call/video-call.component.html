@@ -1,0 +1,170 @@
+<div class="video-call-container">
+  <!-- Loading State -->
+  <div *ngIf="!callState().isActive" class="loading-state">
+    <div class="loading-content">
+      <i class="fas fa-spinner fa-spin" style="font-size: 3rem"></i>
+      <p>Starting video call...</p>
+    </div>
+  </div>
+
+  <!-- Video Grid -->
+  <div
+    *ngIf="callState().isActive"
+    class="video-grid"
+    [ngClass]="{
+      'grid-layout': isGridLayout(),
+      'focus-layout': !isGridLayout()
+    }"
+  >
+    <div
+      *ngFor="
+        let participant of participants$ | async;
+        trackBy: trackByParticipantId
+      "
+      class="participant-container"
+      [ngClass]="getParticipantClass(participant)"
+      (click)="selectParticipant(participant)"
+    >
+      <!-- Video Element -->
+      <video
+        #participantVideo
+        *ngIf="participant.id === 'local' && participant.stream"
+        [class.video-hidden]="participant.isVideoOff"
+        [attr.data-participant-id]="participant.id"
+        [attr.id]="'video-' + participant.id"
+        autoplay
+        muted
+        playsinline
+        class="participant-video"
+      ></video>
+
+      <!-- Remote Video Element -->
+      <video
+        #participantVideo
+        *ngIf="participant.id !== 'local' && participant.stream"
+        [class.video-hidden]="participant.isVideoOff"
+        [attr.data-participant-id]="participant.id"
+        [attr.id]="'video-' + participant.id"
+        autoplay
+        playsinline
+        class="participant-video"
+      ></video>
+
+      <!-- Remote Video Placeholder (only if no stream) -->
+      <div
+        *ngIf="
+          participant.id !== 'local' &&
+          !participant.isVideoOff &&
+          !participant.stream
+        "
+        class="remote-video-placeholder"
+      >
+        <div class="video-placeholder">
+          <i class="fas fa-video"></i>
+          <span>Waiting for video...</span>
+        </div>
+      </div>
+
+      <!-- Video Off Placeholder -->
+      <div *ngIf="participant.isVideoOff" class="video-off-placeholder">
+        <div class="avatar-placeholder">
+          <i class="fas fa-user"></i>
+        </div>
+        <p
+          class="device-message"
+          *ngIf="participant.id === 'local' && deviceStatusMessage()"
+        >
+          {{ deviceStatusMessage() }}
+        </p>
+      </div>
+
+      <!-- Participant Info -->
+      <div class="participant-info">
+        <span class="participant-name">{{ participant.name }}</span>
+
+        <!-- Audio Level Indicator -->
+        <div class="audio-level" *ngIf="participant.isSpeaking">
+          <div
+            class="audio-bar"
+            [style.height.%]="getAudioLevel(participant)"
+          ></div>
+        </div>
+
+        <!-- Status Icons -->
+        <div class="status-icons">
+          <i
+            *ngIf="participant.isMuted"
+            class="fas fa-microphone-slash muted-icon"
+            title="Muted"
+          >
+          </i>
+          <i
+            *ngIf="participant.isVideoOff"
+            class="fas fa-video-slash video-off-icon"
+            title="Video Off"
+          >
+          </i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call Controls -->
+  <div class="call-controls" *ngIf="callState().isActive">
+    <div class="control-buttons">
+      <!-- Mute/Unmute -->
+      <button
+        class="control-btn mic"
+        [class.is-off]="callState().isMuted"
+        [class.is-on]="!callState().isMuted"
+        (click)="toggleMute()"
+        title="Toggle Microphone"
+      >
+        <i
+          [class]="
+            callState().isMuted
+              ? 'fas fa-microphone-slash'
+              : 'fas fa-microphone'
+          "
+        ></i>
+      </button>
+
+      <!-- Video On/Off -->
+      <button
+        class="control-btn camera"
+        [class.is-off]="callState().isVideoOff"
+        [class.is-on]="!callState().isVideoOff"
+        (click)="toggleVideo()"
+        title="Toggle Video"
+      >
+        <i
+          [class]="
+            callState().isVideoOff ? 'fas fa-video-slash' : 'fas fa-video'
+          "
+        ></i>
+      </button>
+
+      <!-- Layout Toggle -->
+      <button
+        class="control-btn"
+        (click)="toggleLayout()"
+        title="Toggle Layout"
+      >
+        <i class="fas fa-th-large"></i>
+      </button>
+
+      <!-- End Call -->
+      <button class="control-btn end-call" (click)="endCall()" title="End Call">
+        <i class="fas fa-phone-slash"></i>
+      </button>
+    </div>
+
+    <!-- Call Info -->
+    <div class="call-info">
+      <span class="room-id">Room: {{ roomId }}</span>
+      <span class="participant-count"
+        >{{ (participants$ | async)?.length || 0 }} participants</span
+      >
+    </div>
+  </div>
+</div>

@@ -1,0 +1,92 @@
+<div class="groups-page">
+  <div class="page-hero">
+    <div class="hero-start">
+      <button class="icon-btn" (click)="goBack()" title="Back to chats">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      <div class="titles">
+        <p class="eyebrow">Workspace</p>
+        <h1>Groups</h1>
+        <span>Bring your teams together and keep conversations organized.</span>
+      </div>
+    </div>
+    <button class="primary-btn" (click)="createGroup()">
+      <i class="pi pi-plus"></i>
+      Create Group
+    </button>
+  </div>
+
+  <div class="filters-card">
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Search groups..."
+        class="search-input"
+      />
+    </div>
+    <div class="filters-meta">
+      <div class="meta-pill">
+        <i class="pi pi-users"></i>
+        <span
+          >{{ filteredGroups.length }}
+          {{ filteredGroups.length === 1 ? "Group" : "Groups" }}</span
+        >
+      </div>
+      <button class="ghost-btn" (click)="createGroup()">
+        <i class="pi pi-plus-circle"></i>
+        New Group
+      </button>
+    </div>
+  </div>
+
+  <div class="groups-panel">
+    @if (isLoading()) {
+    <div class="state-card loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading your groups...</p>
+    </div>
+    } @else if (filteredGroups.length === 0) {
+    <div class="state-card empty">
+      <div class="empty-illustration">
+        <i class="pi pi-users"></i>
+      </div>
+      <h3>No groups yet</h3>
+      <p>Be the first to create a space for your team or community.</p>
+      <button class="primary-btn" (click)="createGroup()">
+        <i class="pi pi-plus"></i>
+        Create your first group
+      </button>
+    </div>
+    } @else {
+    <div class="groups-grid">
+      @for (group of filteredGroups; track group._id) {
+      <div class="group-card" (click)="selectGroup(group)">
+        <div class="group-card__header">
+          <div class="group-avatar">
+            {{ group.name.charAt(0) }}
+          </div>
+          <span class="group-chip">{{ group.groupType }}</span>
+        </div>
+        <div class="group-card__body">
+          <h3>{{ group.name }}</h3>
+          <p>{{ group.description || "No description provided" }}</p>
+        </div>
+        <div class="group-card__meta">
+          <span>
+            <i class="pi pi-users"></i>
+            {{ group.members.length }} members
+          </span>
+          <span>
+            <i class="pi pi-clock"></i>
+            {{ group.updatedAt | date : "MMM d, y" }}
+          </span>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>

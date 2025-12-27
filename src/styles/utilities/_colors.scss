@@ -1,0 +1,163 @@
+// Color Utilities
+// Text and background color utility classes
+
+@use "../abstracts" as *;
+
+// Text colors
+.text-primary {
+  color: var(--color-primary);
+}
+.text-secondary {
+  color: var(--color-secondary);
+}
+.text-accent {
+  color: var(--color-accent);
+}
+.text-background {
+  color: var(--color-background);
+}
+.text-surface {
+  color: var(--color-surface);
+}
+.text-text {
+  color: var(--color-text);
+}
+.text-text-secondary {
+  color: var(--color-text-secondary);
+}
+.text-border {
+  color: var(--color-border);
+}
+.text-success {
+  color: var(--color-success);
+}
+.text-warning {
+  color: var(--color-warning);
+}
+.text-error {
+  color: var(--color-error);
+}
+.text-info {
+  color: var(--color-info);
+}
+
+// Background colors
+.bg-primary {
+  background-color: var(--color-primary);
+}
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+.bg-accent {
+  background-color: var(--color-accent);
+}
+.bg-background {
+  background-color: var(--color-background);
+}
+.bg-surface {
+  background-color: var(--color-surface);
+}
+.bg-text {
+  background-color: var(--color-text);
+}
+.bg-text-secondary {
+  background-color: var(--color-text-secondary);
+}
+.bg-border {
+  background-color: var(--color-border);
+}
+.bg-success {
+  background-color: var(--color-success);
+}
+.bg-warning {
+  background-color: var(--color-warning);
+}
+.bg-error {
+  background-color: var(--color-error);
+}
+.bg-info {
+  background-color: var(--color-info);
+}
+
+// Gradient backgrounds
+.bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+.bg-gradient-secondary {
+  background: var(--gradient-secondary);
+}
+.bg-gradient-background {
+  background: var(--gradient-background);
+}
+
+// Border colors
+.border-primary {
+  border-color: var(--color-primary);
+}
+.border-secondary {
+  border-color: var(--color-secondary);
+}
+.border-accent {
+  border-color: var(--color-accent);
+}
+.border-background {
+  border-color: var(--color-background);
+}
+.border-surface {
+  border-color: var(--color-surface);
+}
+.border-text {
+  border-color: var(--color-text);
+}
+.border-text-secondary {
+  border-color: var(--color-text-secondary);
+}
+.border-border {
+  border-color: var(--color-border);
+}
+.border-success {
+  border-color: var(--color-success);
+}
+.border-warning {
+  border-color: var(--color-warning);
+}
+.border-error {
+  border-color: var(--color-error);
+}
+.border-info {
+  border-color: var(--color-info);
+}
+
+// Opacity utilities
+.opacity-0 {
+  opacity: 0;
+}
+.opacity-25 {
+  opacity: 0.25;
+}
+.opacity-50 {
+  opacity: 0.5;
+}
+.opacity-75 {
+  opacity: 0.75;
+}
+.opacity-100 {
+  opacity: 1;
+}
+
+// Hover states
+.hover\:text-accent:hover {
+  color: var(--color-accent);
+}
+.hover\:bg-surface:hover {
+  background-color: var(--color-surface);
+}
+.hover\:border-accent:hover {
+  border-color: var(--color-accent);
+}
+.hover\:opacity-75:hover {
+  opacity: 0.75;
+}
+.hover\:opacity-100:hover {
+  opacity: 1;
+}

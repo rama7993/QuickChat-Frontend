@@ -1,0 +1,254 @@
+// PrimeNG Overrides
+// Custom overrides for PrimeNG components
+
+// Global PrimeNG component styling
+.p-component {
+  font-family: inherit;
+}
+
+// Dropdown overrides
+.p-dropdown {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-medium) !important;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  box-shadow: none !important;
+
+  &:not(.p-disabled):hover {
+    border-color: var(--color-accent) !important;
+  }
+
+  &:not(.p-disabled).p-focus {
+    border-color: var(--color-accent) !important;
+    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1) !important;
+  }
+
+  .p-dropdown-label {
+    color: var(--color-text) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+  }
+
+  .p-dropdown-trigger {
+    color: var(--color-text-secondary) !important;
+
+    .p-dropdown-trigger-icon {
+      color: var(--color-text-secondary) !important;
+    }
+  }
+}
+
+.p-dropdown-panel {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-medium) !important;
+  box-shadow: var(--shadow-large) !important;
+  z-index: 1000;
+
+  .p-dropdown-items {
+    .p-dropdown-item {
+      color: var(--color-text) !important;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.75rem 1rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: var(--color-background) !important;
+        color: var(--color-accent) !important;
+      }
+
+      &.p-highlight {
+        background: var(--color-accent) !important;
+        color: #ffffff !important;
+      }
+
+      &.p-focus {
+        background: var(--color-background) !important;
+        color: var(--color-accent) !important;
+      }
+    }
+  }
+}
+
+// Input text overrides
+.p-inputtext {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  color: var(--color-text);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--color-accent);
+  }
+
+  &:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1);
+  }
+}
+
+// Button overrides
+.p-button {
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-medium);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1);
+  }
+}
+
+// Card overrides
+.p-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-small);
+  color: var(--color-text);
+
+  .p-card-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .p-card-content {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .p-card-footer {
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+}
+
+// Dialog overrides
+.p-dialog {
+  .p-dialog-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .p-dialog-content {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+}
+
+// Toast overrides
+.p-toast {
+  .p-toast-message {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    color: var(--color-text);
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+// Message overrides
+.p-message {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  color: var(--color-text);
+
+  &.p-message-success {
+    border-color: var(--color-success);
+    background: rgba(76, 175, 80, 0.1);
+  }
+
+  &.p-message-warn {
+    border-color: var(--color-warning);
+    background: rgba(255, 152, 0, 0.1);
+  }
+
+  &.p-message-error {
+    border-color: var(--color-error);
+    background: rgba(244, 67, 54, 0.1);
+  }
+
+  &.p-message-info {
+    border-color: var(--color-info);
+    background: rgba(33, 150, 243, 0.1);
+  }
+}
+
+// Table overrides
+.p-datatable {
+  .p-datatable-header {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .p-datatable-thead > tr > th {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .p-datatable-tbody > tr {
+    background: var(--color-background);
+    color: var(--color-text);
+
+    &:nth-child(even) {
+      background: var(--color-surface);
+    }
+
+    &:hover {
+      background: rgba(var(--color-accent-rgb), 0.1);
+    }
+  }
+
+  .p-datatable-tbody > tr > td {
+    border: 1px solid var(--color-border);
+  }
+}
+
+// Menu overrides
+.p-menu {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-large);
+
+  .p-menuitem-link {
+    color: var(--color-text);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-background);
+      color: var(--color-accent);
+    }
+  }
+}
+
+// Tooltip overrides
+.p-tooltip {
+  .p-tooltip-text {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-medium);
+  }
+}

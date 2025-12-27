@@ -1,0 +1,106 @@
+// Variables
+// All global variables, maps, and functions
+
+// Colors
+$color-primary: #0a0f1c;
+$color-secondary: #12223d;
+$color-accent: #00d9ff;
+$color-background: #101b2d;
+$color-surface: #1a2332;
+$color-text: #ffffff;
+$color-text-secondary: #b0b8c8;
+$color-border: #2a3441;
+$color-success: #4caf50;
+$color-warning: #ff9800;
+$color-error: #f44336;
+$color-info: #2196f3;
+
+// Color maps for easy iteration
+$colors: (
+  "primary": $color-primary,
+  "secondary": $color-secondary,
+  "accent": $color-accent,
+  "background": $color-background,
+  "surface": $color-surface,
+  "text": $color-text,
+  "text-secondary": $color-text-secondary,
+  "border": $color-border,
+  "success": $color-success,
+  "warning": $color-warning,
+  "error": $color-error,
+  "info": $color-info,
+);
+
+// Gradients
+$gradient-primary: linear-gradient(135deg, #00d9ff, #1fe0ff);
+$gradient-secondary: linear-gradient(135deg, #12223d, #1a2332);
+$gradient-background: linear-gradient(135deg, #0a0f1c, #101b2d);
+
+// Shadows
+$shadow-small: 0 2px 8px rgba(0, 217, 255, 0.1);
+$shadow-medium: 0 4px 16px rgba(0, 217, 255, 0.15);
+$shadow-large: 0 8px 32px rgba(0, 217, 255, 0.2);
+
+// Border Radius
+$radius-small: 4px;
+$radius-medium: 8px;
+$radius-large: 12px;
+
+// Spacing
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+
+// Typography
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+$font-size-3xl: 1.875rem;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// Transitions
+$transition-fast: 0.15s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// Z-index
+$z-dropdown: 1000;
+$z-sticky: 1020;
+$z-fixed: 1030;
+$z-modal-backdrop: 1040;
+$z-modal: 1050;
+$z-popover: 1060;
+$z-tooltip: 1070;
+
+// Breakpoints
+$breakpoints: (
+  "xs": 0,
+  "sm": 576px,
+  "md": 768px,
+  "lg": 992px,
+  "xl": 1200px,
+  "xxl": 1400px,
+);
+
+// Container max-widths
+$container-max-widths: (
+  "sm": 540px,
+  "md": 720px,
+  "lg": 960px,
+  "xl": 1140px,
+  "xxl": 1320px,
+);

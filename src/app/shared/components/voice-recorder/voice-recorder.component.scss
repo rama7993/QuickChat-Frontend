@@ -1,0 +1,212 @@
+.voice-recorder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-large);
+  width: 100%;
+  max-width: 100%;
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+
+  .recorder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .recording-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #9ca3af;
+        box-shadow: 0 0 8px rgba(156, 163, 175, 0.5);
+
+        &.recording {
+          background-color: #ef4444;
+          box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+          animation: pulse 1.5s infinite;
+        }
+
+        &.paused {
+          background-color: #f59e0b;
+          box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+        }
+      }
+
+      .status-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--color-text);
+        letter-spacing: 0.025em;
+      }
+    }
+
+    .recording-timer {
+      font-family: "Monaco", "Consolas", monospace;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      background: var(--color-background);
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-small);
+      border: 1px solid var(--color-border);
+    }
+  }
+
+  .visualizer-container {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-background);
+    border-radius: var(--radius-medium);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--color-border);
+    box-shadow: inset var(--shadow-small);
+
+    .start-prompt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--color-text-secondary);
+
+      i {
+        font-size: 1.75rem;
+        opacity: 0.7;
+      }
+
+      p {
+        font-size: 0.875rem;
+        margin: 0;
+        font-weight: 500;
+      }
+    }
+
+    .wave-visualizer {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+      padding: 0 1.5rem;
+      width: 100%;
+      justify-content: center;
+
+      .wave-bar {
+        width: 4px;
+        background: var(--gradient-primary);
+        border-radius: 4px;
+        transition: height 0.05s ease;
+        min-height: 4px;
+        box-shadow: 0 0 8px rgba(var(--color-accent-rgb, 0, 123, 255), 0.4);
+
+        &.active {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  .recorder-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 0.5rem;
+
+    .control-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--color-background);
+      color: var(--color-text);
+      box-shadow: var(--shadow-small);
+      border: 1px solid var(--color-border);
+
+      &:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      &.large {
+        width: 64px;
+        height: 64px;
+        font-size: 1.5rem;
+      }
+
+      &.record-btn {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+
+        &:hover {
+          box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+      }
+
+      &.stop-btn {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+
+        &:hover {
+          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+      }
+
+      &.cancel-btn {
+        background: transparent;
+        border: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
+        box-shadow: none;
+
+        &:hover {
+          background: var(--color-background);
+          color: var(--color-error);
+          border-color: var(--color-error);
+        }
+      }
+
+      &.pause-btn,
+      &.resume-btn {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

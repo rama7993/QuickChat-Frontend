@@ -1,0 +1,246 @@
+<div class="create-group-container">
+  <div class="create-group-header">
+    <button class="back-btn" (click)="cancel()">
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <h1>Create New Group</h1>
+  </div>
+
+  <div class="create-group-content">
+    <form (ngSubmit)="createGroup()" class="group-form">
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h2>Basic Information</h2>
+
+        <div class="form-group">
+          <label for="groupName">Group Name *</label>
+          <input
+            id="groupName"
+            type="text"
+            [(ngModel)]="groupName"
+            name="groupName"
+            placeholder="Enter group name"
+            required
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="groupDescription">Description</label>
+          <textarea
+            id="groupDescription"
+            [(ngModel)]="groupDescription"
+            name="groupDescription"
+            placeholder="Describe your group..."
+            rows="3"
+            class="form-textarea"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="groupType">Group Type</label>
+          <select
+            id="groupType"
+            [(ngModel)]="groupType"
+            name="groupType"
+            class="form-select"
+          >
+            <option value="public">Public - Anyone can join</option>
+            <option value="private">Private - Invite only</option>
+            <option value="secret">Secret - Hidden from search</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Members Selection -->
+      <div class="form-section">
+        <div class="section-header">
+          <h2>Add Members</h2>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="toggleMemberSelector()"
+          >
+            <i class="pi pi-users"></i>
+            {{ showMemberSelector() ? "Hide" : "Add" }} Members
+          </button>
+        </div>
+
+        @if (showMemberSelector()) {
+        <div class="member-selector">
+          <div class="search-box">
+            <i class="pi pi-search"></i>
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              name="searchQuery"
+              placeholder="Search users..."
+              class="search-input"
+            />
+          </div>
+
+          <div class="users-list">
+            @for (user of filteredUsers; track user._id) {
+            <div
+              class="user-item"
+              [class.selected]="isMemberSelected(user)"
+              (click)="toggleMemberSelection(user)"
+            >
+              <div class="user-avatar">
+                <img
+                  [src]="user.photoUrl || '/assets/default-avatar.png'"
+                  [alt]="user.firstName"
+                />
+              </div>
+              <div class="user-info">
+                <h4>{{ user.firstName }} {{ user.lastName }}</h4>
+                <p>{{ user.email }}</p>
+              </div>
+              <div class="selection-indicator">
+                <i class="pi pi-check" *ngIf="isMemberSelected(user)"></i>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Selected Members -->
+        @if (selectedMembers().length > 0) {
+        <div class="selected-members">
+          <h3>Selected Members ({{ selectedMembers().length }})</h3>
+          <div class="members-grid">
+            @for (member of selectedMembers(); track member._id) {
+            <div class="member-chip">
+              <img
+                [src]="member.photoUrl || '/assets/default-avatar.png'"
+                [alt]="member.firstName"
+              />
+              <span>{{ member.firstName }} {{ member.lastName }}</span>
+              <button
+                type="button"
+                class="remove-btn"
+                (click)="removeMember(member)"
+              >
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Advanced Settings -->
+      <div class="form-section">
+        <div class="section-header">
+          <h2>Advanced Settings</h2>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="toggleAdvancedSettings()"
+          >
+            <i class="pi pi-cog"></i>
+            {{ showAdvancedSettings() ? "Hide" : "Show" }} Settings
+          </button>
+        </div>
+
+        @if (showAdvancedSettings()) {
+        <div class="advanced-settings">
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="allowInviteLinks"
+                name="allowInviteLinks"
+              />
+              <span class="checkmark"></span>
+              Allow invite links
+            </label>
+            <p class="setting-description">
+              Members can generate invite links to share with others
+            </p>
+          </div>
+
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="allowMemberInvites"
+                name="allowMemberInvites"
+              />
+              <span class="checkmark"></span>
+              Allow member invites
+            </label>
+            <p class="setting-description">
+              Members can invite other users to the group
+            </p>
+          </div>
+
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="requireApproval"
+                name="requireApproval"
+              />
+              <span class="checkmark"></span>
+              Require admin approval
+            </label>
+            <p class="setting-description">
+              New members need admin approval to join
+            </p>
+          </div>
+
+          <div class="setting-item">
+            <label for="maxMembers">Maximum Members</label>
+            <input
+              id="maxMembers"
+              type="number"
+              [(ngModel)]="maxMembers"
+              name="maxMembers"
+              min="2"
+              max="1000"
+              class="form-input"
+            />
+            <p class="setting-description">
+              Maximum number of members allowed in the group
+            </p>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Error Message -->
+      @if (errorMessage()) {
+      <div class="error-message">
+        <i class="pi pi-exclamation-triangle"></i>
+        {{ errorMessage() }}
+      </div>
+      }
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancel()"
+          [disabled]="isCreating()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isCreating() || !groupName().trim()"
+        >
+          @if (isCreating()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          Creating... } @else {
+          <i class="pi pi-plus"></i>
+          Create Group }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
