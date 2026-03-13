@@ -52,7 +52,7 @@ export class SignupComponent {
         '',
         [
           Validators.required,
-          Validators.minLength(6),
+          Validators.minLength(8),
           Validators.maxLength(100),
         ],
       ],
