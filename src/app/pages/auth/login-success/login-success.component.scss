@@ -23,7 +23,7 @@
 
       i {
         font-size: 6rem;
-        color: #22c55e; // Vibrant green
+        color: #22c55e;
         animation: successPulse 2s infinite;
       }
     }
@@ -56,20 +56,20 @@
 
   .loading-section {
     margin-bottom: var(--spacing-xl);
-    background-color: #f0fdf4; // Light green background
-    border: 1px solid #bbf7d0; // Light green border
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 0.625rem 1.5rem;
     display: inline-block;
     min-width: 300px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 
     .loading-text {
-      color: #15803d; // Dark green text
+      color: #15803d;
       font-size: 1.25rem;
       font-weight: 600;
       margin: 0;
-      animation: none; // Remove fade animation for cleaner look
+      animation: none;
     }
   }
 
@@ -84,7 +84,7 @@
       display: inline-flex;
       align-items: center;
       gap: var(--spacing-sm);
-      padding: var(--spacing-md) var(--spacing-lg);
+      padding: 0.625rem 2.5rem;
       border-radius: var(--radius-medium);
       font-weight: 600;
       text-decoration: none;

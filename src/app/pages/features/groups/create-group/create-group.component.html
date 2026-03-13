@@ -88,7 +88,8 @@
             >
               <div class="user-avatar">
                 <img
-                  [src]="user.photoUrl || '/assets/default-avatar.png'"
+                  [src]="user.photoUrl || 'assets/images/defaults/user.svg'"
+                  (error)="$any($event.target).src = 'assets/images/defaults/user.svg'"
                   [alt]="user.firstName"
                 />
               </div>
@@ -113,7 +114,8 @@
             @for (member of selectedMembers(); track member._id) {
             <div class="member-chip">
               <img
-                [src]="member.photoUrl || '/assets/default-avatar.png'"
+                [src]="member.photoUrl || 'assets/images/defaults/user.svg'"
+                (error)="$any($event.target).src = 'assets/images/defaults/user.svg'"
                 [alt]="member.firstName"
               />
               <span>{{ member.firstName }} {{ member.lastName }}</span>

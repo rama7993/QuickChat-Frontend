@@ -1,6 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+// Theme interface definition
 export interface Theme {
   id: string;
   name: string;
@@ -132,21 +133,21 @@ export class ThemeService {
   getThemes(): Theme[] {
     const currentTheme = this.currentTheme();
 
-    // If current theme is custom, apply custom colors to base themes
     if (currentTheme.isCustom && currentTheme.customColors) {
       const customColors = currentTheme.customColors;
       return this.themes.map((theme) => {
         if (theme.id === 'light-mode' || theme.id === 'dark-mode') {
+          const surface = customColors.surface || theme.colors.surface;
+          const contrast = this.getContrastColors(surface);
+
           return {
             ...theme,
             colors: {
               ...theme.colors,
+              ...contrast,
               primary: customColors.primary || theme.colors.primary,
               accent: customColors.primary || theme.colors.accent,
-              surface: customColors.surface || theme.colors.surface,
-              background: customColors.surface
-                ? this.lightenColor(customColors.surface, 5)
-                : theme.colors.background,
+              surface: surface,
             },
             gradients: {
               ...theme.gradients,
@@ -184,27 +185,27 @@ export class ThemeService {
     const currentTheme = this.currentTheme();
 
     if (baseTheme) {
-      // If current theme has custom colors, preserve them
       if (currentTheme.isCustom && currentTheme.customColors) {
-        const updatedTheme = {
+        const surface =
+          currentTheme.customColors.surface || baseTheme.colors.surface;
+        const contrast = this.getContrastColors(surface);
+
+        const updatedTheme: Theme = {
           ...baseTheme,
           id: 'custom',
           name: 'custom',
           displayName: 'Custom Theme',
-          icon: baseTheme.icon, // Use the base theme's icon (sun for light, moon for dark)
+          icon: baseTheme.icon,
           isCustom: true,
           customColors: currentTheme.customColors,
           colors: {
             ...baseTheme.colors,
+            ...contrast,
             primary:
               currentTheme.customColors.primary || baseTheme.colors.primary,
             accent:
               currentTheme.customColors.primary || baseTheme.colors.accent,
-            surface:
-              currentTheme.customColors.surface || baseTheme.colors.surface,
-            background: currentTheme.customColors.surface
-              ? this.lightenColor(currentTheme.customColors.surface, 5)
-              : baseTheme.colors.background,
+            surface: surface,
           },
           gradients: {
             ...baseTheme.gradients,
@@ -222,7 +223,6 @@ export class ThemeService {
         this.saveTheme('custom');
         this.saveCustomTheme(updatedTheme);
       } else {
-        // No custom colors, just switch to base theme
         this.setTheme(themeId);
       }
     }
@@ -266,7 +266,6 @@ export class ThemeService {
       try {
         return JSON.parse(customThemeData);
       } catch (error) {
-        console.error('Error parsing custom theme data:', error);
         return null;
       }
     }
@@ -276,62 +275,43 @@ export class ThemeService {
   private applyTheme(theme: Theme): void {
     const root = document.documentElement;
 
-    // Apply color variables
     Object.entries(theme.colors).forEach(([key, value]) => {
       root.style.setProperty(`--color-${key}`, value);
     });
 
-    // Apply gradient variables
     Object.entries(theme.gradients).forEach(([key, value]) => {
       root.style.setProperty(`--gradient-${key}`, value);
     });
 
-    // Apply shadow variables
     Object.entries(theme.shadows).forEach(([key, value]) => {
       root.style.setProperty(`--shadow-${key}`, value);
     });
 
-    // Apply border radius variables
     Object.entries(theme.borderRadius).forEach(([key, value]) => {
       root.style.setProperty(`--radius-${key}`, value);
     });
 
-    // Apply theme class to body
     document.body.className = document.body.className.replace(/theme-\w+/g, '');
     document.body.classList.add(`theme-${theme.name}`);
   }
 
-  // Computed properties for reactive theme access
   public primaryColor = computed(() => this.currentTheme().colors.primary);
   public accentColor = computed(() => this.currentTheme().colors.accent);
   public backgroundColor = computed(
-    () => this.currentTheme().colors.background
+    () => this.currentTheme().colors.background,
   );
   public textColor = computed(() => this.currentTheme().colors.text);
   public surfaceColor = computed(() => this.currentTheme().colors.surface);
 
-  // Helper method to get the base theme type (light or dark)
-  getBaseThemeType(): 'light-mode' | 'dark-mode' {
-    const currentTheme = this.currentTheme();
-
-    // If it's a custom theme, check the icon to determine base type
-    if (currentTheme.isCustom) {
-      return currentTheme.icon === 'pi pi-sun' ? 'light-mode' : 'dark-mode';
-    }
-
-    // For non-custom themes, return the theme ID
-    return currentTheme.id as 'light-mode' | 'dark-mode';
-  }
-
   // Custom color methods
   setCustomPrimaryColor(color: string) {
     const currentTheme = this.currentTheme();
-    const updatedTheme = {
+    const updatedTheme: Theme = {
       ...currentTheme,
       id: 'custom',
       name: 'custom',
       displayName: 'Custom Theme',
-      icon: currentTheme.icon, // Preserve the current icon (sun for light, moon for dark)
+      icon: currentTheme.icon,
       isCustom: true,
       customColors: {
         ...currentTheme.customColors,
@@ -339,14 +319,17 @@ export class ThemeService {
       },
       colors: {
         ...currentTheme.colors,
-        primary: color,
+        primary:
+          this.getBaseThemeType() === 'light-mode'
+            ? currentTheme.colors.primary
+            : color,
         accent: color,
       },
       gradients: {
         ...currentTheme.gradients,
         primary: `linear-gradient(135deg, ${color}, ${this.darkenColor(
           color,
-          20
+          20,
         )})`,
       },
     };
@@ -359,12 +342,14 @@ export class ThemeService {
 
   setCustomSurfaceColor(color: string) {
     const currentTheme = this.currentTheme();
-    const updatedTheme = {
+    const contrast = this.getContrastColors(color);
+
+    const updatedTheme: Theme = {
       ...currentTheme,
       id: 'custom',
       name: 'custom',
       displayName: 'Custom Theme',
-      icon: currentTheme.icon, // Preserve the current icon (sun for light, moon for dark)
+      icon: currentTheme.icon,
       isCustom: true,
       customColors: {
         ...currentTheme.customColors,
@@ -372,8 +357,8 @@ export class ThemeService {
       },
       colors: {
         ...currentTheme.colors,
+        ...contrast,
         surface: color,
-        background: this.lightenColor(color, 5),
       },
     };
     this.currentThemeSubject.next(updatedTheme);
@@ -384,53 +369,76 @@ export class ThemeService {
   }
 
   resetToDefaultTheme() {
-    const defaultTheme = this.themes[0]; // Light mode
-    this.setTheme(defaultTheme.id);
-    // Clear custom theme data
     localStorage.removeItem(this.CUSTOM_THEME_KEY);
+    this.setTheme('light-mode');
+  }
+
+  private getContrastColors(backgroundColor: string) {
+    const isLight = this.isLightColor(backgroundColor);
+    return {
+      background: isLight
+        ? this.darkenColor(backgroundColor, 3)
+        : this.lightenColor(backgroundColor, 5),
+      text: isLight ? '#1e293b' : '#ffffff',
+      textSecondary: isLight ? '#64748b' : '#d1d5db',
+      border: isLight
+        ? this.darkenColor(backgroundColor, 10)
+        : this.lightenColor(backgroundColor, 10),
+    };
+  }
+
+  private isLightColor(color: string): boolean {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Perceptual brightness formula
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 155;
   }
 
   private darkenColor(color: string, percent: number): string {
-    const num = parseInt(color.replace('#', ''), 16);
+    const hex = color.replace('#', '');
+    const num = parseInt(hex, 16);
     const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) - amt;
-    const G = ((num >> 8) & 0x00ff) - amt;
-    const B = (num & 0x0000ff) - amt;
-    return (
-      '#' +
-      (
-        0x1000000 +
-        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
-        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
-        (B < 255 ? (B < 1 ? 0 : B) : 255)
-      )
-        .toString(16)
-        .slice(1)
-    );
+    let r = (num >> 16) - amt;
+    let g = ((num >> 8) & 0x00ff) - amt;
+    let b = (num & 0x0000ff) - amt;
+
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+
+    return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
   }
 
   private lightenColor(color: string, percent: number): string {
-    const num = parseInt(color.replace('#', ''), 16);
+    const hex = color.replace('#', '');
+    const num = parseInt(hex, 16);
     const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = ((num >> 8) & 0x00ff) + amt;
-    const B = (num & 0x0000ff) + amt;
-    return (
-      '#' +
-      (
-        0x1000000 +
-        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
-        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
-        (B < 255 ? (B < 1 ? 0 : B) : 255)
-      )
-        .toString(16)
-        .slice(1)
-    );
+    let r = (num >> 16) + amt;
+    let g = ((num >> 8) & 0x00ff) + amt;
+    let b = (num & 0x0000ff) + amt;
+
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+
+    return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
   }
 
-  // Font size management
+  public getBaseThemeType(): 'light-mode' | 'dark-mode' {
+    const current = this.currentTheme();
+    if (!current.isCustom) return current.id as 'light-mode' | 'dark-mode';
+
+    const savedBase = localStorage.getItem(this.THEME_KEY);
+    return savedBase === 'dark-mode' ? 'dark-mode' : 'light-mode';
+  }
+
   setFontSize(size: 'smaller' | 'medium' | 'larger') {
     const root = document.documentElement;
+    localStorage.setItem('fontSize', size);
 
     switch (size) {
       case 'smaller':
@@ -452,8 +460,6 @@ export class ThemeService {
         root.style.setProperty('--font-size-xl', '22px');
         break;
     }
-
-    localStorage.setItem('fontSize', size);
   }
 
   getFontSize(): 'smaller' | 'medium' | 'larger' {

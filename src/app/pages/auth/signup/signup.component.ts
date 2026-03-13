@@ -26,7 +26,7 @@ export class SignupComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private alertService: AlertService,
-    private logger: LoggerService
+    private logger: LoggerService,
   ) {}
 
   ngOnInit() {
@@ -78,9 +78,8 @@ export class SignupComponent {
 
       this.authService.register(registerData).subscribe({
         next: (res) => {
-          // console.log('Registration successful:', res); // Commented for production
           this.alertService.successToaster(
-            'Registration successful! Please login to continue.'
+            'Registration successful! Please login to continue.',
           );
           this.router.navigate(['/login']);
         },
@@ -100,7 +99,7 @@ export class SignupComponent {
     } else {
       this.signupForm.markAllAsTouched();
       this.alertService.warningToaster(
-        'Please fill in all required fields correctly'
+        'Please fill in all required fields correctly',
       );
     }
   }

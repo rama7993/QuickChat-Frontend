@@ -16,17 +16,14 @@ import { SoundNotificationService } from '../notifications/sound-notification.se
 })
 export class ChatService {
   private apiUrl = environment.apiUrl;
-  // private http = inject(HttpClient);
   private socketService = inject(SocketService);
   private soundNotificationService = inject(SoundNotificationService);
 
-  // Real-time message streams
   private messagesSubject = new BehaviorSubject<Message[]>([]);
   private typingUsersSubject = new BehaviorSubject<TypingUser[]>([]);
   private currentChatSubject = new BehaviorSubject<string | null>(null);
   private processedMessageIds = new Set<string>();
 
-  // Users cache
   private usersCache: any[] | null = null;
   private usersCacheTimestamp: number = 0;
   private readonly USERS_CACHE_TTL = 60000; // 1 minute cache
@@ -37,11 +34,9 @@ export class ChatService {
   public currentChat$ = this.currentChatSubject.asObservable();
   public newChatRequested$ = this.newChatSubject.asObservable();
 
-  // Method to clear messages when switching chats
   public clearMessages(): void {
     this.messagesSubject.next([]);
     this.processedMessageIds.clear();
-    // Also clear socket service processed messages
     this.socketService.clearProcessedMessages();
   }
 
@@ -58,18 +53,17 @@ export class ChatService {
   }
 
   private initializeSocketListeners(): void {
-    // Listen for new messages
     this.socketService.message$.subscribe((socketMessage) => {
-      console.log('ChatService: Received message from socket', socketMessage);
-      this.processMessage(socketMessage);
+      if (socketMessage) {
+        this.processMessage(socketMessage);
+      }
     });
 
-    // Listen for typing indicators
     this.socketService.typing$.subscribe((typingData) => {
       if (typingData) {
         const currentTypingUsers = this.typingUsersSubject.value;
         const existingUserIndex = currentTypingUsers.findIndex(
-          (u) => u.userId === typingData.userId
+          (u) => u.userId === typingData.userId,
         );
 
         if (typingData.isTyping) {
@@ -90,20 +84,21 @@ export class ChatService {
   }
 
   private processMessage(socketMessage: any): void {
-    if (!socketMessage || !socketMessage._id) return;
+    if (!socketMessage) return;
 
-    // Handle message deletion
     const isDeletion =
-      (socketMessage as any).deleted || (socketMessage as any).messageId;
+      (socketMessage as any).messageId && !(socketMessage as any).content;
     if (isDeletion) {
-      const messageId = (socketMessage as any).messageId || socketMessage._id;
+      const messageId = (socketMessage as any).messageId;
       const currentMessages = this.messagesSubject.value;
       const updatedMessages = currentMessages.filter(
-        (msg) => msg._id !== messageId
+        (msg) => msg._id !== messageId,
       );
       this.messagesSubject.next(updatedMessages);
       return;
     }
+
+    if (!socketMessage._id) return;
 
     // Convert socket message to chat service message format
     const message: Message = {
@@ -137,29 +132,22 @@ export class ChatService {
 
     const currentMessages = this.messagesSubject.value;
 
-    // Strict duplication check using ONLY _id
     const messageExists = currentMessages.some(
-      (existingMessage) => existingMessage._id === message._id
+      (existingMessage) => existingMessage._id === message._id,
     );
 
     if (messageExists) {
-      // Option: Update the existing message instead of ignoring?
-      // For now, ignore to prevent duplicates, but if it's an update, we might need to handle it.
-      // Assuming 'message_updated' handles edits.
       return;
     }
 
-    // Add message to the array and sort by timestamp
     const updatedMessages = [...currentMessages, message].sort(
       (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
 
     this.messagesSubject.next(updatedMessages);
 
-    // Play notification sound
     const currentUser = this.socketService.getCurrentUser();
-    // Safety check: sender might be just an ID string or an object
     const senderId = message.sender._id || (message.sender as any);
     const currentUserId = currentUser?._id;
 
@@ -171,49 +159,42 @@ export class ChatService {
     }
   }
 
-  // Get all users with caching
   getUsers(forceRefresh: boolean = false): Observable<any[]> {
     const now = Date.now();
     const isCacheValid =
       this.usersCache && now - this.usersCacheTimestamp < this.USERS_CACHE_TTL;
 
-    // Return cached data if valid and not forcing refresh
     if (isCacheValid && !forceRefresh) {
       return of(this.usersCache!);
     }
 
-    // Fetch fresh data
     return this.http.get<any[]>(`${this.apiUrl}/users`).pipe(
       tap((users) => {
         this.usersCache = users;
         this.usersCacheTimestamp = now;
       }),
       catchError((error) => {
-        // If error and we have cached data, return cache as fallback
         if (this.usersCache) {
           return of(this.usersCache);
         }
         throw error;
-      })
+      }),
     );
   }
 
-  // Clear users cache (useful when user data might have changed)
   clearUsersCache(): void {
     this.usersCache = null;
     this.usersCacheTimestamp = 0;
   }
 
-  // Get recent conversations with last message and unread count
   getConversations(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/messages/conversations`);
   }
 
-  // Get private messages with pagination
   getPrivateMessages(
     userId: string,
     page: number = 1,
-    limit: number = 50
+    limit: number = 50,
   ): Observable<Message[]> {
     const params = new HttpParams()
       .set('page', page.toString())
@@ -221,15 +202,14 @@ export class ChatService {
 
     return this.http.get<Message[]>(
       `${this.apiUrl}/messages/private/${userId}`,
-      { params }
+      { params },
     );
   }
 
-  // Get group messages with pagination
   getGroupMessages(
     groupId: string,
     page: number = 1,
-    limit: number = 50
+    limit: number = 50,
   ): Observable<Message[]> {
     const params = new HttpParams()
       .set('page', page.toString())
@@ -237,17 +217,16 @@ export class ChatService {
 
     return this.http.get<Message[]>(
       `${this.apiUrl}/messages/group/${groupId}`,
-      { params }
+      { params },
     );
   }
 
-  // Send private message (real-time)
   sendPrivateMessage(
     receiverId: string,
     content: string,
     replyTo?: string,
     fileUrl?: string,
-    fileType?: string
+    fileType?: string,
   ): void {
     this.socketService.sendMessage({
       content,
@@ -271,13 +250,12 @@ export class ChatService {
     });
   }
 
-  // Send group message (real-time)
   sendGroupMessage(
     groupId: string,
     content: string,
     replyTo?: string,
     fileUrl?: string,
-    fileType?: string
+    fileType?: string,
   ): void {
     this.socketService.sendMessage({
       content,
@@ -295,13 +273,12 @@ export class ChatService {
     });
   }
 
-  // Upload file and send message (real-time)
   uploadFile(
     file: File,
     receiverId?: string,
     groupId?: string,
     content?: string,
-    replyTo?: string
+    replyTo?: string,
   ): Observable<any> {
     const messageType = this.getFileMessageType(file.type);
     const roomId = receiverId || groupId;
@@ -315,31 +292,27 @@ export class ChatService {
       file,
       roomId,
       messageType,
-      isGroupChat
+      isGroupChat,
     );
   }
 
-  // Add reaction to message
   addReaction(messageId: string, emoji: string): Observable<Message> {
     return this.http.post<Message>(
       `${this.apiUrl}/messages/${messageId}/reaction`,
       {
         emoji,
-      }
+      },
     );
   }
 
-  // Edit message (real-time)
   editMessage(messageId: string, content: string): void {
     this.socketService.updateMessage(messageId, content);
   }
 
-  // Delete message (real-time)
   deleteMessage(messageId: string): void {
     this.socketService.deleteMessage(messageId);
   }
 
-  // Delete entire conversation
   deleteConversation(userId?: string, groupId?: string): Observable<any> {
     let url = `${this.apiUrl}/messages`;
 
@@ -353,28 +326,25 @@ export class ChatService {
 
     return this.http.delete(url).pipe(
       tap(() => {
-        // Clear messages after successful deletion
         this.clearMessages();
       }),
       catchError((error) => {
         console.error('Error deleting conversation:', error);
         throw error;
-      })
+      }),
     );
   }
 
-  // Real-time chat management
   joinChat(chatId: string, chatType: 'private' | 'group'): void {
     this.socketService.joinRoom(chatId, chatType);
     this.currentChatSubject.next(chatId);
   }
 
-  leaveChat(chatId: string): void {
-    this.socketService.leaveRoom(chatId);
+  leaveChat(chatId: string, chatType: 'private' | 'group'): void {
+    this.socketService.leaveRoom(chatId, chatType);
     this.currentChatSubject.next(null);
   }
 
-  // Typing indicators
   startTyping(receiverId?: string, groupId?: string): void {
     this.socketService.startTyping(receiverId, groupId);
   }
@@ -383,14 +353,12 @@ export class ChatService {
     this.socketService.stopTyping(receiverId, groupId);
   }
 
-  // Mark message as read
   markMessageAsRead(messageId: string, roomId: string): void {
     this.socketService.markMessageAsRead(messageId, roomId);
   }
 
-  // Helper method to determine file message type
   private getFileMessageType(
-    mimeType: string
+    mimeType: string,
   ): 'image' | 'video' | 'audio' | 'file' {
     if (mimeType.startsWith('image/')) return 'image';
     if (mimeType.startsWith('video/')) return 'video';
@@ -398,21 +366,18 @@ export class ChatService {
     return 'file';
   }
 
-  // Get current messages
   getCurrentMessages(): Message[] {
     return this.messagesSubject.value;
   }
 
-  // Get current typing users
   getCurrentTypingUsers(): TypingUser[] {
     return this.typingUsersSubject.value;
   }
 
-  // Search messages
   searchMessages(
     query: string,
     groupId?: string,
-    userId?: string
+    userId?: string,
   ): Observable<Message[]> {
     let params = new HttpParams().set('query', query);
     if (groupId) params = params.set('groupId', groupId);
@@ -423,7 +388,6 @@ export class ChatService {
     });
   }
 
-  // Format file size
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -506,7 +470,7 @@ export class ChatService {
 
   // Group messages by date
   groupMessagesByDate(
-    messages: Message[]
+    messages: Message[],
   ): { date: string; messages: Message[] }[] {
     const grouped: { [key: string]: Message[] } = {};
 

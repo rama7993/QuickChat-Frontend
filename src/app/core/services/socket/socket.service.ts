@@ -100,7 +100,6 @@ export class SocketService {
   private isConnected = signal(false);
   private currentUser = signal<any>(null);
 
-  // Observable streams
   private messageSubject = new BehaviorSubject<Message | null>(null);
   private typingSubject = new BehaviorSubject<TypingUser | null>(null);
   private onlineUsersSubject = new BehaviorSubject<OnlineUser[]>([]);
@@ -108,7 +107,6 @@ export class SocketService {
   private notificationSubject = new BehaviorSubject<any>(null);
   private processedMessages = new Set<string>(); // Track processed messages
 
-  // Public observables
   public message$ = this.messageSubject.asObservable();
   public typing$ = this.typingSubject.asObservable();
   public onlineUsers$ = this.onlineUsersSubject.asObservable();
@@ -118,14 +116,12 @@ export class SocketService {
   constructor() {
     this.initializeSocket();
 
-    // Listen for token refresh events
     this.authService.getTokenRefreshObservable().subscribe(() => {
       this.reconnectWithNewToken();
     });
   }
 
   private initializeSocket(): void {
-    // Prevent multiple socket connections
     if (this.socket && this.socket.connected) {
       return;
     }
@@ -136,21 +132,18 @@ export class SocketService {
       return;
     }
 
-    // Disconnect existing socket if any
     if (this.socket) {
       this.socket.disconnect();
     }
 
-    // Connect to backend socket server
     this.socket = io(environment.socketUrl, {
       auth: {
         token: token,
       },
-      transports: ['websocket', 'polling'],
-      forceNew: true, // Force new connection
-      timeout: 20000, // 20 second timeout
+      transports: ['polling', 'websocket'],
+      timeout: 20000,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
 
@@ -160,10 +153,8 @@ export class SocketService {
   private setupEventListeners(): void {
     if (!this.socket) return;
 
-    // Remove existing event listeners to prevent duplication
     this.socket.removeAllListeners();
 
-    // Connection events
     this.socket.on('connect', () => {
       this.isConnected.set(true);
       this.connectionStatusSubject.next(true);
@@ -178,7 +169,6 @@ export class SocketService {
       this.isConnected.set(false);
       this.connectionStatusSubject.next(false);
 
-      // Handle authentication errors
       if (error.message && error.message.includes('Authentication error')) {
         this.storageService.remove('authToken');
         this.authService.logout();
@@ -186,7 +176,6 @@ export class SocketService {
       }
     });
 
-    // Authentication events
     this.socket.on('authenticated', (user) => {
       this.currentUser.set(user);
     });
@@ -198,14 +187,12 @@ export class SocketService {
       window.location.href = '/login';
     });
 
-    // Message events
     this.socket.on('message_received', (message: Message) => {
       // Add null checks for message structure
       if (!message || !message._id) {
         return;
       }
 
-      // Create a unique key for message deduplication with safe property access
       const senderId = message.sender?._id || message.sender || 'unknown';
       const messageKey = `${message._id}_${
         message.timestamp || Date.now()
@@ -216,7 +203,6 @@ export class SocketService {
         return;
       }
 
-      // Mark message as processed
       this.processedMessages.add(messageKey);
 
       // Clean up old processed messages (keep only last 100)
@@ -231,7 +217,6 @@ export class SocketService {
       this.messageSubject.next(message);
     });
 
-    // Listen for new_message event (used for file uploads)
     this.socket.on('new_message', (message: Message) => {
       // Add null checks for message structure
       if (!message || !message._id) {
@@ -270,7 +255,6 @@ export class SocketService {
       this.messageSubject.next(payload);
     });
 
-    // Typing events
     this.socket.on('user_typing', (typingData: TypingUser) => {
       this.typingSubject.next(typingData);
     });
@@ -279,7 +263,6 @@ export class SocketService {
       this.typingSubject.next(typingData);
     });
 
-    // Online status events
     this.socket.on('online_users', (users: OnlineUser[]) => {
       this.onlineUsersSubject.next(users);
     });
@@ -296,12 +279,11 @@ export class SocketService {
       const updatedUsers = currentUsers.map((user) =>
         user.userId === userId
           ? { ...user, isOnline: false, lastSeen: new Date() }
-          : user
+          : user,
       );
       this.onlineUsersSubject.next(updatedUsers);
     });
 
-    // Notification events
     this.socket.on('new_notification', (notification: any) => {
       this.notificationSubject.next(notification);
     });
@@ -310,7 +292,7 @@ export class SocketService {
       'conversationDeleted',
       (data: { userId?: string; groupId?: string }) => {
         // Conversation deletion handled by chat service
-      }
+      },
     );
 
     // Error handling
@@ -319,16 +301,10 @@ export class SocketService {
     });
   }
 
-  // Public methods for sending data
   public sendMessage(message: Partial<Message>): void {
-    if (!this.socket || !this.isConnected()) {
-      return;
-    }
-
-    // Extract receiver/group IDs for backend
+    if (!this.socket) return;
     const receiverId = message.receiver?._id;
     const groupId = message.group?._id;
-
     this.socket.emit('send_message', {
       content: message.content,
       receiverId: receiverId,
@@ -340,8 +316,7 @@ export class SocketService {
   }
 
   public startTyping(receiverId?: string, groupId?: string): void {
-    if (!this.socket || !this.isConnected()) return;
-
+    if (!this.socket) return;
     const user = this.currentUser();
     this.socket.emit('start_typing', {
       receiverId,
@@ -352,8 +327,7 @@ export class SocketService {
   }
 
   public stopTyping(receiverId?: string, groupId?: string): void {
-    if (!this.socket || !this.isConnected()) return;
-
+    if (!this.socket) return;
     const user = this.currentUser();
     this.socket.emit('stop_typing', {
       receiverId,
@@ -364,29 +338,46 @@ export class SocketService {
   }
 
   public joinRoom(roomId: string, roomType: 'private' | 'group'): void {
-    if (!this.socket || !this.isConnected()) {
-      return;
+    if (!this.socket) return;
+
+    let formattedRoomId = roomId;
+    if (roomType === 'group') {
+      formattedRoomId = `group_${roomId}`;
+    } else {
+      const currentId = this.currentUser()?._id;
+      if (currentId) {
+        formattedRoomId = [currentId, roomId].sort().join('_');
+      }
     }
 
     this.socket.emit('join_room', {
-      roomId,
+      roomId: formattedRoomId,
       roomType,
       userId: this.currentUser()?._id,
     });
   }
 
-  public leaveRoom(roomId: string): void {
-    if (!this.socket || !this.isConnected()) return;
+  public leaveRoom(roomId: string, roomType: 'private' | 'group'): void {
+    if (!this.socket) return;
+
+    let formattedRoomId = roomId;
+    if (roomType === 'group') {
+      formattedRoomId = `group_${roomId}`;
+    } else {
+      const currentId = this.currentUser()?._id;
+      if (currentId) {
+        formattedRoomId = [currentId, roomId].sort().join('_');
+      }
+    }
 
     this.socket.emit('leave_room', {
-      roomId,
+      roomId: formattedRoomId,
       userId: this.currentUser()?._id,
     });
   }
 
   public markMessageAsRead(messageId: string, roomId: string): void {
-    if (!this.socket || !this.isConnected()) return;
-
+    if (!this.socket) return;
     this.socket.emit('mark_message_read', {
       messageId,
       roomId,
@@ -395,8 +386,7 @@ export class SocketService {
   }
 
   public updateMessage(messageId: string, content: string): void {
-    if (!this.socket || !this.isConnected()) return;
-
+    if (!this.socket) return;
     this.socket.emit('update_message', {
       messageId,
       content,
@@ -405,8 +395,7 @@ export class SocketService {
   }
 
   public deleteMessage(messageId: string): void {
-    if (!this.socket || !this.isConnected()) return;
-
+    if (!this.socket) return;
     this.socket.emit('delete_message', {
       messageId,
       userId: this.currentUser()?._id,
@@ -417,39 +406,32 @@ export class SocketService {
     file: File,
     roomId: string,
     messageType: 'image' | 'video' | 'audio' | 'file',
-    isGroupChat: boolean = false
+    isGroupChat: boolean = false,
   ): Observable<any> {
     return new Observable((observer) => {
-      if (!this.socket || !this.isConnected()) {
-        observer.error('Socket not connected');
+      if (!this.socket) {
+        observer.error('Socket not initialized');
         return;
       }
 
-      // Create a unique upload ID
       const uploadId = Date.now().toString();
 
-      // Listen for upload progress
       this.socket.on(`upload_progress_${uploadId}`, (progress) => {
         observer.next({ type: 'progress', progress });
       });
 
-      // Listen for upload completion
       this.socket.on(`upload_complete_${uploadId}`, (result) => {
         observer.next({ type: 'complete', result });
         observer.complete();
       });
 
-      // Listen for upload error
       this.socket.on(`upload_error_${uploadId}`, (error) => {
         observer.error(error);
       });
 
-      // Convert file to base64 for socket transmission
       const reader = new FileReader();
       reader.onload = () => {
         const base64Data = reader.result as string;
-
-        // Start upload - send file as base64
         this.socket?.emit('upload_file', {
           uploadId,
           fileData: base64Data,
@@ -484,7 +466,6 @@ export class SocketService {
     }
   }
 
-  // Method to clear processed messages (useful when switching chats)
   public clearProcessedMessages(): void {
     this.processedMessages.clear();
   }
@@ -494,7 +475,6 @@ export class SocketService {
     this.initializeSocket();
   }
 
-  // Reconnect socket with new token when token refreshes
   private reconnectWithNewToken(): void {
     if (this.socket) {
       this.socket.disconnect();
@@ -502,12 +482,10 @@ export class SocketService {
     this.initializeSocket();
   }
 
-  // Check if socket is connected
   public isSocketConnected(): boolean {
     return this.socket ? this.socket.connected : false;
   }
 
-  // Get connection status
   public getConnectionStatus(): boolean {
     return this.isConnected();
   }

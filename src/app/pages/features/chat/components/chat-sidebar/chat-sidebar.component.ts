@@ -5,8 +5,7 @@ import {
   computed,
   OnInit,
   OnDestroy,
-  Output,
-  EventEmitter,
+  output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -61,12 +60,11 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   public showNewChatModal = signal(false);
   public newChatSearch = signal('');
 
-  // Added allUsers signal
   public allUsers = signal<User[]>([]);
 
   private subscriptions: Subscription[] = [];
 
-  @Output() chatSelected = new EventEmitter<void>();
+  public chatSelected = output<void>();
 
   public filteredChatItems = computed(() => {
     const search = this.searchText().toLowerCase();
@@ -75,16 +73,16 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     return this.chatItems().filter(
       (item) =>
         item.name.toLowerCase().includes(search) ||
-        item.lastMessage?.toLowerCase().includes(search)
+        item.lastMessage?.toLowerCase().includes(search),
     );
   });
 
   public recentChats = computed(() =>
-    this.filteredChatItems().filter((item) => item.type === 'user')
+    this.filteredChatItems().filter((item) => item.type === 'user'),
   );
 
   public groupChats = computed(() =>
-    this.filteredChatItems().filter((item) => item.type === 'group')
+    this.filteredChatItems().filter((item) => item.type === 'group'),
   );
 
   public filteredUsersForNewChat = computed(() => {
@@ -92,7 +90,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     const list = this.allUsers();
     if (!query) return list;
     return list.filter((user) =>
-      `${user.firstName} ${user.lastName}`.toLowerCase().includes(query)
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(query),
     );
   });
 
@@ -113,12 +111,11 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   private loadData() {
+    if (this.isLoading()) return;
     this.isLoading.set(true);
 
-    // Load conversations (users with last message and unread count)
     const conversationsSub = this.chatService.getConversations().subscribe({
       next: (conversations) => {
-        // Map conversations to users with additional metadata
         const users = conversations.map((conv) => ({
           _id: conv._id,
           firstName: conv.userDetails.firstName,
@@ -136,11 +133,10 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
         this.updateChatItems();
       },
       error: (error) => {
-        // Fallback to getUsers if conversations endpoint fails
         this.chatService.getUsers().subscribe({
           next: (users) => {
             this.users.set(
-              users.filter((u) => u._id !== this.currentUser()?._id)
+              users.filter((u) => u._id !== this.currentUser()?._id),
             );
             this.updateChatItems();
           },
@@ -158,12 +154,13 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       },
     });
 
-    // Load all users for the "New Chat" modal
     const allUsersSub = this.chatService.getUsers().subscribe({
       next: (users) => {
-        this.allUsers.set(
-          users.filter((u) => u._id !== this.currentUser()?._id)
+        const filteredUsers = users.filter(
+          (u) => u._id !== this.currentUser()?._id,
         );
+        this.allUsers.set(filteredUsers);
+        this.updateChatItems();
       },
       error: (error) => {
         console.error('Failed to load users for new chat', error);
@@ -175,9 +172,10 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   private updateChatItems() {
     const items: ChatItem[] = [];
+    const processedIds = new Set<string>();
 
-    // Add user chats
     this.users().forEach((user: any) => {
+      processedIds.add(user._id);
       items.push({
         id: user._id,
         type: 'user',
@@ -194,7 +192,24 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Add group chats
+    this.allUsers().forEach((user: any) => {
+      if (!processedIds.has(user._id)) {
+        processedIds.add(user._id);
+        items.push({
+          id: user._id,
+          type: 'user',
+          name: `${user.firstName} ${user.lastName}`,
+          avatar: user.photoUrl || this.defaultAvatar,
+          lastMessage: undefined,
+          timestamp: undefined,
+          unreadCount: 0,
+          isOnline: user.status === 'online',
+          status: user.statusMessage,
+          data: user,
+        });
+      }
+    });
+
     this.groups().forEach((group) => {
       items.push({
         id: group._id,
@@ -206,11 +221,21 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Sort by last activity
     items.sort((a, b) => {
-      const aTime = a.timestamp?.getTime() || 0;
-      const bTime = b.timestamp?.getTime() || 0;
-      return bTime - aTime;
+      // Prioritize by timestamp if both have one
+      if (a.timestamp && b.timestamp) {
+        return b.timestamp.getTime() - a.timestamp.getTime();
+      }
+      // If only one has timestamp, it comes first
+      if (a.timestamp) return -1;
+      if (b.timestamp) return 1;
+
+      // Then by online status
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+
+      // Finally alphabetical
+      return a.name.localeCompare(b.name);
     });
 
     this.chatItems.set(items);
@@ -218,20 +243,18 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   private setupSocketListeners() {
-    // Listen for new messages
     const messageSub = this.socketService.message$.subscribe(
       (message: Message | null) => {
         if (message) {
           this.updateLastMessage(message);
         }
-      }
+      },
     );
 
-    // Listen for online users
     const onlineUsersSub = this.socketService.onlineUsers$.subscribe(
       (onlineUsers: OnlineUser[]) => {
         this.handleOnlineStatusUpdate(onlineUsers);
-      }
+      },
     );
 
     this.subscriptions.push(messageSub, onlineUsersSub);
@@ -240,7 +263,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   private handleOnlineStatusUpdate(onlineUsers: OnlineUser[]) {
     const onlineUserIds = new Set(onlineUsers.map((u) => u.userId));
 
-    // Update conversations list users
     const currentUsers = this.users();
     const updatedUsers = currentUsers.map((user) => ({
       ...user,
@@ -250,7 +272,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     }));
     this.users.set(updatedUsers);
 
-    // Update all users list (for "New Chat" modal)
     const currentAllUsers = this.allUsers();
     const updatedAllUsers = currentAllUsers.map((user) => ({
       ...user,
@@ -260,7 +281,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     }));
     this.allUsers.set(updatedAllUsers);
 
-    // Update the sidebar items
     this.updateChatItems();
   }
 
@@ -272,12 +292,10 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   private updateLastMessage(message: Message) {
-    // Add null checks to prevent errors - but be more lenient
     if (!message || !message._id) {
       return;
     }
 
-    // Check if sender exists, but don't block if it's just missing _id
     const senderId = message.sender?._id || (message.sender as any)?._id;
     if (!senderId && !message.group?._id) {
       // If no sender and no group, skip but don't error
@@ -294,7 +312,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     });
 
     if (itemIndex !== -1) {
-      // Update last message content - handle different message types
       const messageContent =
         message.content ||
         (message.attachments && message.attachments.length > 0
@@ -370,6 +387,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   startChatWithUser(user: User) {
+    this.chatSelected.emit();
     this.closeNewChatModal();
     this.router.navigate(['/chat'], {
       queryParams: { userId: user._id },

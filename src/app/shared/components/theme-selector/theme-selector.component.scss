@@ -63,17 +63,15 @@
 
 .theme-selector__dropdown {
   position: absolute;
-  top: 100%;
-  left: 0;
+  top: calc(100% + 0.5rem);
   right: 0;
-  margin-top: var(--spacing-sm);
   background: var(--color-surface) !important;
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-large);
-  box-shadow: var(--shadow-large);
-  z-index: var(--z-dropdown);
+  box-shadow: var(--shadow-xl);
+  z-index: 1500;
   overflow: hidden;
-  min-width: 280px;
+  min-width: 300px;
 }
 
 .theme-selector__header {
@@ -238,30 +236,10 @@
   }
 }
 
-// Responsive design
-@media (max-width: 768px) {
-  .theme-selector__dropdown {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90vw;
-    max-width: 400px;
-    max-height: 80vh;
-    margin: 0;
-  }
-
-  .theme-selector__options {
-    max-height: 50vh;
-  }
-}
-
-// Animation for theme transitions
 .theme-transition {
   transition: all var(--transition-normal);
 }
 
-// Dark mode specific adjustments
 .theme-dark-ocean {
   .theme-selector__dropdown {
     background: rgba(255, 255, 255, 0.1);
@@ -270,10 +248,10 @@
   }
 }
 
-// Light mode specific adjustments
 .theme-light-modern {
   .theme-selector__dropdown {
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
       0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 }

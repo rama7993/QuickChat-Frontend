@@ -1,14 +1,18 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .chat-window {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  width: 100%;
   background: var(--color-background);
   position: relative;
   overflow: hidden;
-
-  &.mobile {
-    width: 100%;
-  }
 }
 
 .chat-window__empty {
@@ -229,11 +233,24 @@
       box-shadow: var(--shadow-large);
     }
   }
+
+  &.search-btn {
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  &.video-call-btn {
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
 }
 
 .chat-window__messages {
   flex: 1;
   overflow-y: auto;
+  overflow-x: visible;
   padding: var(--spacing-md);
   &::-webkit-scrollbar {
     width: 6px;
@@ -318,12 +335,8 @@
 }
 
 .message-bubble {
-  background: linear-gradient(
-    145deg,
-    rgba(26, 36, 55, 0.95),
-    rgba(12, 18, 30, 0.95)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-medium);
   box-shadow: var(--shadow-small);
   transition: all var(--transition-normal);
@@ -484,8 +497,8 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background: rgba(15, 22, 34, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   backdrop-filter: blur(12px);
   border-radius: var(--radius-medium);
   box-shadow: var(--shadow-large);
@@ -635,11 +648,13 @@
 }
 
 .chat-window__input {
+  flex-shrink: 0;
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   padding: var(--spacing-md) var(--spacing-lg);
   position: relative;
-  z-index: 1;
+  z-index: 10;
+  width: 100%;
 }
 
 .input-container {
@@ -703,10 +718,21 @@
   line-height: var(--line-height-normal);
   resize: none;
   min-height: 1.5rem;
-  max-height: 6rem;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: var(--spacing-xs);
 
   &::placeholder {
     color: var(--color-textSecondary);
+  }
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
   }
 }
 
@@ -1064,7 +1090,6 @@
   }
 }
 
-// More Options Menu
 .more-options-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
@@ -1073,13 +1098,11 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-large);
   box-shadow: var(--shadow-large);
-  padding: 0.5rem;
   z-index: 1000;
   min-width: 220px;
   max-width: 280px;
   max-height: 80vh;
-  overflow-y: auto;
-  margin-top: 0.25rem;
+  pointer-events: auto;
 
   .option-btn {
     width: 100%;
@@ -1089,7 +1112,7 @@
     padding: 0.75rem;
     border: none;
     background: transparent;
-    color: var(--color-text);
+    color: #ffffff;
     cursor: pointer;
     border-radius: var(--radius-medium);
     transition: all var(--transition-fast);
@@ -1097,15 +1120,16 @@
     font-size: var(--font-size-sm);
 
     &:hover {
-      background: var(--color-background);
+      background: rgba(255, 255, 255, 0.1);
       color: var(--color-accent);
+      box-shadow: inset 0 0 0 1px var(--color-border);
     }
 
     &.danger {
-      color: var(--color-error);
+      color: #ff4d4d;
 
       &:hover {
-        background: var(--color-error);
+        background: #ff4d4d;
         color: white;
       }
     }
@@ -1568,7 +1592,7 @@
             border-radius: 50%;
             background: var(--color-accent);
             color: #ffffff;
-            border: 2px solid #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1580,6 +1604,7 @@
             i {
               font-size: 1rem;
               margin-left: 2px;
+              color: white !important; // Force white icon for contrast on accent
 
               &.pi-pause {
                 margin-left: 0;
@@ -1590,7 +1615,7 @@
               transform: scale(1.05);
               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
               background: var(--color-accent);
-              border-color: #ffffff;
+              filter: brightness(1.1);
             }
 
             &:active {
@@ -1598,8 +1623,8 @@
             }
 
             &.playing {
-              background: var(--color-primary);
-              animation: pulse-ring 2s infinite;
+              background: var(--color-error);
+              border-color: rgba(255, 255, 255, 0.4);
             }
           }
 

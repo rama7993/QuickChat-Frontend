@@ -130,7 +130,7 @@
             <h3>Language</h3>
             <p>Select your preferred language</p>
           </div>
-          <div class="custom-dropdown" [class.open]="languageDropdownOpen">
+          <div class="custom-dropdown" [class.open]="languageDropdownOpen()">
             <button
               class="dropdown-trigger"
               (click)="toggleLanguageDropdown()"
@@ -139,7 +139,7 @@
               <span class="dropdown-label">{{ getLanguageLabel() }}</span>
               <i class="pi pi-chevron-down dropdown-icon"></i>
             </button>
-            <div class="dropdown-panel" *ngIf="languageDropdownOpen">
+            <div class="dropdown-panel" *ngIf="languageDropdownOpen()">
               <div
                 class="dropdown-item"
                 *ngFor="let option of languageOptions"
@@ -157,7 +157,7 @@
             <h3>Timezone</h3>
             <p>Set your local timezone</p>
           </div>
-          <div class="custom-dropdown" [class.open]="timezoneDropdownOpen">
+          <div class="custom-dropdown" [class.open]="timezoneDropdownOpen()">
             <button
               class="dropdown-trigger"
               (click)="toggleTimezoneDropdown()"
@@ -166,7 +166,7 @@
               <span class="dropdown-label">{{ getTimezoneLabel() }}</span>
               <i class="pi pi-chevron-down dropdown-icon"></i>
             </button>
-            <div class="dropdown-panel" *ngIf="timezoneDropdownOpen">
+            <div class="dropdown-panel" *ngIf="timezoneDropdownOpen()">
               <div
                 class="dropdown-item"
                 *ngFor="let option of timezoneOptions"
@@ -184,7 +184,7 @@
             <h3>Font Size</h3>
             <p>Adjust the text size for better readability</p>
           </div>
-          <div class="custom-dropdown" [class.open]="fontSizeDropdownOpen">
+          <div class="custom-dropdown" [class.open]="fontSizeDropdownOpen()">
             <button
               class="dropdown-trigger"
               (click)="toggleFontSizeDropdown()"
@@ -193,7 +193,7 @@
               <span class="dropdown-label">{{ getFontSizeLabel() }}</span>
               <i class="pi pi-chevron-down dropdown-icon"></i>
             </button>
-            <div class="dropdown-panel" *ngIf="fontSizeDropdownOpen">
+            <div class="dropdown-panel" *ngIf="fontSizeDropdownOpen()">
               <div
                 class="dropdown-item"
                 *ngFor="let option of fontSizeOptions"

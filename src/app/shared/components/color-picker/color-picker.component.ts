@@ -5,6 +5,8 @@ import {
   Input,
   Output,
   EventEmitter,
+  OnInit,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +24,7 @@ export interface ColorPreset {
   templateUrl: './color-picker.component.html',
   styleUrl: './color-picker.component.scss',
 })
-export class ColorPickerComponent {
+export class ColorPickerComponent implements OnInit {
   private themeService = inject(ThemeService);
 
   @Input() type: 'primary' | 'surface' = 'primary';
@@ -33,29 +35,27 @@ export class ColorPickerComponent {
   public customColor = signal('#a855f7');
   public showCustomPicker = signal(false);
 
-  // Color presets similar to PrimeNG
   public colorPresets: ColorPreset[] = [
     {
       name: 'Primary Colors',
       colors: [
-        '#6366f1', // Indigo
-        '#8b5cf6', // Violet
-        '#a855f7', // Purple
-        '#d946ef', // Fuchsia
-        '#ec4899', // Pink
-        '#f43f5e', // Rose
-        '#ef4444', // Red
-        '#f97316', // Orange
-        '#f59e0b', // Amber
-        '#eab308', // Yellow
-        '#84cc16', // Lime
-        '#22c55e', // Green
-        '#10b981', // Emerald
-        '#14b8a6', // Teal
-        '#06b6d4', // Cyan
-        '#0ea5e9', // Sky
-        '#3b82f6', // Blue
-        '#6366f1', // Indigo
+        '#6366f1',
+        '#8b5cf6',
+        '#a855f7',
+        '#d946ef',
+        '#ec4899',
+        '#f43f5e',
+        '#ef4444',
+        '#f97316',
+        '#f59e0b',
+        '#eab308',
+        '#84cc16',
+        '#22c55e',
+        '#10b981',
+        '#14b8a6',
+        '#06b6d4',
+        '#0ea5e9',
+        '#3b82f6',
       ],
     },
   ];
@@ -64,29 +64,31 @@ export class ColorPickerComponent {
     {
       name: 'Surface Colors',
       colors: [
-        '#0f172a', // Slate 900
-        '#1e293b', // Slate 800
-        '#334155', // Slate 700
-        '#475569', // Slate 600
-        '#64748b', // Slate 500
-        '#94a3b8', // Slate 400
-        '#cbd5e1', // Slate 300
-        '#e2e8f0', // Slate 200
-        '#f1f5f9', // Slate 100
+        '#0f172a',
+        '#1e293b',
+        '#334155',
+        '#475569',
+        '#64748b',
+        '#94a3b8',
+        '#cbd5e1',
+        '#e2e8f0',
+        '#f1f5f9',
       ],
     },
   ];
 
-  ngOnInit() {
-    // Initialize with current theme color
-    if (this.type === 'primary') {
-      this.selectedColor.set(this.themeService.primaryColor());
-      this.customColor.set(this.themeService.primaryColor());
-    } else {
-      this.selectedColor.set(this.themeService.surfaceColor());
-      this.customColor.set(this.themeService.surfaceColor());
-    }
+  constructor() {
+    effect(() => {
+      const color =
+        this.type === 'primary'
+          ? this.themeService.accentColor()
+          : this.themeService.surfaceColor();
+      this.selectedColor.set(color);
+      this.customColor.set(color);
+    });
   }
+
+  ngOnInit() {}
 
   selectPresetColor(color: string) {
     this.selectedColor.set(color);
@@ -128,6 +130,6 @@ export class ColorPickerComponent {
   }
 
   isColorSelected(color: string): boolean {
-    return this.selectedColor() === color;
+    return this.selectedColor().toLowerCase() === color.toLowerCase();
   }
 }

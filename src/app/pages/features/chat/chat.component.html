@@ -1,8 +1,8 @@
-<div class="chat-container" [ngClass]="{ mobile: isMobile }">
+<div class="chat-container" [ngClass]="{ mobile: isMobile() }">
   <!-- Chat Sidebar -->
   <div
     class="chat-sidebar-container"
-    [ngClass]="{ show: showSidebar || !isMobile }"
+    [ngClass]="{ show: showSidebar() || !isMobile() }"
   >
     <app-chat-sidebar (chatSelected)="onChatSelected()"></app-chat-sidebar>
   </div>
@@ -10,10 +10,10 @@
   <!-- Chat Window -->
   <div
     class="chat-window-container"
-    [ngClass]="{ show: !showSidebar || !isMobile }"
+    [ngClass]="{ show: !showSidebar() || !isMobile() }"
   >
     <app-chat-window
-      [showBackButton]="isMobile"
+      [showBackButton]="isMobile()"
       (backClicked)="onBackClicked()"
     ></app-chat-window>
   </div>

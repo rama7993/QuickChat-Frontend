@@ -10,14 +10,13 @@ import {
   AfterViewInit,
   HostListener,
   ChangeDetectorRef,
-  Input,
-  Output,
-  EventEmitter,
+  input,
+  output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { ChatService } from '../../../../../core/services/chat/chat.service';
 import { GroupService } from '../../../../../core/services/group/group.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
@@ -103,8 +102,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   public currentUser = this.authService.currentUser;
   public defaultAvatar = Default_Img_Url;
 
-  @Input() public showBackButton: boolean = false;
-  @Output() public backClicked: EventEmitter<void> = new EventEmitter<void>();
+  public showBackButton = input(false);
+  public backClicked = output<void>();
 
   public messages = signal<Message[]>([]);
   public typingUsers = signal<any[]>([]);
@@ -182,7 +181,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public isGroupChat = computed(() => !!this.selectedGroup());
   public canSendMessage = computed(
-    () => this.messageText().trim().length > 0 && !this.isSending()
+    () => this.messageText().trim().length > 0 && !this.isSending(),
   );
 
   ngOnInit() {
@@ -199,7 +198,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     if (this.activeRoomId) {
-      this.socketService.leaveRoom(this.activeRoomId);
+      this.socketService.leaveRoom(
+        this.activeRoomId,
+        this.isGroupChat() ? 'group' : 'private',
+      );
     }
     if (this.typingTimeout) {
       clearTimeout(this.typingTimeout);
@@ -216,27 +218,43 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private initializeRealTimeSubscriptions() {
-    // Subscribe to real-time messages
     this.messageSubscription = this.chatService.messages$.subscribe(
       (messages) => {
         this.messages.set(messages);
         this.updateGroupedMessages();
         this.scrollToBottom();
-      }
+      },
     );
 
-    // Subscribe to typing indicators
+
     this.typingSubscription = this.chatService.typingUsers$.subscribe(
       (typingUsers) => {
         this.typingUsers.set(typingUsers);
-      }
+      },
     );
 
-    // Subscribe to socket connection status
     this.connectionSubscription =
       this.socketService.connectionStatus$.subscribe((isConnected) => {
         this.isSocketConnected.set(isConnected);
       });
+
+    const onlineUsersSub = this.socketService.onlineUsers$.subscribe(
+      (onlineUsers) => {
+        const selected = this.selectedUser();
+        if (selected) {
+          const isOnline = onlineUsers.some((u) => u.userId === selected._id);
+          const newStatus = isOnline ? 'online' : 'offline';
+          if (selected.status !== newStatus) {
+            this.selectedUser.set({
+              ...selected,
+              status: newStatus,
+            });
+            this.cdr.markForCheck();
+          }
+        }
+      },
+    );
+    this.subscriptions.push(onlineUsersSub);
   }
 
   private setupRouteParams() {
@@ -250,7 +268,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setupSocketListeners() {
-    // Listen for typing indicators
     const typingSub = this.socketService.typing$.subscribe(
       (typingData: any) => {
         if (
@@ -263,48 +280,50 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
             clearTimeout(this.typingTimeout);
             this.typingTimeout = setTimeout(
               () => this.isTyping.set(false),
-              3000
+              3000,
             );
           }
         }
-      }
+      },
     );
 
     this.subscriptions.push(typingSub);
   }
 
   private async loadUserChat(userId: string) {
+    if (this.selectedUser()?._id === userId && this.messages().length > 0) {
+      return;
+    }
+
     this.isLoading.set(true);
     try {
-      // Only clear messages if switching to a different chat
-      const currentUserId = this.selectedUser()?._id;
-      if (currentUserId !== userId) {
-        this.chatService.clearMessages();
-      }
-
-      if (this.activeRoomId) {
-        this.chatService.leaveChat(this.activeRoomId);
-      }
-
-      // Load user details
-      const users = await this.chatService.getUsers().toPromise();
+      const users = await firstValueFrom(this.chatService.getUsers());
       const user = users?.find((u) => u._id === userId);
+
       if (!user) {
-        this.router.navigate(['/chat']);
+        this.logger.error('User not found');
         return;
       }
 
       this.selectedUser.set(user);
       this.selectedGroup.set(null);
-      this.activeRoomId = this.generateRoomId(this.currentUser()!._id, userId);
 
-      // Join chat room for real-time communication
-      this.chatService.joinChat(this.activeRoomId, 'private');
+      if (this.activeRoomId) {
+        this.chatService.leaveChat(
+          this.activeRoomId,
+          this.isGroupChat() ? 'group' : 'private',
+        );
+      }
+
+      this.activeRoomId = userId;
+      this.chatService.joinChat(userId, 'private');
+
+      this.chatService.clearMessages();
 
       // Load messages
-      const messages = await this.chatService
-        .getPrivateMessages(userId)
-        .toPromise();
+      const messages = await firstValueFrom(
+        this.chatService.getPrivateMessages(userId),
+      );
       this.messages.set(messages || []);
       this.chatService.setMessages(messages || []);
       this.updateGroupedMessages();
@@ -316,38 +335,43 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private async loadGroupChat(groupId: string) {
+    if (this.selectedGroup()?._id === groupId && this.messages().length > 0) {
+      return;
+    }
+
     this.isLoading.set(true);
     try {
-      // Only clear messages if switching to a different chat
-      const currentGroupId = this.selectedGroup()?._id;
-      if (currentGroupId !== groupId) {
-        this.chatService.clearMessages();
-      }
+      // Find group (assuming we have a way to get groups or it's in the state)
+      // For now, we'll try to find it in the group service cache if possible
+      // But simpler is to just fetch it or wait for the groups to load in sidebar
+      // Let's just fetch it for now if needed, or assume it will be set by the sidebar or group service
+      // Actually, we should probably have a getGroupById method
+      const groups = await firstValueFrom(this.groupService.getMyGroups());
+      const group = groups?.find((g: any) => g._id === groupId);
 
-      if (this.activeRoomId) {
-        this.chatService.leaveChat(this.activeRoomId);
-      }
-
-      // Load group details
-      const group = await this.groupService
-        .getGroupDetails(groupId)
-        .toPromise();
       if (!group) {
-        this.router.navigate(['/chat']);
+        this.logger.error('Group not found');
         return;
       }
 
       this.selectedGroup.set(group);
       this.selectedUser.set(null);
-      this.activeRoomId = `group_${groupId}`;
 
-      // Join chat room for real-time communication
-      this.chatService.joinChat(this.activeRoomId, 'group');
+      if (this.activeRoomId) {
+        this.chatService.leaveChat(
+          this.activeRoomId,
+          this.selectedGroup() ? 'group' : 'private',
+        );
+      }
+      this.activeRoomId = groupId;
+      this.chatService.joinChat(groupId, 'group');
+
+      this.chatService.clearMessages();
 
       // Load messages
-      const messages = await this.chatService
-        .getGroupMessages(groupId)
-        .toPromise();
+      const messages = await firstValueFrom(
+        this.chatService.getGroupMessages(groupId),
+      );
       this.messages.set(messages || []);
       this.chatService.setMessages(messages || []);
       this.updateGroupedMessages();
@@ -358,7 +382,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // Edit state
   public editingMessage = signal<Message | null>(null);
 
   startEditing(message: Message) {
@@ -369,10 +392,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showFileUpload.set(false);
     this.showVoiceRecording.set(false);
 
-    // Focus input after a tick
     setTimeout(() => {
       if (this.messageInput && this.messageInput.nativeElement) {
         this.messageInput.nativeElement.focus();
+        this.adjustTextareaHeight();
       }
     });
   }
@@ -380,6 +403,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   cancelEditing() {
     this.editingMessage.set(null);
     this.messageText.set('');
+    this.adjustTextareaHeight();
   }
 
   sendMessage() {
@@ -387,15 +411,14 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const content = this.messageText().trim();
 
-    // Handle Edit Mode
     if (this.editingMessage()) {
       const messageId = this.editingMessage()!._id;
       try {
         this.chatService.editMessage(messageId, content);
         this.messages.update((msgs) =>
           msgs.map((m) =>
-            m._id === messageId ? { ...m, content: content, edited: true } : m
-          )
+            m._id === messageId ? { ...m, content: content, edited: true } : m,
+          ),
         );
         this.updateGroupedMessages();
         this.cancelEditing();
@@ -405,7 +428,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Handle Normal Send
     const replyTo = this.replyToMessage()?._id;
     this.isSending.set(true);
 
@@ -414,13 +436,13 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
         this.chatService.sendGroupMessage(
           this.selectedGroup()!._id,
           content,
-          replyTo
+          replyTo,
         );
       } else {
         this.chatService.sendPrivateMessage(
           this.selectedUser()!._id,
           content,
-          replyTo
+          replyTo,
         );
       }
 
@@ -428,6 +450,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       this.replyToMessage.set(null);
       this.showEmojiPicker.set(false);
       this.stopTyping();
+      this.adjustTextareaHeight();
     } catch (error) {
       this.logger.error('Error sending message', error);
     } finally {
@@ -436,6 +459,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   handleTyping() {
+    this.adjustTextareaHeight();
     if (!this.activeRoomId || !this.currentUser()) return;
 
     const isTyping = this.messageText().length > 0;
@@ -461,7 +485,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       clearTimeout(this.typingTimeout);
     }
 
-    // Set timeout to stop typing after 3 seconds of inactivity
+
     if (isTyping) {
       this.typingTimeout = setTimeout(() => {
         this.stopTyping();
@@ -488,7 +512,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private groupMessagesByDate() {
-    // Use utility function for message grouping
+
     this.groupedMessages.set(groupMessagesByDate(this.messages()));
   }
 
@@ -497,19 +521,18 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private scrollToBottom() {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (this.messagesContainer) {
         const element = this.messagesContainer.nativeElement;
         element.scrollTop = element.scrollHeight;
       }
-    }, 100);
+    });
   }
 
   private formatLastSeen(lastSeen: Date | string): string {
     return formatMessageTime(lastSeen);
   }
 
-  // UI Methods
   toggleEmojiPicker() {
     this.showEmojiPicker.set(!this.showEmojiPicker());
     this.showFileUpload.set(false);
@@ -527,7 +550,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showEmojiPicker.set(false);
     this.showFileUpload.set(false);
 
-    // If showing voice recording, auto-start recording after a short delay
+
     if (this.showVoiceRecording()) {
       setTimeout(() => {
         if (this.voiceRecorderComponent) {
@@ -542,6 +565,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showEmojiPicker.set(false);
     if (this.messageInput && this.messageInput.nativeElement) {
       this.messageInput.nativeElement.focus();
+      this.adjustTextareaHeight();
     }
   }
 
@@ -557,7 +581,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   showMessageMenu(messageId: string) {
     this.showMessageOptions.set(
-      this.showMessageOptions() === messageId ? null : messageId
+      this.showMessageOptions() === messageId ? null : messageId,
     );
   }
 
@@ -576,6 +600,17 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.sendMessage();
+    } else {
+      // Allow general height adjustment on multiline entry
+      setTimeout(() => this.adjustTextareaHeight());
+    }
+  }
+
+  private adjustTextareaHeight() {
+    if (this.messageInput && this.messageInput.nativeElement) {
+      const textarea = this.messageInput.nativeElement;
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
     }
   }
 
@@ -599,11 +634,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/chat']);
   }
 
-  // File Upload Methods
   onFileUploaded(result: FileUploadResult) {
-    // File upload is handled by backend via socket
-    // The message is automatically created and broadcasted
-    // Just show success and close the panel
     this.alertService.successToaster('File sent successfully');
     this.showFileUpload.set(false);
   }
@@ -614,27 +645,25 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onVoiceRecordingComplete(result: VoiceRecordingResult) {
-    // Create a file from the audio blob
     const audioFile = new File([result.audioBlob], `voice-${Date.now()}.webm`, {
       type: result.audioBlob.type || 'audio/webm',
     });
 
-    // Send voice message through file upload service
+
     try {
       if (this.isGroupChat() && this.selectedGroup()) {
         this.chatService
           .uploadFile(
             audioFile,
             undefined, // receiverId
-            this.selectedGroup()!._id // groupId
+            this.selectedGroup()!._id, // groupId
           )
           .subscribe({
             next: (uploadResult) => {
               if (uploadResult.type === 'complete') {
-                // Voice message uploaded successfully
                 this.showVoiceRecording.set(false);
                 this.alertService.successToaster(
-                  'Voice message sent successfully'
+                  'Voice message sent successfully',
                 );
               }
             },
@@ -649,15 +678,14 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
           .uploadFile(
             audioFile,
             this.selectedUser()!._id, // receiverId
-            undefined // groupId
+            undefined, // groupId
           )
           .subscribe({
             next: (uploadResult) => {
               if (uploadResult.type === 'complete') {
-                // Voice message uploaded successfully
                 this.showVoiceRecording.set(false);
                 this.alertService.successToaster(
-                  'Voice message sent successfully'
+                  'Voice message sent successfully',
                 );
               }
             },
@@ -669,7 +697,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
           });
       } else {
         this.alertService.errorToaster(
-          'Please select a chat to send voice message'
+          'Please select a chat to send voice message',
         );
         this.showVoiceRecording.set(false);
       }
@@ -693,7 +721,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   async startVideoCall() {
     if (!this.selectedUser() && !this.selectedGroup()) {
       this.alertService.errorToaster(
-        'Please select a chat to start video call'
+        'Please select a chat to start video call',
       );
       return;
     }
@@ -729,13 +757,12 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Additional UI Methods
   searchMessages() {
-    // Show search overlay
     this.showMessageSearch.set(true);
   }
 
   showMoreOptions() {
     this.showMessageOptions.set(
-      this.showMessageOptions() ? null : 'chat-options'
+      this.showMessageOptions() ? null : 'chat-options',
     );
   }
 
@@ -748,7 +775,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const results = this.messages().filter((message) =>
-      message.content.toLowerCase().includes(query)
+      message.content.toLowerCase().includes(query),
     );
     this.searchResults.set(results);
   }
@@ -760,13 +787,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   jumpToMessage(message: Message) {
-    // Find the message in the current messages and scroll to it
     const messageElement = document.querySelector(
-      `[data-message-id="${message._id}"]`
+      `[data-message-id="${message._id}"]`,
     );
     if (messageElement) {
       messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Highlight the message temporarily
       messageElement.classList.add('search-highlight');
       setTimeout(() => {
         messageElement.classList.remove('search-highlight');
@@ -832,7 +857,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    // Close more options menu when clicking outside
     const target = event.target as HTMLElement;
     if (
       !target.closest('.more-options-menu') &&
@@ -853,7 +877,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   viewGroupMembers() {
     if (this.selectedGroup()) {
-      // Show group members modal
       this.showGroupInfo.set(true);
       this.closeMoreOptions();
     }
@@ -905,7 +928,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   exportChat() {
-    // Export chat messages as file
     const messages = this.messages();
     if (messages.length === 0) {
       this.alertService.warningToaster('No messages to export');
@@ -953,7 +975,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.chatService.deleteConversation(userId, groupId).subscribe({
           next: () => {
-            // Clear local state
             this.messages.set([]);
             this.groupedMessages.set([]);
             this.selectedUser.set(null);
@@ -964,8 +985,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
             this.router.navigate(['/chat']);
             this.closeMoreOptions();
 
-            // Trigger sidebar refresh by reloading data
-            // The sidebar will refresh when navigating back to /chat
             setTimeout(() => {
               window.location.reload();
             }, 100);
@@ -973,7 +992,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
           error: (error) => {
             this.logger.error('Error deleting chat:', error);
             this.alertService.errorToaster(
-              'Failed to delete chat. Please try again.'
+              'Failed to delete chat. Please try again.',
             );
           },
         });
@@ -1010,12 +1029,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   handleImageError(event: any) {
-    // If it's a local URL, try to construct the full URL
     if (event.target.src.startsWith('/uploads/')) {
       const fullUrl = `${window.location.origin}${event.target.src}`;
       event.target.src = fullUrl;
     } else {
-      // Hide the image if it still fails
       event.target.style.display = 'none';
     }
   }
@@ -1023,12 +1040,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   toggleAudioPlayback(audioUrl: string) {
     if (!this.audioElements.has(audioUrl)) {
       const audio = new Audio(audioUrl);
-      // Update progress and time on timeupdate
       audio.addEventListener('timeupdate', () => {
         const progress = (audio.currentTime / audio.duration) * 100;
         this.audioProgress.set(audioUrl, progress);
         this.audioCurrentTime.set(audioUrl, audio.currentTime);
-        // Trigger change detection for reactive updates
         if (!(this.cdr as any).destroyed) {
           this.cdr.markForCheck();
         }
@@ -1051,7 +1066,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const audio = this.audioElements.get(audioUrl)!;
     if (audio.paused) {
-      // Pause all other audio elements
       this.audioElements.forEach((a, url) => {
         if (url !== audioUrl && !a.paused) {
           a.pause();
@@ -1090,32 +1104,43 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     return getFileType(mimeType) === 'image'
       ? 'pi-image'
       : getFileType(mimeType) === 'video'
-      ? 'pi-video'
-      : getFileType(mimeType) === 'audio'
-      ? 'pi-volume-up'
-      : mimeType.includes('pdf')
-      ? 'pi-file-pdf'
-      : mimeType.includes('word')
-      ? 'pi-file-word'
-      : mimeType.includes('excel') || mimeType.includes('spreadsheet')
-      ? 'pi-file-excel'
-      : mimeType.includes('powerpoint') || mimeType.includes('presentation')
-      ? 'pi-file-powerpoint'
-      : mimeType.includes('zip') || mimeType.includes('rar')
-      ? 'pi-file-archive'
-      : 'pi-file';
+        ? 'pi-video'
+        : getFileType(mimeType) === 'audio'
+          ? 'pi-volume-up'
+          : mimeType.includes('pdf')
+            ? 'pi-file-pdf'
+            : mimeType.includes('word')
+              ? 'pi-file-word'
+              : mimeType.includes('excel') || mimeType.includes('spreadsheet')
+                ? 'pi-file-excel'
+                : mimeType.includes('powerpoint') ||
+                    mimeType.includes('presentation')
+                  ? 'pi-file-powerpoint'
+                  : mimeType.includes('zip') || mimeType.includes('rar')
+                    ? 'pi-file-archive'
+                    : 'pi-file';
   }
 
-  // Use utility functions
+
   public formatFileSize = formatFileSize;
   public formatDuration = formatDuration;
 
   downloadFile(url: string, filename: string) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    fetch(url)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      })
+      .catch(() => {
+        // Fallback: open in new tab if fetch fails (e.g. CORS)
+        window.open(url, '_blank');
+      });
   }
 }

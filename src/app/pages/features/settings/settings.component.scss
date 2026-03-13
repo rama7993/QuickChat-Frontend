@@ -380,7 +380,7 @@
 }
 
 .btn {
-  padding: var(--spacing-md) var(--spacing-xl);
+  padding: 0.625rem 1.5rem;
   border-radius: var(--radius-medium);
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-base);
@@ -539,8 +539,13 @@
     box-shadow: var(--shadow-large);
     z-index: 1000;
     margin-top: 4px;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: 250px;
     animation: dropdownFadeIn 0.2s ease;
+
+    @media (max-width: 768px) {
+      max-height: 200px;
+    }
 
     .dropdown-item {
       color: var(--color-text);

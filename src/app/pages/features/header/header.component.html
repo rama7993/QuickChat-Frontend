@@ -70,68 +70,68 @@
 
     <!-- Enhanced User Menu -->
     @if (showUserMenu) {
-    <div class="user-menu">
-      <div class="user-menu-header">
-        <div class="user-info">
-          <p-avatar
-            [image]="currentUser()?.photoUrl || defaultAvatar"
-            [label]="currentUser()?.firstName?.charAt(0)"
-            size="large"
-            shape="circle"
-          >
-          </p-avatar>
-          <div class="user-details">
-            <h4>
-              {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}
-            </h4>
-            <p>{{ currentUser()?.email }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="user-menu-content">
-        <ul>
-          <li (click)="navTo('/profile')">
-            <i class="pi pi-user"></i>
-            <span>Profile</span>
-          </li>
-          <li (click)="navTo('/chat')">
-            <i class="pi pi-comment"></i>
-            <span>Chat</span>
-          </li>
-          <li (click)="navTo('/settings')">
-            <i class="pi pi-cog"></i>
-            <span>Settings</span>
-          </li>
-        </ul>
-
-        <div class="theme-section">
-          <h5>Theme</h5>
-          <app-theme-selector></app-theme-selector>
-        </div>
-
-        <div class="navigation-section">
-          <h5>Quick Actions</h5>
-          <div class="nav-links">
-            <button class="nav-link" (click)="navTo('/groups')">
-              <i class="pi pi-users"></i>
-              Groups
-            </button>
-            <button class="nav-link" (click)="navTo('/create-group')">
-              <i class="pi pi-plus"></i>
-              Create Group
-            </button>
+      <div class="user-menu">
+        <div class="user-menu-header">
+          <div class="user-info">
+            <p-avatar
+              [image]="currentUser()?.photoUrl || defaultAvatar"
+              [label]="currentUser()?.firstName?.charAt(0)"
+              size="large"
+              shape="circle"
+            >
+            </p-avatar>
+            <div class="user-details">
+              <h4>
+                {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}
+              </h4>
+              <p>{{ currentUser()?.email }}</p>
+            </div>
           </div>
         </div>
 
-        <div class="user-menu-footer">
-          <button class="logout-btn" (click)="logout()">
-            <i class="pi pi-sign-out"></i>
-            <span>Logout</span>
-          </button>
+        <div class="user-menu-content">
+          <ul>
+            <li (click)="navTo('/profile')">
+              <i class="pi pi-user"></i>
+              <span>Profile</span>
+            </li>
+            <li (click)="navTo('/chat')">
+              <i class="pi pi-comment"></i>
+              <span>Chat</span>
+            </li>
+            <li (click)="navTo('/settings')">
+              <i class="pi pi-cog"></i>
+              <span>Settings</span>
+            </li>
+          </ul>
+
+          <div class="theme-section">
+            <h5>Theme</h5>
+            <app-theme-selector />
+          </div>
+
+          <div class="navigation-section">
+            <h5>Quick Actions</h5>
+            <div class="nav-links">
+              <button class="nav-link" (click)="navTo('/groups')">
+                <i class="pi pi-users"></i>
+                Groups
+              </button>
+              <button class="nav-link" (click)="navTo('/create-group')">
+                <i class="pi pi-plus"></i>
+                Create Group
+              </button>
+            </div>
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="logout-btn" (click)="logout()">
+              <i class="pi pi-sign-out"></i>
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     }
   </div>
 </div>
