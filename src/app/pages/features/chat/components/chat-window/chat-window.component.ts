@@ -144,7 +144,9 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   public showGroupInfo = signal(false);
   public showUserProfile = signal(false);
   public showMessageOptions = signal<string | null>(null);
-  public isMuted = signal(false);
+  public isMuted = signal<boolean>(false);
+  public aiReplies = signal<string[]>([]);
+  public isAiLoading = signal<boolean>(false);
 
   private subscriptions: Subscription[] = [];
   private typingTimeout: any;
@@ -220,12 +222,19 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   private initializeRealTimeSubscriptions() {
     this.messageSubscription = this.chatService.messages$.subscribe(
       (messages) => {
+        const prevCount = this.messages().length;
         this.messages.set(messages);
         this.updateGroupedMessages();
         this.scrollToBottom();
+
+        if (messages.length > prevCount) {
+          const lastMsg = messages[messages.length - 1];
+          if (lastMsg.sender?._id !== this.currentUser()?._id) {
+            this.fetchAiReplies();
+          }
+        }
       },
     );
-
 
     this.typingSubscription = this.chatService.typingUsers$.subscribe(
       (typingUsers) => {
@@ -307,6 +316,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
       this.selectedUser.set(user);
       this.selectedGroup.set(null);
+      this.messageText.set('');
 
       if (this.activeRoomId) {
         this.chatService.leaveChat(
@@ -327,6 +337,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       this.messages.set(messages || []);
       this.chatService.setMessages(messages || []);
       this.updateGroupedMessages();
+      this.fetchAiReplies();
     } catch (error) {
       this.logger.error('Error loading user chat', error);
     } finally {
@@ -341,11 +352,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.isLoading.set(true);
     try {
-      // Find group (assuming we have a way to get groups or it's in the state)
-      // For now, we'll try to find it in the group service cache if possible
-      // But simpler is to just fetch it or wait for the groups to load in sidebar
-      // Let's just fetch it for now if needed, or assume it will be set by the sidebar or group service
-      // Actually, we should probably have a getGroupById method
       const groups = await firstValueFrom(this.groupService.getMyGroups());
       const group = groups?.find((g: any) => g._id === groupId);
 
@@ -356,6 +362,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
       this.selectedGroup.set(group);
       this.selectedUser.set(null);
+      this.messageText.set('');
 
       if (this.activeRoomId) {
         this.chatService.leaveChat(
@@ -375,6 +382,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       this.messages.set(messages || []);
       this.chatService.setMessages(messages || []);
       this.updateGroupedMessages();
+      this.fetchAiReplies();
     } catch (error) {
       this.logger.error('Error loading group chat', error);
     } finally {
@@ -485,7 +493,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
       clearTimeout(this.typingTimeout);
     }
 
-
     if (isTyping) {
       this.typingTimeout = setTimeout(() => {
         this.stopTyping();
@@ -512,7 +519,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private groupMessagesByDate() {
-
     this.groupedMessages.set(groupMessagesByDate(this.messages()));
   }
 
@@ -549,7 +555,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showVoiceRecording.set(!this.showVoiceRecording());
     this.showEmojiPicker.set(false);
     this.showFileUpload.set(false);
-
 
     if (this.showVoiceRecording()) {
       setTimeout(() => {
@@ -648,7 +653,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     const audioFile = new File([result.audioBlob], `voice-${Date.now()}.webm`, {
       type: result.audioBlob.type || 'audio/webm',
     });
-
 
     try {
       if (this.isGroupChat() && this.selectedGroup()) {
@@ -764,6 +768,34 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showMessageOptions.set(
       this.showMessageOptions() ? null : 'chat-options',
     );
+  }
+
+  // AI Smart Replies
+  fetchAiReplies() {
+    const conversationId = this.isGroupChat()
+      ? this.selectedGroup()?._id
+      : this.selectedUser()?._id;
+    if (!conversationId) return;
+
+    this.isAiLoading.set(true);
+    this.chatService
+      .getSmartReplies(conversationId, this.isGroupChat() ? 'group' : 'private')
+      .subscribe({
+        next: (res) => {
+          this.aiReplies.set(res.replies);
+          this.isAiLoading.set(false);
+        },
+        error: () => {
+          this.isAiLoading.set(false);
+          this.aiReplies.set([]);
+        },
+      });
+  }
+
+  useAiReply(reply: string) {
+    this.messageText.set(reply);
+    this.aiReplies.set([]);
+    setTimeout(() => this.sendMessage(), 100);
   }
 
   // Message Search Methods
@@ -1120,7 +1152,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, AfterViewInit {
                     ? 'pi-file-archive'
                     : 'pi-file';
   }
-
 
   public formatFileSize = formatFileSize;
   public formatDuration = formatDuration;

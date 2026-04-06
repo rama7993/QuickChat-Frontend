@@ -5,6 +5,7 @@ A modern real-time chat application frontend built with Angular 19, featuring a 
 ## Features
 
 - **Real-time messaging** via Socket.IO
+- **AI Smart Replies**: Context-aware quick reply suggestions utilizing Gemini AI
 - **User authentication** with JWT tokens
 - **Private and group chats**
 - **Typing indicators**
@@ -221,6 +222,17 @@ Voice messages are recorded using the Web Audio API:
 - Real-time recording with visual feedback
 - Automatic upload after recording
 - Support for multiple audio formats
+
+## AI Features Scope (Future Roadmap)
+
+We are exploring the following AI integrations to enhance the chat experience:
+- **Message Tone & Grammar Adjuster**: Rewrite drafts to sound professional, friendly, or fix grammar.
+- **Auto-Summarize Uploaded Documents**: Automatically read and summarize uploaded PDF/text files in the chat.
+- **@AI Assistant Bot**: A summonable system bot to answer questions and summarize history directly in group chats.
+- **Real-time Translation**: Break language barriers with automatic message translation.
+- **Chat Summarization**: Catch up quickly with AI-generated summaries of long conversations.
+- **Smart Response Generation**: Advanced AI drafting for longer, standard replies.
+- **Voice-to-Text**: Automatic transcription of voice messages.
 
 ## Testing
 

@@ -650,8 +650,24 @@
       </div>
     }
 
-    <!-- Message Input -->
     <div class="chat-window__input">
+      <!-- AI Smart Suggestions -->
+      @if (aiReplies().length > 0) {
+        <div class="ai-suggestions">
+          <span class="ai-label"><i class="pi pi-sparkles"></i> AI Suggested:</span>
+          <div class="ai-chips">
+            @for (reply of aiReplies(); track reply) {
+              <button class="ai-chip" (click)="useAiReply(reply)">
+                {{ reply }}
+              </button>
+            }
+            <button class="ai-chip close" (click)="aiReplies.set([])">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </div>
+      }
+      
       <div class="input-container">
         <!-- Message Input -->
         <div class="message-input-wrapper">

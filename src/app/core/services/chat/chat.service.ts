@@ -487,4 +487,10 @@ export class ChatService {
       messages: grouped[date],
     }));
   }
+
+  getSmartReplies(conversationId: string, type: 'private' | 'group'): Observable<{ replies: string[] }> {
+    return this.http.get<{ replies: string[] }>(`${this.apiUrl}/ai/smart-replies/${conversationId}`, {
+      params: { type }
+    });
+  }
 }
